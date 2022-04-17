@@ -132,4 +132,4 @@ dmypy.json
 *__init__.py
 _build*
 sources*
-*.ico
+thumbnail.png

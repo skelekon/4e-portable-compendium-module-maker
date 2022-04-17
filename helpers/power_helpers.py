@@ -381,7 +381,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
             # Grab the Published line without external links, in class-less p tag
             published_in = parsed_html.find('p', class_='publishedIn')
-            pub_soup = BeautifulSoup(str(published_in), features="html.parser")
+            pub_soup = BeautifulSoup(str(published_in), features='html.parser')
             pub_soup.p.wrap(pub_soup.new_tag('p'))
             pub_soup.p.p.replace_with(pub_soup.p.p.text)
             description.append(str(pub_soup))
