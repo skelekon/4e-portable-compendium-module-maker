@@ -281,107 +281,157 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
             prefix_id = 1
             prefix_str = 'Powers'
 
-        # Source
-        source_str = parsed_html.find('span', class_='level').text
 
-        # Flavor
-        if flavor_tag := parsed_html.select_one('.flavor > i'):
-            flavor_str = flavor_tag.text
-
-
-        # Powerstat class
-        powerstat_lbl = parsed_html.find('p', class_='powerstat')
-        # Action
-        powerstat_br = powerstat_lbl.find('br')
-        action_tag = powerstat_br.find_next_sibling('b')
-        action_str = action_tag.text
-
-        # Range
-        range_tag = action_tag.find_next_sibling('b')
-        if range_tag:
-            range_next = range_tag.next_sibling
-            range_str = range_tag.text + range_next.text if range_next else range_tag.text
-
-        # Keywords
-        keywords = []
-        power_bullet = powerstat_lbl.find('img', attrs={'src': 'images/bullet.gif'})
-        if power_bullet:
-            for tag in power_bullet.next_siblings:
-                if tag.name == "br":
-                    break
-                elif tag.name == "b":
-                    keywords.append(tag.text)
-        keywords_str = ", ".join(keywords)
+        # Get these before we start destroying the html for Monk powers
 
         # Published In
         published_tag = parsed_html.find(class_='publishedIn').extract()
 
-        # Description
-        if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
-            for tag in description_tags:
-                if anchor_tag := tag.find('p', class_='publishedIn'):
-                    anchor_tag.decompose()
-            # remove p classnames
-            for tag in description_tags:
-                del tag['class']
-            description_str = ''.join(map(str, description_tags))
 
-        # Short Description
-        # remove b tags
-        shortdescription_str = re.sub('(</?b>)+', '', description_str)
-        # replace p with \n
-        shortdescription_str = re.sub('(</?p>)+', '\n', shortdescription_str).strip()
+        # Source
+        source_str = parsed_html.find('span', class_='level').text
 
+        # Monk Fulll Discipline
+        # make two separate html soup objects and then process them both
+        multi_power = []
+        if re.search(r'(Attack Technique)', name_str):
 
-        # Published In
-        if published_tag:
-            # remove p classnames
-            del published_tag['class']
-            # remove the a tag
-            if anchor_tag := published_tag.find('a'):
-                anchor_tag.replaceWithChildren()
-            published_str = '\\n' + str(published_tag)
+            parsed_copy = copy.copy(parsed_html)
 
-        # Group - this is the subheading on the Powers table
-        if level_str == '0':
-            group_str = recharge_str + ' Features'
+            # Attack Technique
+            power_all = parsed_html.find('div', id='detail')
+            att_flag = False
+            move_flag = False
+            for tag in power_all.find_all():
+                if tag.has_attr('class'):
+                    if tag['class'][0] == 'publishedIn':
+                        break
+                    if tag['class'][0] in ['atwillpower', 'encounterpower'] and att_flag == True:
+                        move_flag = True
+                    elif tag['class'][0] in ['atwillpower', 'encounterpower']:
+                        att_flag = True
+                if move_flag == True:
+                    dev_nul = tag.extract()
+            multi_power.append(parsed_html)
+
+            # Movement Technique
+            power_all = parsed_copy.find('div', id='detail')
+            att_flag = False
+            move_flag = False
+            for tag in power_all.find_all():#'span', 'h1', 'p'):
+                if tag.has_attr('class'):
+                    if tag['class'][0] == 'publishedIn':
+                        break
+                    if tag['class'][0] in ['atwillpower', 'encounterpower'] and att_flag == True:
+                        move_flag = True
+                    elif tag['class'][0] in ['atwillpower', 'encounterpower']:
+                        att_flag = True
+                if att_flag == True and move_flag == False:
+                    dev_nul = tag.extract()
+            multi_power.append(parsed_copy)
+
         else:
-            group_str = 'Level ' + level_str + ' ' + recharge_str 
+            multi_power.append(parsed_html)
 
-        # Group ID - this is in the correct sort order according to the Group, by Level then Recharge
-        if recharge_str == 'At-Will':
-            recharge_id = '1at'
-        elif recharge_str == 'Encounter':
-            recharge_id = '2en'
-        elif recharge_str == 'Daily':
-            recharge_id = '3da'
-        elif recharge_str == 'Utility':
-            recharge_id = '4ut'
-        else:
-            recharge_id = '5zz'
-        # concatenate padded level and recharge id
-        group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
+        for j, power_html in enumerate(multi_power, start=1):
 
-        export_dict = {}
-        export_dict["action"] = action_str
-        export_dict["class"] = class_str
-        export_dict["description"] = description_str + published_str
-        export_dict["flavor"] = flavor_str
-        export_dict["group"] = group_str
-        export_dict["group_id"] = group_id
-        export_dict["keywords"] = keywords_str
-        export_dict["level"] = level_str
-        export_dict["name"] = name_str
-        export_dict["prefix"] = prefix_str
-        export_dict["prefix_id"] = prefix_id
-        export_dict["published"] = published_str
-        export_dict["range"] = range_str
-        export_dict["recharge"] = recharge_str
-        export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
-        export_dict["source"] = source_str
+            if j == 2:
+                name_str = name_str.replace('Attack Technique', 'Movement Technique')
 
-        # Append a copy of generated item dictionary
-        power_out.append(copy.deepcopy(export_dict))
+            # Flavor
+            if flavor_tag := power_html.select_one('.flavor > i'):
+                flavor_str = flavor_tag.text
+
+            # Powerstat class
+            powerstat_lbl = power_html.find('p', class_='powerstat')
+            # Action
+            powerstat_br = powerstat_lbl.find('br')
+            action_tag = powerstat_br.find_next_sibling('b')
+            action_str = action_tag.text
+
+            # Range
+            range_tag = action_tag.find_next_sibling('b')
+            if range_tag:
+                range_next = range_tag.next_sibling
+                range_str = range_tag.text + range_next.text if range_next else range_tag.text
+
+            # Keywords
+            keywords = []
+            power_bullet = powerstat_lbl.find('img', attrs={'src': 'images/bullet.gif'})
+            if power_bullet:
+                for tag in power_bullet.next_siblings:
+                    if tag.name == "br":
+                        break
+                    elif tag.name == "b":
+                        keywords.append(tag.text)
+            keywords_str = ", ".join(keywords)
+
+            # Description
+            if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
+                for tag in description_tags:
+                    if anchor_tag := tag.find('p', class_='publishedIn'):
+                        anchor_tag.decompose()
+                # remove p classnames
+                for tag in description_tags:
+                    del tag['class']
+                description_str = ''.join(map(str, description_tags))
+
+            # Short Description
+            # remove b tags
+            shortdescription_str = re.sub('(</?b>)+', '', description_str)
+            # replace p with \n
+            shortdescription_str = re.sub('(</?p>)+', '\n', shortdescription_str).strip()
+
+
+            # Published In
+            if published_tag:
+                # remove p classnames
+                del published_tag['class']
+                # remove the a tag
+                if anchor_tag := published_tag.find('a'):
+                    anchor_tag.replaceWithChildren()
+                published_str = '\\n' + str(published_tag)
+
+            # Group - this is the subheading on the Powers table
+            if level_str == '0':
+                group_str = recharge_str + ' Features'
+            else:
+                group_str = 'Level ' + level_str + ' ' + recharge_str 
+
+            # Group ID - this is in the correct sort order according to the Group, by Level then Recharge
+            if recharge_str == 'At-Will':
+                recharge_id = '1at'
+            elif recharge_str == 'Encounter':
+                recharge_id = '2en'
+            elif recharge_str == 'Daily':
+                recharge_id = '3da'
+            elif recharge_str == 'Utility':
+                recharge_id = '4ut'
+            else:
+                recharge_id = '5zz'
+            # concatenate padded level and recharge id
+            group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
+
+            export_dict = {}
+            export_dict["action"] = action_str
+            export_dict["class"] = class_str
+            export_dict["description"] = description_str + published_str
+            export_dict["flavor"] = flavor_str
+            export_dict["group"] = group_str
+            export_dict["group_id"] = group_id
+            export_dict["keywords"] = keywords_str
+            export_dict["level"] = level_str
+            export_dict["name"] = name_str
+            export_dict["prefix"] = prefix_str
+            export_dict["prefix_id"] = prefix_id
+            export_dict["published"] = published_str
+            export_dict["range"] = range_str
+            export_dict["recharge"] = recharge_str
+            export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
+            export_dict["source"] = source_str
+
+            # Append a copy of generated item dictionary
+            power_out.append(copy.deepcopy(export_dict))
 
     print(str(len(db_in)) + ' entries checked.')
     print(str(len(power_out)) + ' entries exported.')
