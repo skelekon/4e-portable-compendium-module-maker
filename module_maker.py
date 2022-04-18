@@ -56,16 +56,16 @@ if __name__ == '__main__':
     argv_dict = parse_argv(sys.argv)
 
 ##    # temp settings for testing
-##    argv_dict["filename"] = '4E_Feats'
-##    argv_dict["library"] = '4E Feats'
+##    argv_dict["filename"] = '4E_Weapons'
+##    argv_dict["library"] = '4E Weapons'
 ##    argv_dict["min"] = 0
 ##    argv_dict["max"] = 10
-##    argv_dict["powers"] = False
+##    argv_dict["powers"] = True
 ##    argv_dict["feats"] = True
 ##    argv_dict["tiers"] = False
-##    argv_dict["armor"] = False
-##    argv_dict["equipment"] = False
-##    argv_dict["weapons"] = False
+##    argv_dict["armor"] = True
+##    argv_dict["equipment"] = True
+##    argv_dict["weapons"] = True
 ##    argv_dict["mi_armor"] = False
 ##    argv_dict["mi_implements"] = False
 ##    argv_dict["mi_weapons"] = False
@@ -89,10 +89,9 @@ if __name__ == '__main__':
     # Pull Items data from Portable Compendium
     item_db = []
     try:
-        item_db = create_db('ddiItem.sql', "','")
+        item_db = create_db('sql\ddiItem.sql', "','")
     except:
-        print('Error reading data source.')
-    print(f'{len(item_db)} Items recovered')
+        print('Error reading Item data source.')
 
     if not item_db:
         print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
@@ -100,8 +99,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Counter the determines the order of Library menu items
-    # Note that mundane items increment this before calling the library proc
-    # Magic Items & Powers increment it inside as they can create a variable number of menu items
     menu_id = 0
 
     # Create a tier_list depending on whether the 'tiers' option is set or not
@@ -109,8 +106,8 @@ if __name__ == '__main__':
         tier_list = ['Heroic', 'Paragon', 'Epic']
     else:
         tier_list = ['']
+    # this is always empty for 'other' magic items
     empty_tier_list = ['']
-
 
     # Check if any magic items are being extracted as we'll need a <magicitemlist>
     mi_flag = False
@@ -138,16 +135,14 @@ if __name__ == '__main__':
     #===========================
 
     if argv_dict["armor"] == True:
-        menu_id += 1
-        menu_str = 'a' + '0000'[0:len('0000')-len(str(menu_id))] + str(menu_id)
 
         # Extract all the Armor data into a list
         armor_list = extract_armor_list(item_db)
 
-        # Call the three functions to generate the _ref, _lib & _tbl xml
-        armor_ref = create_armor_reference(armor_list)
-        armor_lib = create_armor_library(menu_str, argv_dict["library"], 'Items - Armor')
+        # Call the three functions to generate the _lib, _tbl & _ref xml
+        armor_lib, menu_id = create_armor_library(menu_id, argv_dict["library"], 'Items - Armor')
         armor_tbl = create_armor_table(armor_list, argv_dict["library"])
+        armor_ref = create_armor_reference(armor_list)
     else:
         armor_ref = ''
         armor_lib = ''
@@ -155,44 +150,40 @@ if __name__ == '__main__':
     
 
     #===========================
-    # EQUIPMENT
-    #===========================
-
-    if argv_dict["equipment"] == True:
-        menu_id += 1
-        menu_str = 'a' + '0000'[0:len('0000')-len(str(menu_id))] + str(menu_id)
-
-        # Extract all the Equipment data into a list
-        equipment_list = extract_equipment_list(item_db)
-
-        # Call the three functions to generate the _ref, _lib & _tbl xml
-        equipment_ref = create_equipment_reference(equipment_list)
-        equipment_lib = create_equipment_library(menu_str, argv_dict["library"], 'Items - Equipment')
-        equipment_tbl = create_equipment_table(equipment_list, argv_dict["library"])
-    else:
-        equipment_ref = ''
-        equipment_lib = ''
-        equipment_tbl = ''
-
-    #===========================
     # WEAPONS
     #===========================
 
     if argv_dict["weapons"] == True:
-        menu_id += 1
-        menu_str = 'a' + '0000'[0:len('0000')-len(str(menu_id))] + str(menu_id)
 
         # Extract all the Equipment data into a list
         weapons_list = extract_weapons_list(item_db)
 
-        # Call the three functions to generate the _ref, _lib & _tbl xml
-        weapons_ref = create_weapons_reference(weapons_list)
-        weapons_lib = create_weapons_library(menu_str, argv_dict["library"], 'Items - Weapons')
+        # Call the three functions to generate the _lib, _tbl & _ref xml
+        weapons_lib, menu_id = create_weapons_library(menu_id, argv_dict["library"], 'Items - Weapons')
         weapons_tbl = create_weapons_table(weapons_list, argv_dict["library"])
+        weapons_ref = create_weapons_reference(weapons_list)
     else:
         weapons_ref = ''
         weapons_lib = ''
         weapons_tbl = ''
+
+    #===========================
+    # EQUIPMENT
+    #===========================
+
+    if argv_dict["equipment"] == True:
+
+        # Extract all the Equipment data into a list
+        equipment_list = extract_equipment_list(item_db)
+
+        # Call the three functions to generate the _lib, _tbl & _ref xml
+        equipment_lib, menu_id = create_equipment_library(menu_id, argv_dict["library"], 'Items - Equipment')
+        equipment_tbl = create_equipment_table(equipment_list, argv_dict["library"])
+        equipment_ref = create_equipment_reference(equipment_list)
+    else:
+        equipment_ref = ''
+        equipment_lib = ''
+        equipment_tbl = ''
 
     #===========================
     # MAGIC ARMOR
@@ -303,10 +294,9 @@ if __name__ == '__main__':
         # Pull Feats data from Portable Compendium
         feat_db = []
         try:
-            feat_db = create_db('ddiFeat.sql', "','")
+            feat_db = create_db('sql\ddiFeat.sql', "','")
         except:
-            print('Error reading data source.')
-        print(f'{len(feat_db)} Feats recovered')
+            print('Error reading Feat data source.')
 
         if not feat_db:
             print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
@@ -330,11 +320,10 @@ if __name__ == '__main__':
         # Pull Powers data from Portable Compendium
         power_db = []
         try:
-            power_db = create_db('ddiPower.sql', "','")
+            power_db = create_db('sql\ddiPower.sql', "','")
         except:
-            print('Error reading data source.')
-        print(f'{len(power_db)} Powers recovered')
-
+            print('Error reading Power data source.')
+    
         if not power_db:
             print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
             input('Press enter to close.')
@@ -362,8 +351,8 @@ if __name__ == '__main__':
     export_xml +=('\t\t\t<entries>\n')
 
     export_xml += armor_lib
-    export_xml += equipment_lib
     export_xml += weapons_lib
+    export_xml += equipment_lib
     export_xml += mi_armor_lib
     export_xml += mi_implements_lib
     export_xml += mi_weapons_lib
@@ -435,12 +424,13 @@ if __name__ == '__main__':
     # CLOSE
     export_xml +=('</root>\n')
 
-    # Fix up all the dodgy characters in one go
-    export_xml = re.sub('[—−‑–]', '-', export_xml)
-    export_xml = re.sub('’', '\'', export_xml)
-    export_xml = re.sub('[“”]', '"', export_xml)
-    export_xml = re.sub('[×]', 'x', export_xml)
-    export_xml = re.sub('[•✦]', '-', export_xml)
+    # Fix up all the dodgy characters before we export
+    export_xml = export_xml.replace(u'\xa0', ' ')   # &nbsp;
+    export_xml = re.sub('[—−‑–]', '-', export_xml)  # hyphens
+    export_xml = re.sub('’', '\'', export_xml)      # single quotes
+    export_xml = re.sub('[“”]', '"', export_xml)    # double marks
+    export_xml = re.sub('[×]', 'x', export_xml)     # x's
+    export_xml = re.sub('[•✦]', '-', export_xml)    # bullets
 
     create_module(export_xml, argv_dict["filename"], argv_dict["library"])
 

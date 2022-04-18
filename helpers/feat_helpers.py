@@ -28,7 +28,6 @@ def create_feat_library(id_in, library_in, list_in, name_in):
     previous_class = ''
     for feat_dict in sorted(list_in, key=library_list_sorter):
         if feat_dict["class"] != previous_class:
-            print(feat_dict["class"])
             previous_class = feat_dict["class"]
             class_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"].lower())
 
@@ -180,20 +179,20 @@ def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
             class_id = 4
 
         # Description
-        if description_lbl := parsed_html.find('p', class_='flavor'):
-            if tier_lbl := description_lbl.find('b', string=re.compile('Tier$')):
-                tier_lbl.decompose()
-            for br in description_lbl('br'):
+        if description_tag := parsed_html.find('p', class_='flavor'):
+            if tier_tag := description_tag.find('b', string=re.compile('Tier$')):
+                tier_tag.decompose()
+            for br in description_tag('br'):
                 br.replace_with('\\n')
-            description_str = str(description_lbl).replace(u'\xa0', ' ')
+            description_str = str(description_tag)
 
         # Prerequisite
-        if prerequisite_lbl := parsed_html.find(string=re.compile('^Prerequisite')):
-            prerequisite_str = re.sub(':\w*', '', prerequisite_lbl.parent.next_sibling.get_text(separator = ', ', strip = True))
+        if prerequisite_tag := parsed_html.find(string=re.compile('^Prerequisite')):
+            prerequisite_str = re.sub(':\w*', '', prerequisite_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
         # Shortdescription (Benefit)
-        if shortdescription_lbl := parsed_html.find(string=re.compile('^Benefit')):
-            shortdescription_str = re.sub(':\w*', '', shortdescription_lbl.parent.next_sibling.get_text(separator = ', ', strip = True))
+        if shortdescription_tag := parsed_html.find(string=re.compile('^Benefit')):
+            shortdescription_str = re.sub(':\w*', '', shortdescription_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
         export_dict = {}
         export_dict["class"] = class_str

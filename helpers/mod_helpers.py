@@ -4,11 +4,10 @@ import os
 import re
 import shutil
 import sys
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 
 def check_all_dbs():
-    file_list = ['sources\ddiClass.sql', 'sources\ddiEpicDestiny.sql', 'sources\ddiFeat.sql', 'sources\ddiItem.sql', 'sources\ddiParagonPath.sql',\
-                 'sources\ddiPower.sql', 'sources\ddiRace.sql', 'sources\ddiTheme.sql']
+    file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPower.sql', 'sql\ddiRace.sql']
     for f in file_list:
         if not os.path.isfile(f):
             print('Missing File: ' + f)
@@ -27,7 +26,7 @@ def parse_argv(args_in):
     parser.add_option('--max', action='store', dest='max', help='only include magic items of this level and below')
     parser.add_option('-p', '--powers', action='store_true', dest='powers', help='outputs Power information')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='outputs Feat information')
-    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons into Tiers (recommended)')
+    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons into Tiers')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='include all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='include all mundane items in the Library')
     parser.add_option('--magic', action='store_true', dest='magic', help='include all magic items in the Library')
@@ -196,14 +195,14 @@ def create_module(xml_in, filename_in, library_in):
     print('\ndefinition.xml written.')
 
     try:
-        with ZipFile(f'{filename_in}.mod', 'w') as modzip:
+        with ZipFile(f'{filename_in}.mod', 'w', compression=ZIP_DEFLATED) as modzip:
             modzip.write('client.xml')
             modzip.write('definition.xml')
             if os.path.isfile('thumbnail.png'):
                 modzip.write('thumbnail.png')
 
         print(f'\n{filename_in}.mod generated!')
-        print('\nCopy it to your Fantasy Grounds\modules directory')
+        print('\nMove it to your Fantasy Grounds\modules directory')
     except Exception as e:
         print(f'\nError creating zipped .mod file:\n{e}')
 

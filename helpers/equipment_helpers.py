@@ -5,7 +5,23 @@ from bs4 import BeautifulSoup, Tag, NavigableString
 def equipment_list_sorter(entry_in):
     section_id = entry_in["section_id"]
     name = entry_in["name"]
+
     return (section_id, name)
+
+def create_equipment_library(id_in, library_in, name_in):
+    id_in += 1
+    menu_str = 'a' + '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
+
+    xml_out = ''
+    xml_out += (f'\t\t\t\t<{menu_str}equipment>\n')
+    xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
+    xml_out += ('\t\t\t\t\t\t<class>reference_classequipmenttablelist</class>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>equipmentlists.core@{library_in}</recordname>\n')
+    xml_out += ('\t\t\t\t\t</librarylink>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
+    xml_out += (f'\t\t\t\t</{menu_str}equipment>\n')
+
+    return xml_out, id_in
 
 def create_equipment_reference(list_in):
     section_str = ''
@@ -28,18 +44,6 @@ def create_equipment_reference(list_in):
         xml_out += (f'\t\t\t</{name_lower}>\n')
 
     xml_out +=('\t\t</equipment>\n')
-
-    return xml_out
-
-def create_equipment_library(id_in, library_in, name_in):
-    xml_out = ''
-    xml_out += (f'\t\t\t\t<{id_in}equipment>\n')
-    xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
-    xml_out += ('\t\t\t\t\t\t<class>reference_classequipmenttablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>equipmentlists.core@{library_in}</recordname>\n')
-    xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
-    xml_out += (f'\t\t\t\t</{id_in}equipment>\n')
 
     return xml_out
 
