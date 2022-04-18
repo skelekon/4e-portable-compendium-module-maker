@@ -1,21 +1,35 @@
-import re
 import copy
 import optparse
+import os
+import re
+import shutil
+import sys
+from zipfile import ZipFile, ZIP_DEFLATED
+
+def check_all_dbs():
+    file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPower.sql', 'sql\ddiRace.sql']
+    for f in file_list:
+        if not os.path.isfile(f):
+            print('Missing File: ' + f)
+            sys.exit(0)
+
+    return
 
 def parse_argv(args_in):
 
     # Set up all the command line options and extract to 'options'
     parser = optparse.OptionParser()
     parser.set_defaults(filename='4E_Compendium', library='4E Compendium', min=0, max=99)
-    parser.add_option('-f', '--filename', action='store', dest='filename', help='create library at FILE', metavar='FILE')
+    parser.add_option('--filename', action='store', dest='filename', help='create library at FILE', metavar='FILE')
     parser.add_option('-l', '--library', action='store', dest='library', help='Fantasy Grounds\' internal name for the Library', metavar='LIBRARY')
     parser.add_option('--min', action='store', dest='min', help='only include magic items of this level and above')
     parser.add_option('--max', action='store', dest='max', help='only include magic items of this level and below')
     parser.add_option('-p', '--powers', action='store_true', dest='powers', help='outputs Power information')
+    parser.add_option('-f', '--feats', action='store_true', dest='feats', help='outputs Feat information')
+    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons into Tiers')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='include all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='include all mundane items in the Library')
     parser.add_option('--magic', action='store_true', dest='magic', help='include all magic items in the Library')
-    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons into Tiers (recommended)')
     parser.add_option('-a', '--all', action='store_true', dest='all', help='includes everything (WARNING very large library)')
 
     
@@ -51,6 +65,7 @@ def parse_argv(args_in):
     out_dict["min"] = int(options.min)
     out_dict["max"] = int(options.max)
     out_dict["powers"] = options.powers if options.powers != None else False
+    out_dict["feats"] = options.feats if options.feats != None else False
     out_dict["tiers"] = options.tiers if options.powers != None else False
     out_dict["items"] = options.items if options.items != None else False
     out_dict["mundane"] = options.mundane if options.mundane != None else False
@@ -138,6 +153,7 @@ def parse_argv(args_in):
     # If -all is specified then default all to True
     if options.all == True:
         out_dict["powers"] = True
+        out_dict["feats"] = True
         out_dict["tiers"] = True
         out_dict["armor"] = True
         out_dict["equipment"] = True
@@ -161,8 +177,36 @@ def parse_argv(args_in):
         out_dict["mi_ring"] = True
         out_dict["mi_waist"] = True
         out_dict["mi_wondrous"] = True
+
     return out_dict
 
+
+def create_module(xml_in, filename_in, library_in):
+
+    # Write FG XML client file
+    with open('client.xml', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
+        file.write(xml_in)
+    print('\nclient.xml written')
+
+    # Write FG XML definition file
+    definition_str = (f'<?xml version="1.0" encoding="iso-8859-1"?>\n<root version="2.2">\n\t<name>{library_in}</name>\n\t<author>skelekon</author>\n\t<ruleset>4E</ruleset>\n</root>')
+    with open('definition.xml', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
+        file.write(definition_str)
+    print('\ndefinition.xml written.')
+
+    try:
+        with ZipFile(f'{filename_in}.mod', 'w', compression=ZIP_DEFLATED) as modzip:
+            modzip.write('client.xml')
+            modzip.write('definition.xml')
+            if os.path.isfile('thumbnail.png'):
+                modzip.write('thumbnail.png')
+
+        print(f'\n{filename_in}.mod generated!')
+        print('\nMove it to your Fantasy Grounds\modules directory')
+    except Exception as e:
+        print(f'\nError creating zipped .mod file:\n{e}')
+
+    return
 
 def mi_other_list():
     out_list = []
@@ -249,19 +293,6 @@ def mi_other_list():
     out_list.append(copy.deepcopy(mi_other_dict))
 
     return out_list
-
-def write_definition(filepath_in, library_in):
-    definition_str = (f'<?xml version="1.0" encoding="iso-8859-1"?>\n<root version="2.2">\n\t<name>{library_in}</name>\n\t<author>skelekon</author>\n\t<ruleset>4E</ruleset>\n</root>')
-
-    with open(filepath_in, mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
-        file.write(definition_str)
-    return
-
-def write_client(filepath_in, xml_in):
-    with open(filepath_in, mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
-        file.write(xml_in)
-
-    return
 
 def mi_list_sorter(entry_in):
     name = entry_in["name"]

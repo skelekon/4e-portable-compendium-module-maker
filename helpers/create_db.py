@@ -1,6 +1,6 @@
 def create_db(fn, splt):
     print(f"Filename: {fn}")
-    with open(f'sources/{fn}', 'r+', encoding='utf-8-sig') as f:
+    with open(f'{fn}', 'r+', encoding='utf-8-sig') as f:
         contents = f.read()
 
     db_schema = get_schema(contents)

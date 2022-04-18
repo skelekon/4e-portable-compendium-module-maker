@@ -11,79 +11,42 @@ from .mod_helpers import powers_format
 from .mod_helpers import props_format
 
 
-def races_list():
-    race_out = []
-    race_db = []
-    race_db = create_db('ddiRace.sql', "','")
-    for i, row in enumerate(race_db, start=1):
-        race_out.append(row["Name"].replace('\\', ''))
-    race_out.sort()
-    return race_out
-
 def classes_list():
     cc_out = []
     cc_db = []
-    cc_db = create_db('ddiClass.sql', "','")
+    cc_db = create_db('sql\ddiClass.sql', "','")
     for i, row in enumerate(cc_db, start=1):
         cc_out.append(row["Name"].replace('\\', ''))
     cc_out.sort()
     return cc_out
 
-def heroic_themes_list():
-    ht_out = []
-    ht_db = []
-    ht_db = create_db('ddiTheme.sql', "','")
-    for i, row in enumerate(ht_db, start=1):
-        ht_out.append(row["Name"].replace('\\', ''))
-    ht_out.sort()
-    return ht_out
+def races_list():
+    race_out = []
+    race_db = []
+    race_db = create_db('sql\ddiRace.sql', "','")
+    for i, row in enumerate(race_db, start=1):
+        race_out.append(row["Name"].replace('\\', ''))
+    race_out.sort()
+    return race_out
 
 def paragon_paths_list():
     pp_out = []
     pp_db = []
-    pp_db = create_db('ddiParagonPath.sql', "','")
+    pp_db = create_db('sql\ddiParagonPath.sql', "','")
     for i, row in enumerate(pp_db, start=1):
-        pp_out.append(row["Name"].replace('\\', ''))
+        # escape '(' as re metacharacters
+        pp_out.append(row["Name"].replace('\\', '').replace('(', '\(').replace(')', '\)'))
     pp_out.sort()
     return pp_out
 
 def epic_destinies_list():
     ed_out = []
     ed_db = []
-    ed_db = create_db('ddiEpicDestiny.sql', "','")
+    ed_db = create_db('sql\ddiEpicDestiny.sql', "','")
     for i, row in enumerate(ed_db, start=1):
         ed_out.append(row["Name"].replace('\\', ''))
     ed_out.sort()
     return ed_out
-
-def replace_line_breaks(soup):
-    while soup.p.br:
-        soup.p.br.replace_with('\n')
-
-def construct_description(tags, tag_classes):
-    description = []
-    shortdescription = []
-    for t in tags:
-        child_tags = t.find_all(class_=tag_classes)
-        if child_tags:
-            desc, sdesc = construct_description(child_tags, tag_classes)
-            description += desc
-            shortdescription+= sdesc
-        else:
-            soup = BeautifulSoup(str(t), features="html.parser")
-            if soup.p:
-                soup.p.wrap(soup.new_tag('p'))
-                soup.p.p.unwrap()
-                # Replace any line breaks with new p tags or newline characters
-                description += [str(soup).replace("<br/>", "</p>\n<p>")]
-                replace_line_breaks(soup)
-                shortdescription += [soup.text]
-            elif soup.h1:
-                soup.h1.wrap(soup.new_tag('h'))
-                soup.h.h1.unwrap()
-                description += [str(soup)]
-                shortdescription += [soup.text]
-    return description, shortdescription
 
 def library_list_sorter(entry_in):
     prefix_id = entry_in["prefix_id"]
@@ -223,8 +186,8 @@ def create_power_desc(list_in):
         xml_out += (f'\t\t\t<action type="string">{power_dict["action"]}</action>\n')
         xml_out += (f'\t\t\t<range type="string">{power_dict["range"]}</range>\n')
         xml_out += (f'\t\t\t<source type="string">{power_dict["source"]}</source>\n')
-        xml_out += (f'\t\t\t<description type="formattedtext">{power_dict["description"]}\n\t\t\t\t</description>\n')
-        xml_out += (f'\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}\n\t\t\t\t</shortdescription>\n')
+        xml_out += (f'\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n')
+        xml_out += (f'\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n')
         xml_out += (f'\t\t\t<class type="string">{power_dict["class"]}</class>\n')
         xml_out += (f'\t\t\t<powertype type="string">{power_dict["name"]}</powertype>\n')
         xml_out += (f'\t\t\t<level type="string">{power_dict["level"]}</level>\n')
@@ -244,7 +207,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
     power_out = []
 
 
-    # Build regex expressions for checking Classes/Races/Themes/PPs/EDs
+    # Build regex expressions for checking Classes/Races/PPs/EDs
     try:
         cc_list = classes_list()
     except:
@@ -258,13 +221,6 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         race_list = []
     race_str = '|'.join(race_list)
     race_expr = re.compile('^(' + race_str + '|Cleric|Fighter|Rogue|Warlord|Wizard)$')
-
-    try:
-        ht_list = heroic_themes_list()
-    except:
-        ht_list = []
-    ht_str = '|'.join(ht_list)
-    ht_expr = re.compile('^(' + ht_str + ')$')
 
     try:
         pp_list = paragon_paths_list()
@@ -292,25 +248,22 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         name_str =  row["Name"].replace('\\', '')
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
-        published_str =  row["Source"].replace('\\', '')
         recharge_str =  row["Usage"].replace('\\', '')
 
         action_str = ''
         description_str = ''
         flavor_str = ''
+        group_id = ''
         group_str = ''
         keywords_str = ''
         prefix_str = ''
         published_str = ''
         range_str = ''
+        recharge_id = ''
         shortdescription_str = ''
-        group_id = ''
         source_str = ''
 
-        # PP workaround
-        if re.search(r'^Hammer of Vengeance', class_str):
-            class_str = 'Hammer of Vengeance'
-
+        # sort order for the Library list
         prefix_id = 0
         if re.search(cc_expr, class_str):
             prefix_id = 1
@@ -318,29 +271,38 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         elif re.search(race_expr, class_str):
             prefix_id = 2
             prefix_str = 'Racial'
-        elif re.search(ht_expr, class_str):
-            prefix_id = 3
-            prefix_str = 'Theme'
         elif re.search(pp_expr, class_str):
-            prefix_id = 4
+            prefix_id = 3
             prefix_str = 'Paragon Path'
         elif re.search(ed_expr, class_str):
-            prefix_id = 5
+            prefix_id = 4
             prefix_str = 'Epic Destiny'
         else:
             prefix_id = 1
             prefix_str = 'Powers'
 
-        # Power source doesn't always match with "{Class} {Kind} {Level}".
-        # Ergo, get it directly from the power's header.
+        # Source
         source_str = parsed_html.find('span', class_='level').text
 
-        # Get the Power statline:  Recharge, Keywords, Action, and Range.
-        # We already have Recharge & Action; get Keywords & Range.
-        powerstat_lbl = parsed_html.find('p', class_='powerstat')
+        # Flavor
+        if flavor_tag := parsed_html.select_one('.flavor > i'):
+            flavor_str = flavor_tag.text
 
-        # If a power has a bullet, check for keywords after the bullet but
-        # before the line break.
+
+        # Powerstat class
+        powerstat_lbl = parsed_html.find('p', class_='powerstat')
+        # Action
+        powerstat_br = powerstat_lbl.find('br')
+        action_tag = powerstat_br.find_next_sibling('b')
+        action_str = action_tag.text
+
+        # Range
+        range_tag = action_tag.find_next_sibling('b')
+        if range_tag:
+            range_next = range_tag.next_sibling
+            range_str = range_tag.text + range_next.text if range_next else range_tag.text
+
+        # Keywords
         keywords = []
         power_bullet = powerstat_lbl.find('img', attrs={'src': 'images/bullet.gif'})
         if power_bullet:
@@ -349,49 +311,36 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
                     break
                 elif tag.name == "b":
                     keywords.append(tag.text)
-        
         keywords_str = ", ".join(keywords)
 
-        # Find the Action, immediately after the stat line break.
-        powerstat_br = powerstat_lbl.find('br')
-        powerstat_action = powerstat_br.find_next_sibling('b')
-        action_str = powerstat_action.text
+        # Published In
+        published_tag = parsed_html.find(class_='publishedIn').extract()
 
-        # Find the range, if present; it's always after the Action.
-        powerstat_rg_type = powerstat_action.find_next_sibling('b')
-        range_str = ''
-        if powerstat_rg_type:
-            powerstat_rg = powerstat_rg_type.next_sibling
-            rg_text = powerstat_rg.text if powerstat_rg else ''
-            range_str = f'{powerstat_rg_type.text}{rg_text}'
+        # Description
+        if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
+            for tag in description_tags:
+                if anchor_tag := tag.find('p', class_='publishedIn'):
+                    anchor_tag.decompose()
+            # remove p classnames
+            for tag in description_tags:
+                del tag['class']
+            description_str = ''.join(map(str, description_tags))
 
-        # Acquire flavor text, if present. Flavor text is always in italics.
-        flavor_str = ''
-        if flavor_tag := parsed_html.select_one('.flavor > i'):
-            flavor_str = flavor_tag.text
+        # Short Description
+        # remove b tags
+        shortdescription_str = re.sub('(</?b>)+', '', description_str)
+        # replace p with \n
+        shortdescription_str = re.sub('(</?p>)+', '\n', shortdescription_str).strip()
 
-        # Everything in a tag after the stat line is mechanics text.
-        # Mechanics text can be either p (normal mechanics) or h1 (embedded power header).
-        # Description will include all mechanics text + Published line.
-        sibling_classes = ['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']
-        power_mechanics = powerstat_lbl.find_next_siblings(class_=sibling_classes)
 
-        try:
-            description, shortdescription = construct_description(power_mechanics, sibling_classes)
-
-            # Grab the Published line without external links, in class-less p tag
-            published_in = parsed_html.find('p', class_='publishedIn')
-            pub_soup = BeautifulSoup(str(published_in), features="html.parser")
-            pub_soup.p.wrap(pub_soup.new_tag('p'))
-            pub_soup.p.p.replace_with(pub_soup.p.p.text)
-            description.append(str(pub_soup))
-            shortdescription.append(pub_soup.text)
-        except:
-            print(f'Problem with {row["Name"]}')
-            raise
-
-        description_str = '\n'.join(description)
-        shortdescription_str = '\n'.join(shortdescription)
+        # Published In
+        if published_tag:
+            # remove p classnames
+            del published_tag['class']
+            # remove the a tag
+            if anchor_tag := published_tag.find('a'):
+                anchor_tag.replaceWithChildren()
+            published_str = '\\n' + str(published_tag)
 
         # Group - this is the subheading on the Powers table
         if level_str == '0':
@@ -401,23 +350,22 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
         # Group ID - this is in the correct sort order according to the Group, by Level then Recharge
         if recharge_str == 'At-Will':
-            group_id = 'aat'
+            recharge_id = '1at'
         elif recharge_str == 'Encounter':
-            group_id = 'ben'
+            recharge_id = '2en'
         elif recharge_str == 'Daily':
-            group_id = 'cda'
+            recharge_id = '3da'
         elif recharge_str == 'Utility':
-            group_id = 'dut'
+            recharge_id = '4ut'
         else:
-            group_id = 'zzz'
-        group_id = '000'[0:len('000')-len(level_str)] + level_str + group_id
-
-
+            recharge_id = '5zz'
+        # concatenate padded level and recharge id
+        group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
 
         export_dict = {}
         export_dict["action"] = action_str
         export_dict["class"] = class_str
-        export_dict["description"] = description_str
+        export_dict["description"] = description_str + published_str
         export_dict["flavor"] = flavor_str
         export_dict["group"] = group_str
         export_dict["group_id"] = group_id
@@ -429,15 +377,13 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         export_dict["published"] = published_str
         export_dict["range"] = range_str
         export_dict["recharge"] = recharge_str
-        export_dict["shortdescription"] = shortdescription_str
+        export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
         export_dict["source"] = source_str
 
-##        if re.search(class_expr, export_dict["class"]):
-
-            # Append a copy of generated item dictionary
+        # Append a copy of generated item dictionary
         power_out.append(copy.deepcopy(export_dict))
 
-    print(str(len(db_in)) + ' entries parsed.')
+    print(str(len(db_in)) + ' entries checked.')
     print(str(len(power_out)) + ' entries exported.')
 
     return power_out

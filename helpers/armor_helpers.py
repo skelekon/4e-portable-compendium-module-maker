@@ -10,46 +10,20 @@ def armor_list_sorter(entry_in):
 
     return (section_id, ac, min_enhance, name)
 
-def create_armor_reference(list_in):
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
-    xml_out =('\t\t<armor>\n')
-
-    # Create individual item entries
-    for entry_dict in sorted(list_in, key=armor_list_sorter):
-        name_lower = re.sub('\W', '', entry_dict["name"].lower())
-
-        xml_out += (f'\t\t\t<{name_lower}>\n')
-        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
-        xml_out += (f'\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
-        xml_out += (f'\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
-        xml_out += (f'\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
-        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
-        xml_out += (f'\t\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
-        xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}\n\t\t\t\t</description>\n')
-        xml_out += (f'\t\t\t</{name_lower}>\n')
-
-    xml_out +=('\t\t</armor>\n')
-
-    return xml_out
-
 def create_armor_library(id_in, library_in, name_in):
+    id_in += 1
+    menu_str = 'a' + '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
+
     xml_out = ''
-    xml_out += (f'\t\t\t\t<{id_in}armor>\n')
+    xml_out += (f'\t\t\t\t<{menu_str}armor>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classarmortablelist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>armorlists.core@{library_in}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
-    xml_out += (f'\t\t\t\t</{id_in}armor>\n')
+    xml_out += (f'\t\t\t\t</{menu_str}armor>\n')
 
-    return xml_out
+    return xml_out, id_in
 
 def create_armor_table(list_in, library_in):
     xml_out = ''
@@ -104,6 +78,35 @@ def create_armor_table(list_in, library_in):
     xml_out += ('\t\t\t</groups>\n')
     xml_out += ('\t\t</core>\n')
     xml_out += ('\t</armorlists>\n')
+
+    return xml_out
+
+def create_armor_reference(list_in):
+    section_str = ''
+    entry_str = ''
+    name_lower = ''
+
+    xml_out =('\t\t<armor>\n')
+
+    # Create individual item entries
+    for entry_dict in sorted(list_in, key=armor_list_sorter):
+        name_lower = re.sub('\W', '', entry_dict["name"].lower())
+
+        xml_out += (f'\t\t\t<{name_lower}>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
+        xml_out += (f'\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
+        xml_out += (f'\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
+        xml_out += (f'\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
+        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += (f'\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
+        xml_out += (f'\t\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
+        xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}</description>\n')
+        xml_out += (f'\t\t\t</{name_lower}>\n')
+
+    xml_out +=('\t\t</armor>\n')
 
     return xml_out
 
@@ -163,11 +166,11 @@ def extract_armor_list(db_in):
                 type_str = 'Heavy'
             elif prof_str == 'Light Shields':
                 section_id = 7
-                prof_str = 'Light Shields'
+                prof_str = 'Shields'
                 type_str = 'Light'
             elif prof_str == 'Heavy Shields':
                 section_id = 8
-                prof_str = 'Heavy Shields'
+                prof_str = 'Shields'
                 type_str = 'Heavy'
             else:
                 section_id = 100
@@ -192,10 +195,11 @@ def extract_armor_list(db_in):
             type_str = 'Huge Creature'
 
         if section_id < 99:
-##            print(str(i) + ' ' + name_str)
 
             # AC
             if ac_lbl := parsed_html.find(string='AC Bonus'):
+                ac_str = ac_lbl.parent.next_sibling.replace(': ', '')
+            elif ac_lbl := parsed_html.find(string='Shield Bonus'):
                 ac_str = ac_lbl.parent.next_sibling.replace(': ', '')
 
             # Check Penalty

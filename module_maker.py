@@ -1,16 +1,13 @@
-import os
-import sys
-import shutil
-import copy
 import re
+import sys
 from bs4 import BeautifulSoup, Tag, NavigableString
 
 from helpers.create_db import create_db
 
+from helpers.mod_helpers import check_all_dbs
 from helpers.mod_helpers import parse_argv
 from helpers.mod_helpers import mi_other_list
-from helpers.mod_helpers import write_definition
-from helpers.mod_helpers import write_client
+from helpers.mod_helpers import create_module
 from helpers.mod_helpers import create_mi_desc
 from helpers.mod_helpers import create_mi_library
 from helpers.mod_helpers import create_mi_table
@@ -44,22 +41,31 @@ from helpers.power_helpers import create_power_library
 from helpers.power_helpers import create_power_table
 from helpers.power_helpers import create_power_desc
 
+from helpers.feat_helpers import extract_feat_list
+from helpers.feat_helpers import create_feat_library
+from helpers.feat_helpers import create_feat_table
+from helpers.feat_helpers import create_feat_desc
+
 
 if __name__ == '__main__':
+
+    # Check all db files are present
+    check_all_dbs()
 
     # Parse the command line arguments to set all needed values
     argv_dict = parse_argv(sys.argv)
 
 ##    # temp settings for testing
-##    argv_dict["filename"] = '4E_Powers'
-##    argv_dict["library"] = '4E Powers'
+##    argv_dict["filename"] = '4E_Weapons'
+##    argv_dict["library"] = '4E Weapons'
 ##    argv_dict["min"] = 0
-##    argv_dict["max"] = 99
+##    argv_dict["max"] = 10
 ##    argv_dict["powers"] = True
-##    argv_dict["tiers"] = True
-##    argv_dict["armor"] = False
-##    argv_dict["equipment"] = False
-##    argv_dict["weapons"] = False
+##    argv_dict["feats"] = True
+##    argv_dict["tiers"] = False
+##    argv_dict["armor"] = True
+##    argv_dict["equipment"] = True
+##    argv_dict["weapons"] = True
 ##    argv_dict["mi_armor"] = False
 ##    argv_dict["mi_implements"] = False
 ##    argv_dict["mi_weapons"] = False
@@ -80,37 +86,19 @@ if __name__ == '__main__':
 ##    argv_dict["mi_waist"] = False
 ##    argv_dict["mi_wondrous"] = False
 
-##    print(argv_dict)
-
     # Pull Items data from Portable Compendium
     item_db = []
     try:
-        item_db = create_db('ddiItem.sql', "','")
+        item_db = create_db('sql\ddiItem.sql', "','")
     except:
-        print('Error reading data source.')
-    print(f'{len(item_db)} Items recovered')
+        print('Error reading Item data source.')
 
     if not item_db:
         print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
         input('Press enter to close.')
         sys.exit(0)
 
-    # Pull Powers data from Portable Compendium
-    power_db = []
-    try:
-        power_db = create_db('ddiPower.sql', "','")
-    except:
-        print('Error reading data source.')
-    print(f'{len(power_db)} Powers recovered')
-
-    if not power_db:
-        print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
-        input('Press enter to close.')
-        sys.exit(0)
-
     # Counter the determines the order of Library menu items
-    # Note that mundane items increment this before calling the library proc
-    # Magic Items & Powers increment it inside as they can create a variable number of menu items
     menu_id = 0
 
     # Create a tier_list depending on whether the 'tiers' option is set or not
@@ -118,8 +106,8 @@ if __name__ == '__main__':
         tier_list = ['Heroic', 'Paragon', 'Epic']
     else:
         tier_list = ['']
+    # this is always empty for 'other' magic items
     empty_tier_list = ['']
-
 
     # Check if any magic items are being extracted as we'll need a <magicitemlist>
     mi_flag = False
@@ -128,7 +116,13 @@ if __name__ == '__main__':
             mi_flag = True
 
     # Set a suffix for Magic Items menu items if a level restriction is in place
-    if argv_dict["min"] != 0 or argv_dict["max"] != 99:
+    if (argv_dict["min"] == 0 or argv_dict["min"] == 1) and argv_dict["max"] == 10:
+            suffix_str = f' (Heroic)'
+    elif argv_dict["min"] == 11 and argv_dict["max"] == 20:
+            suffix_str = f' (Paragon)'
+    elif argv_dict["min"] == 21 and (argv_dict["max"] == 30 or argv_dict["max"] == 99):
+            suffix_str = f' (Epic)'
+    elif argv_dict["min"] != 0 or argv_dict["max"] != 99:
         if argv_dict["min"] == argv_dict["max"]:
             suffix_str = f' (Level {argv_dict["min"]})'
         else:
@@ -141,16 +135,14 @@ if __name__ == '__main__':
     #===========================
 
     if argv_dict["armor"] == True:
-        menu_id += 1
-        menu_str = 'a' + '0000'[0:len('0000')-len(str(menu_id))] + str(menu_id)
 
         # Extract all the Armor data into a list
         armor_list = extract_armor_list(item_db)
 
-        # Call the three functions to generate the _ref, _lib & _tbl xml
-        armor_ref = create_armor_reference(armor_list)
-        armor_lib = create_armor_library(menu_str, argv_dict["library"], 'Items - Armor')
+        # Call the three functions to generate the _lib, _tbl & _ref xml
+        armor_lib, menu_id = create_armor_library(menu_id, argv_dict["library"], 'Items - Armor')
         armor_tbl = create_armor_table(armor_list, argv_dict["library"])
+        armor_ref = create_armor_reference(armor_list)
     else:
         armor_ref = ''
         armor_lib = ''
@@ -158,44 +150,40 @@ if __name__ == '__main__':
     
 
     #===========================
-    # EQUIPMENT
-    #===========================
-
-    if argv_dict["equipment"] == True:
-        menu_id += 1
-        menu_str = 'a' + '0000'[0:len('0000')-len(str(menu_id))] + str(menu_id)
-
-        # Extract all the Equipment data into a list
-        equipment_list = extract_equipment_list(item_db)
-
-        # Call the three functions to generate the _ref, _lib & _tbl xml
-        equipment_ref = create_equipment_reference(equipment_list)
-        equipment_lib = create_equipment_library(menu_str, argv_dict["library"], 'Items - Equipment')
-        equipment_tbl = create_equipment_table(equipment_list, argv_dict["library"])
-    else:
-        equipment_ref = ''
-        equipment_lib = ''
-        equipment_tbl = ''
-
-    #===========================
     # WEAPONS
     #===========================
 
     if argv_dict["weapons"] == True:
-        menu_id += 1
-        menu_str = 'a' + '0000'[0:len('0000')-len(str(menu_id))] + str(menu_id)
 
         # Extract all the Equipment data into a list
         weapons_list = extract_weapons_list(item_db)
 
-        # Call the three functions to generate the _ref, _lib & _tbl xml
-        weapons_ref = create_weapons_reference(weapons_list)
-        weapons_lib = create_weapons_library(menu_str, argv_dict["library"], 'Items - Weapons')
+        # Call the three functions to generate the _lib, _tbl & _ref xml
+        weapons_lib, menu_id = create_weapons_library(menu_id, argv_dict["library"], 'Items - Weapons')
         weapons_tbl = create_weapons_table(weapons_list, argv_dict["library"])
+        weapons_ref = create_weapons_reference(weapons_list)
     else:
         weapons_ref = ''
         weapons_lib = ''
         weapons_tbl = ''
+
+    #===========================
+    # EQUIPMENT
+    #===========================
+
+    if argv_dict["equipment"] == True:
+
+        # Extract all the Equipment data into a list
+        equipment_list = extract_equipment_list(item_db)
+
+        # Call the three functions to generate the _lib, _tbl & _ref xml
+        equipment_lib, menu_id = create_equipment_library(menu_id, argv_dict["library"], 'Items - Equipment')
+        equipment_tbl = create_equipment_table(equipment_list, argv_dict["library"])
+        equipment_ref = create_equipment_reference(equipment_list)
+    else:
+        equipment_ref = ''
+        equipment_lib = ''
+        equipment_tbl = ''
 
     #===========================
     # MAGIC ARMOR
@@ -295,6 +283,32 @@ if __name__ == '__main__':
             mi_other_power_xml += mi_other_power
 
     #===========================
+    # FEATS
+    #===========================
+
+    feat_lib = ''
+    feat_tbl = ''
+    feat_desc = ''
+
+    if argv_dict["feats"] == True:
+        # Pull Feats data from Portable Compendium
+        feat_db = []
+        try:
+            feat_db = create_db('sql\ddiFeat.sql', "','")
+        except:
+            print('Error reading Feat data source.')
+
+        if not feat_db:
+            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        feat_list = extract_feat_list(feat_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
+        feat_lib, menu_id = create_feat_library(menu_id, argv_dict["library"], feat_list, 'feats')
+        feat_tbl = create_feat_table(feat_list, argv_dict["library"])
+        feat_desc = create_feat_desc(feat_list)
+
+    #===========================
     # POWERS
     #===========================
 
@@ -303,6 +317,18 @@ if __name__ == '__main__':
     power_desc = ''
 
     if argv_dict["powers"] == True:
+        # Pull Powers data from Portable Compendium
+        power_db = []
+        try:
+            power_db = create_db('sql\ddiPower.sql', "','")
+        except:
+            print('Error reading Power data source.')
+    
+        if not power_db:
+            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            input('Press enter to close.')
+            sys.exit(0)
+
         power_list = extract_power_list(power_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
         power_lib, menu_id = create_power_library(menu_id, argv_dict["library"], power_list, 'Powers')
         power_tbl = create_power_table(power_list, argv_dict["library"])
@@ -325,12 +351,13 @@ if __name__ == '__main__':
     export_xml +=('\t\t\t<entries>\n')
 
     export_xml += armor_lib
-    export_xml += equipment_lib
     export_xml += weapons_lib
+    export_xml += equipment_lib
     export_xml += mi_armor_lib
     export_xml += mi_implements_lib
     export_xml += mi_weapons_lib
     export_xml += mi_other_lib_xml
+    export_xml += feat_lib
     export_xml += power_lib
 
     export_xml +=('\t\t\t</entries>\n')
@@ -357,8 +384,9 @@ if __name__ == '__main__':
 
     # POWERLIST
     # these are tables of character powers
-    if argv_dict["powers"] == True:
+    if argv_dict["feats"] == True or argv_dict["powers"] == True:
         export_xml += ('\t<powerlists>\n')
+        export_xml += feat_tbl
         export_xml += power_tbl
         export_xml += ('\t</powerlists>\n')
 
@@ -383,43 +411,27 @@ if __name__ == '__main__':
 
     # POWERDESC
     # These are the individual cards for character or item Powers
-    if mi_flag == True or argv_dict["powers"]:
+    if mi_flag == True or argv_dict["feats"] or argv_dict["powers"]:
         export_xml +=('\t<powerdesc>\n')
         export_xml += mi_armor_power
         export_xml += mi_implements_power
         export_xml += mi_weapons_power
         export_xml += mi_other_power_xml
+        export_xml += feat_desc
         export_xml += power_desc
         export_xml +=('\t</powerdesc>\n')
 
     # CLOSE
     export_xml +=('</root>\n')
 
-    # Fix up all the dodgy characters in one go
-    export_xml = re.sub('[—|–]', '-', export_xml)
-    export_xml = re.sub('’', '\'', export_xml)
-    export_xml = re.sub('[“”]', '"', export_xml)
+    # Fix up all the dodgy characters before we export
+    export_xml = export_xml.replace(u'\xa0', ' ')   # &nbsp;
+    export_xml = re.sub('[—−‑–]', '-', export_xml)  # hyphens
+    export_xml = re.sub('’', '\'', export_xml)      # single quotes
+    export_xml = re.sub('[“”]', '"', export_xml)    # double marks
+    export_xml = re.sub('[×]', 'x', export_xml)     # x's
+    export_xml = re.sub('[•✦]', '-', export_xml)    # bullets
 
-    # Write FG XML database files
-    write_client('export/module_maker/data/client.xml',export_xml)
-    print('\nclient.xml written')
-
-    # Write FG XML database files
-    write_definition('export/module_maker/data/definition.xml',argv_dict["library"])
-    print('\ndefinition.xml written.')
-
-    try:
-        os.remove(f'export/module_maker/{argv_dict["filename"]}.mod')
-    except FileNotFoundError:
-        print('Cleanup not needed.')
-    try:
-        shutil.make_archive(f'export/module_maker/{argv_dict["filename"]}', 'zip', 'export/module_maker/data/')
-        os.rename(f'export/module_maker/{argv_dict["filename"]}.zip', f'export/module_maker/{argv_dict["filename"]}.mod')
-        print('\nDatabase added and module generated!')
-        print('You can find it in the \'export\\module_maker\' folder\n')
-    except Exception as e:
-        print(f"Error creating zipped .mod file:\n{e}")
-        print('\nManually zip the contents of the \'export\\module_maker\\data\' folder to create the mod.')
-        print(f'Rename the complete filename (including path) to \'{argv_dict["filename"]}.mod\'.\n')
+    create_module(export_xml, argv_dict["filename"], argv_dict["library"])
 
     input('Press enter to close.')
