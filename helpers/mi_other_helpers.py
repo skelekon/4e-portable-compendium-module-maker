@@ -45,13 +45,12 @@ def extract_mi_other_list(db_in, library_in, min_lvl, max_lvl, filter_in):
         subclass_str = ''
 
         # Class
-        if (re.search(f'^({filter_in})$', category_str) and re.search('^(Common|Uncommon|Rare)', rarity_str)):
+        if (re.search(f'^({filter_in})$', category_str)):
             class_str = category_str
             mitype_str = 'other'
             section_id = 1
 
-        if section_id < 99:
-##            print(str(i) + ' ' + name_str)
+        if section_id < 100:
 
             # Ensure the category_str matches the bold label to avoid false matches e.g. 'Ring'
             if re.search('(Arms|Familiar|Feet|Hands|Head|Head and Neck|Neck|Ring|Waist)', category_str):
@@ -86,7 +85,7 @@ def extract_mi_other_list(db_in, library_in, min_lvl, max_lvl, filter_in):
 
                 # Try to find a value for level
                 if level_lbl := parsed_html.find(id='headerlevel'):
-                    multi_dict['level'] = re.search(r'(\d+)', level_lbl.string).group(1)
+                    multi_dict['level'] = match.group(1) if (match := re.search(r'(\d+)', level_lbl.string)) else ''
                 # If we find a Tier just set the level to the minimum for that Tier
                 elif level_lbl := parsed_html.find('span', class_='milevel'):
                     tier_str = re.search(r'(Heroic|Paragon|Epic)', level_lbl.string).group(1)
