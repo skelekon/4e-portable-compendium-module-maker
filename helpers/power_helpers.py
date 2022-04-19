@@ -12,7 +12,7 @@ from .mod_helpers import props_format
 
 
 def classes_list():
-    cc_out = []
+    cc_out = ['Cleric','Fighter','Rogue','Warlord','Wizard']
     cc_db = []
     cc_db = create_db('sql\ddiClass.sql', "','")
     for i, row in enumerate(cc_db, start=1):
@@ -34,8 +34,7 @@ def paragon_paths_list():
     pp_db = []
     pp_db = create_db('sql\ddiParagonPath.sql', "','")
     for i, row in enumerate(pp_db, start=1):
-        # escape '(' as re metacharacters
-        pp_out.append(row["Name"].replace('\\', '').replace('(', '\(').replace(')', '\)'))
+        pp_out.append(row["Name"].replace('\\', ''))
     pp_out.sort()
     return pp_out
 
@@ -181,24 +180,16 @@ def create_power_desc(list_in):
 
         xml_out += (f'\t\t<power{name_lower}>\n')
         xml_out += (f'\t\t\t<name type="string">{power_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t<recharge type="string">{power_dict["recharge"]}</recharge>\n')
-        xml_out += (f'\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n')
         xml_out += (f'\t\t\t<action type="string">{power_dict["action"]}</action>\n')
-        xml_out += (f'\t\t\t<range type="string">{power_dict["range"]}</range>\n')
-        xml_out += (f'\t\t\t<source type="string">{power_dict["source"]}</source>\n')
         xml_out += (f'\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n')
-        xml_out += (f'\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n')
-        xml_out += (f'\t\t\t<class type="string">{power_dict["class"]}</class>\n')
-        xml_out += (f'\t\t\t<powertype type="string">{power_dict["name"]}</powertype>\n')
-        xml_out += (f'\t\t\t<level type="string">{power_dict["level"]}</level>\n')
-        xml_out += (f'\t\t\t<tier type="string">{power_dict["name"]}</tier>\n')
-        xml_out += (f'\t\t\t<type type="string">{power_dict["name"]}</type>\n')
         xml_out += (f'\t\t\t<flavor type="formattedtext">{power_dict["flavor"]}</flavor>\n')
-        xml_out += (f'\t\t\t<stringflavor type="string">{power_dict["name"]}</stringflavor>\n')
-        xml_out += (f'\t\t\t<requirement type="string">{power_dict["name"]}</requirement>\n')
-        xml_out += (f'\t\t\t<target type="string">{power_dict["name"]}</target>\n')
-        xml_out += (f'\t\t\t<attack type="string">{power_dict["name"]}</attack>\n')
-        xml_out += (f'\t\t\t<hit type="string">{power_dict["name"]}</hit>\n')
+        xml_out += (f'\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n')
+        xml_out += (f'\t\t\t<range type="string">{power_dict["range"]}</range>\n')
+        xml_out += (f'\t\t\t<recharge type="string">{power_dict["recharge"]}</recharge>\n')
+        xml_out += (f'\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n')
+        xml_out += (f'\t\t\t<source type="string">{power_dict["source"]}</source>\n')
+##        xml_out += (f'\t\t\t<class type="string">{power_dict["class"]}</class>\n')
+##        xml_out += (f'\t\t\t<level type="string">{power_dict["level"]}</level>\n')
         xml_out += (f'\t\t</power{name_lower}>\n')
 
     return xml_out
@@ -206,35 +197,26 @@ def create_power_desc(list_in):
 def extract_power_list(db_in, library_in, min_lvl, max_lvl):
     power_out = []
 
-
     # Build regex expressions for checking Classes/Races/PPs/EDs
     try:
         cc_list = classes_list()
     except:
         cc_list = []
-    cc_str = '|'.join(cc_list)
-    cc_expr = re.compile('^(' + cc_str + '|Cleric|Fighter|Rogue|Warlord|Wizard)$')
 
     try:
         race_list = races_list()
     except:
         race_list = []
-    race_str = '|'.join(race_list)
-    race_expr = re.compile('^(' + race_str + '|Cleric|Fighter|Rogue|Warlord|Wizard)$')
 
     try:
         pp_list = paragon_paths_list()
     except:
         pp_list = []
-    pp_str = '|'.join(pp_list)
-    pp_expr = re.compile('^(' + pp_str + ')$')
 
     try:
         ed_list = epic_destinies_list()
     except:
         ed_list = []
-    ed_str = '|'.join(ed_list)
-    ed_expr = re.compile('^(' + ed_str + ')$')
 
     print('\n\n\n=========== POWERS ===========')
     for i, row in enumerate(db_in, start=1):
@@ -265,28 +247,26 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
         # sort order for the Library list
         prefix_id = 0
-        if re.search(cc_expr, class_str):
-            prefix_id = 1
-            prefix_str = 'Powers'
-        elif re.search(race_expr, class_str):
+        if class_str in cc_list:
             prefix_id = 2
-            prefix_str = 'Racial'
-        elif re.search(pp_expr, class_str):
+            prefix_str = 'Class'
+        elif class_str in race_list:
             prefix_id = 3
-            prefix_str = 'Paragon Path'
-        elif re.search(ed_expr, class_str):
+            prefix_str = 'Racial'
+        elif class_str in pp_list:
             prefix_id = 4
+            prefix_str = 'Paragon Path'
+        elif class_str in ed_list:
+            prefix_id = 5
             prefix_str = 'Epic Destiny'
         else:
             prefix_id = 1
             prefix_str = 'Powers'
 
-
         # Get these before we start destroying the html for Monk powers
 
         # Published In
         published_tag = parsed_html.find(class_='publishedIn').extract()
-
 
         # Source
         source_str = parsed_html.find('span', class_='level').text
@@ -318,7 +298,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
             power_all = parsed_copy.find('div', id='detail')
             att_flag = False
             move_flag = False
-            for tag in power_all.find_all():#'span', 'h1', 'p'):
+            for tag in power_all.find_all():
                 if tag.has_attr('class'):
                     if tag['class'][0] == 'publishedIn':
                         break
@@ -368,9 +348,6 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
             # Description
             if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
-                for tag in description_tags:
-                    if anchor_tag := tag.find('p', class_='publishedIn'):
-                        anchor_tag.decompose()
                 # remove p classnames
                 for tag in description_tags:
                     del tag['class']

@@ -36,15 +36,20 @@ from helpers.mi_other_helpers import extract_mi_other_list
 
 from helpers.mi_weaplements_helpers import extract_mi_weaplements_list
 
+from helpers.feat_helpers import extract_feat_list
+from helpers.feat_helpers import create_feat_library
+from helpers.feat_helpers import create_feat_table
+from helpers.feat_helpers import create_feat_desc
+
 from helpers.power_helpers import extract_power_list
 from helpers.power_helpers import create_power_library
 from helpers.power_helpers import create_power_table
 from helpers.power_helpers import create_power_desc
 
-from helpers.feat_helpers import extract_feat_list
-from helpers.feat_helpers import create_feat_library
-from helpers.feat_helpers import create_feat_table
-from helpers.feat_helpers import create_feat_desc
+from helpers.ritual_helpers import extract_ritual_list
+from helpers.ritual_helpers import create_ritual_library
+from helpers.ritual_helpers import create_ritual_table
+from helpers.ritual_helpers import create_ritual_desc
 
 
 if __name__ == '__main__':
@@ -56,35 +61,36 @@ if __name__ == '__main__':
     argv_dict = parse_argv(sys.argv)
 
 ##    # temp settings for testing
-##    argv_dict["filename"] = '4E_Weapons'
-##    argv_dict["library"] = '4E Weapons'
+##    argv_dict["filename"] = '4E_Rituals'
+##    argv_dict["library"] = '4E Rituals'
 ##    argv_dict["min"] = 0
 ##    argv_dict["max"] = 10
-##    argv_dict["powers"] = True
 ##    argv_dict["feats"] = True
+##    argv_dict["powers"] = True
+##    argv_dict["rituals"] = True
 ##    argv_dict["tiers"] = False
 ##    argv_dict["armor"] = True
 ##    argv_dict["equipment"] = True
 ##    argv_dict["weapons"] = True
-##    argv_dict["mi_armor"] = False
-##    argv_dict["mi_implements"] = False
-##    argv_dict["mi_weapons"] = False
-##    argv_dict["mi_alchemical"] = False
-##    argv_dict["mi_alternative"] = False
-##    argv_dict["mi_ammunition"] = False
-##    argv_dict["mi_arms"] = False
-##    argv_dict["mi_companion"] = False
-##    argv_dict["mi_consumable"] = False
-##    argv_dict["mi_familiar"] = False
-##    argv_dict["mi_feet"] = False
-##    argv_dict["mi_hands"] = False
-##    argv_dict["mi_head"] = False
-##    argv_dict["mi_head_neck"] = False
-##    argv_dict["mi_mount"] = False
-##    argv_dict["mi_neck"] = False
-##    argv_dict["mi_ring"] = False
-##    argv_dict["mi_waist"] = False
-##    argv_dict["mi_wondrous"] = False
+##    argv_dict["mi_armor"] = True
+##    argv_dict["mi_implements"] = True
+##    argv_dict["mi_weapons"] = True
+##    argv_dict["mi_alchemical"] = True
+##    argv_dict["mi_alternative"] = True
+##    argv_dict["mi_ammunition"] = True
+##    argv_dict["mi_arms"] = True
+##    argv_dict["mi_companion"] = True
+##    argv_dict["mi_consumable"] = True
+##    argv_dict["mi_familiar"] = True
+##    argv_dict["mi_feet"] = True
+##    argv_dict["mi_hands"] = True
+##    argv_dict["mi_head"] = True
+##    argv_dict["mi_head_neck"] = True
+##    argv_dict["mi_mount"] = True
+##    argv_dict["mi_neck"] = True
+##    argv_dict["mi_ring"] = True
+##    argv_dict["mi_waist"] = True
+##    argv_dict["mi_wondrous"] = True
 
     # Pull Items data from Portable Compendium
     item_db = []
@@ -335,6 +341,32 @@ if __name__ == '__main__':
         power_desc = create_power_desc(power_list)
 
     #===========================
+    # RITUALS
+    #===========================
+
+    ritual_lib = ''
+    ritual_tbl = ''
+    ritual_desc = ''
+
+    if argv_dict["rituals"] == True:
+        # Pull Rituals data from Portable Compendium
+        ritual_db = []
+        try:
+            ritual_db = create_db('sql\ddiRitual.sql', "','")
+        except:
+            print('Error reading Ritual data source.')
+
+        if not ritual_db:
+            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        ritual_list = extract_ritual_list(ritual_db, argv_dict["library"], argv_dict["min"], argv_dict["max"], 'Rituals')
+        ritual_lib, menu_id = create_ritual_library(menu_id, argv_dict["library"], ritual_list, 'Rituals')
+        ritual_tbl = create_ritual_table(ritual_list, argv_dict["library"])
+        ritual_desc = create_ritual_desc(ritual_list)
+
+    #===========================
     # XML
     #===========================
 
@@ -359,6 +391,7 @@ if __name__ == '__main__':
     export_xml += mi_other_lib_xml
     export_xml += feat_lib
     export_xml += power_lib
+    export_xml += ritual_lib
 
     export_xml +=('\t\t\t</entries>\n')
     export_xml += ('\t\t</lib4ecompendium>\n')
@@ -384,11 +417,18 @@ if __name__ == '__main__':
 
     # POWERLIST
     # these are tables of character powers
-    if argv_dict["feats"] == True or argv_dict["powers"] == True:
+    if argv_dict["feats"] == True or argv_dict["powers"]:
         export_xml += ('\t<powerlists>\n')
         export_xml += feat_tbl
         export_xml += power_tbl
         export_xml += ('\t</powerlists>\n')
+
+    # RITUALLISTS
+    # this is the table of rituals
+    if argv_dict["rituals"] == True:
+        export_xml += ('\t<rituallists>\n')
+        export_xml += ritual_tbl
+        export_xml += ('\t</rituallists>\n')
 
     # REFERENCE
     # These are the individual cards for mundane items that appear when you click on a table entry
@@ -421,6 +461,13 @@ if __name__ == '__main__':
         export_xml += power_desc
         export_xml +=('\t</powerdesc>\n')
 
+    # RITUALLISTS
+    # this is the table of rituals
+    if argv_dict["rituals"] == True:
+        export_xml += ('\t<ritualdesc>\n')
+        export_xml += ritual_desc
+        export_xml += ('\t</ritualdesc>\n')
+
     # CLOSE
     export_xml +=('</root>\n')
 
@@ -433,5 +480,3 @@ if __name__ == '__main__':
     export_xml = re.sub('[•✦]', '-', export_xml)    # bullets
 
     create_module(export_xml, argv_dict["filename"], argv_dict["library"])
-
-    input('Press enter to close.')

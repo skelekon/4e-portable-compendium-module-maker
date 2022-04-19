@@ -7,7 +7,8 @@ import sys
 from zipfile import ZipFile, ZIP_DEFLATED
 
 def check_all_dbs():
-    file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPower.sql', 'sql\ddiRace.sql']
+    file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPower.sql',\
+                 'sql\ddiRace.sql', 'sql\ddiRitual.sql']
     for f in file_list:
         if not os.path.isfile(f):
             print('Missing File: ' + f)
@@ -24,8 +25,9 @@ def parse_argv(args_in):
     parser.add_option('-l', '--library', action='store', dest='library', help='Fantasy Grounds\' internal name for the Library', metavar='LIBRARY')
     parser.add_option('--min', action='store', dest='min', help='only export magic items of this level and above')
     parser.add_option('--max', action='store', dest='max', help='only export magic items of this level and below')
-    parser.add_option('-p', '--powers', action='store_true', dest='powers', help='exports Power information')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='exports Feat information')
+    parser.add_option('-p', '--powers', action='store_true', dest='powers', help='exports Power information')
+    parser.add_option('-r', '--rituals', action='store_true', dest='rituals', help='exports Ritual information')
     parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons into Tiers')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='export all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='export all mundane items')
@@ -64,8 +66,9 @@ def parse_argv(args_in):
     out_dict["library"] = options.library
     out_dict["min"] = int(options.min)
     out_dict["max"] = int(options.max)
-    out_dict["powers"] = options.powers if options.powers != None else False
     out_dict["feats"] = options.feats if options.feats != None else False
+    out_dict["powers"] = options.powers if options.powers != None else False
+    out_dict["rituals"] = options.rituals if options.rituals != None else False
     out_dict["tiers"] = options.tiers if options.powers != None else False
     out_dict["items"] = options.items if options.items != None else False
     out_dict["mundane"] = options.mundane if options.mundane != None else False
@@ -152,8 +155,9 @@ def parse_argv(args_in):
 
     # If -all is specified then default all to True
     if options.all == True:
-        out_dict["powers"] = True
         out_dict["feats"] = True
+        out_dict["powers"] = True
+        out_dict["rituals"] = True
         out_dict["tiers"] = True
         out_dict["armor"] = True
         out_dict["equipment"] = True
@@ -209,6 +213,8 @@ def create_module(xml_in, filename_in, library_in):
     return
 
 def mi_other_list():
+
+    # This returns a list of all the different types of 'Other' Magic Items so that they can be iterated
     out_list = []
     mi_other_dict = {}
 
@@ -368,7 +374,7 @@ def create_mi_table(list_in, tier_list, library_in, type_in):
                         xml_out += (f'\t\t\t\t</section{section_str}>\n')
                     section_str = "000"[0:len("000")-len(str(section_id))] + str(section_id)
                     xml_out += (f'\t\t\t\t<section{section_str}>\n')
-                    xml_out += (f'\t\t\t\t\t<description type="string">Armor</description>\n')
+                    xml_out += (f'\t\t\t\t\t<description type="string">{type_in}</description>\n')
                     xml_out += ('\t\t\t\t\t<items>\n')
 
                 xml_out += (f'\t\t\t\t\t\t<a{level_str}{name_lower}>\n')
