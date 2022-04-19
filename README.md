@@ -23,15 +23,16 @@ Options:
   --filename=FILE       create library at FILE
   -l LIBRARY, --library=LIBRARY
                         Fantasy Grounds' internal name for the Library
-  --min=MIN             only include magic items of this level and above
-  --max=MAX             only include magic items of this level and below
-  -p, --powers          outputs Power information
-  -f, --feats           outputs Feat information
+  --min=MIN             only export magic items of this level and above
+  --max=MAX             only export magic items of this level and below
+  -f, --feats           exports Feat information
+  -p, --powers          exports Power information
+  -r, --rituals         exports Ritual information
   -t, --tiers           divide Magic Armor, Implements and Weapons into Tiers
-  -i, --items           include all item types (= --mundane & --magic)
-  --mundane             include all mundane items in the Library
-  --magic               include all magic items in the Library
-  -a, --all             includes everything (WARNING very large library)
+  -i, --items           export all item types (= --mundane & --magic)
+  --mundane             export all mundane items
+  --magic               export all magic items
+  -a, --all             export everything (WARNING very large library)
 ```
 
 1. Copy `module_maker.exe` into the unzipped Portable Compendium directory (default will be `/Portable Compendium New`. It will use the data files in the `/sql` subdirectory to create modules.
