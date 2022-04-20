@@ -7,11 +7,6 @@ from .create_db import create_db
 from .mod_helpers import mi_list_sorter
 from .mod_helpers import multi_level
 
-def library_list_sorter(entry_in):
-    class_id = entry_in["class_id"]
-
-    return (class_id)
-
 def ritual_list_sorter(entry_in):
     name = entry_in["name"]
 
@@ -25,7 +20,7 @@ def create_ritual_library(id_in, library_in, list_in, name_in):
 
 
     id_in += 1
-    entry_id = '000'[0:len('000')-len(str(id_in))] + str(id_in)
+    entry_id = '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
 
     xml_out += (f'\t\t\t\t<a{entry_id}rituals>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
@@ -137,7 +132,6 @@ def extract_ritual_list(db_in, library_in, min_lvl, max_lvl, filter_in):
             section_id = 1
 
         if section_id < 100:
-##        if name_str == 'Anthem of Unity':
 
             # Category
             if category_tag := parsed_html.find(string=re.compile('^Category')):

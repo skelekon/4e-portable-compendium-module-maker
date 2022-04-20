@@ -27,12 +27,12 @@ Options:
   --max=MAX             only export magic items of this level and below
   -f, --feats           exports Feat information
   -p, --powers          exports Power information
+  -a, --alchemy         exports Alchemical Item information
   -r, --rituals         exports Ritual information
   -t, --tiers           divide Magic Armor, Implements and Weapons into Tiers
   -i, --items           export all item types (= --mundane & --magic)
   --mundane             export all mundane items
   --magic               export all magic items
-  -a, --all             export everything (WARNING very large library)
 ```
 
 1. Copy `module_maker.exe` into the unzipped Portable Compendium directory (default will be `/Portable Compendium New`. It will use the data files in the `/sql` subdirectory to create modules.
@@ -43,9 +43,8 @@ Options:
 
 4. Run `module_maker.exe` with the switches to create the modules you want. e.g.
 ```
-module_maker.exe --filename 4E_Powers --library "4E Powers" -p
-module_maker.exe --filename 4E_Feats --library "4E Feats" -f
-module_maker.exe --filename 4E_Items --library "4E Items" -i -t
+module_maker.exe --filename 4E_Powers --library "4E Powers" -f -p
+module_maker.exe --filename 4E_Items --library "4E Items" -a -r -i -t
 ```
 Default filename/library will be `4E_Compendium` / `4E Compendium` if not supplied.
 

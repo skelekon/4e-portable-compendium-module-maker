@@ -25,14 +25,14 @@ def parse_argv(args_in):
     parser.add_option('-l', '--library', action='store', dest='library', help='Fantasy Grounds\' internal name for the Library', metavar='LIBRARY')
     parser.add_option('--min', action='store', dest='min', help='only export magic items of this level and above')
     parser.add_option('--max', action='store', dest='max', help='only export magic items of this level and below')
+    parser.add_option('-a', '--alchemy', action='store_true', dest='alchemy', help='exports Alchemical Item information')
+    parser.add_option('-r', '--rituals', action='store_true', dest='rituals', help='exports Ritual information')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='exports Feat information')
     parser.add_option('-p', '--powers', action='store_true', dest='powers', help='exports Power information')
-    parser.add_option('-r', '--rituals', action='store_true', dest='rituals', help='exports Ritual information')
     parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons into Tiers')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='export all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='export all mundane items')
     parser.add_option('--magic', action='store_true', dest='magic', help='export all magic items')
-    parser.add_option('-a', '--all', action='store_true', dest='all', help='export everything (WARNING very large library)')
 
     
 ##    parser.add_option('--armor', action='store_true', dest='armor', help='include mundane Armor items in the Library')
@@ -66,15 +66,16 @@ def parse_argv(args_in):
     out_dict["library"] = options.library
     out_dict["min"] = int(options.min)
     out_dict["max"] = int(options.max)
+    out_dict["alchemy"] = options.alchemy if options.alchemy != None else False
+    out_dict["rituals"] = options.rituals if options.rituals != None else False
     out_dict["feats"] = options.feats if options.feats != None else False
     out_dict["powers"] = options.powers if options.powers != None else False
-    out_dict["rituals"] = options.rituals if options.rituals != None else False
     out_dict["tiers"] = options.tiers if options.powers != None else False
     out_dict["items"] = options.items if options.items != None else False
     out_dict["mundane"] = options.mundane if options.mundane != None else False
     out_dict["magic"] = options.magic if options.magic != None else False
 
-    # Note these options are more granular than is currently offered by the switches
+    # Note these are currently internal/debug options that are more granular than is currently offered by the switches
     out_dict["armor"] = False
     out_dict["equipment"] = False
     out_dict["weapons"] = False
@@ -129,35 +130,6 @@ def parse_argv(args_in):
 
     # If --items is specified then set all items to True
     if options.items == True:
-        out_dict["tiers"] = True
-        out_dict["armor"] = True
-        out_dict["equipment"] = True
-        out_dict["weapons"] = True
-        out_dict["mi_armor"] = True
-        out_dict["mi_implements"] = True
-        out_dict["mi_weapons"] = True
-        out_dict["mi_alchemical"] = True
-        out_dict["mi_alternative"] = True
-        out_dict["mi_ammunition"] = True
-        out_dict["mi_arms"] = True
-        out_dict["mi_companion"] = True
-        out_dict["mi_consumable"] = True
-        out_dict["mi_familiar"] = True
-        out_dict["mi_feet"] = True
-        out_dict["mi_hands"] = True
-        out_dict["mi_head"] = True
-        out_dict["mi_head_neck"] = True
-        out_dict["mi_mount"] = True
-        out_dict["mi_neck"] = True
-        out_dict["mi_ring"] = True
-        out_dict["mi_waist"] = True
-        out_dict["mi_wondrous"] = True
-
-    # If -all is specified then default all to True
-    if options.all == True:
-        out_dict["feats"] = True
-        out_dict["powers"] = True
-        out_dict["rituals"] = True
         out_dict["tiers"] = True
         out_dict["armor"] = True
         out_dict["equipment"] = True
@@ -306,6 +278,8 @@ def mi_list_sorter(entry_in):
 
 def create_mi_library(id_in, tier_list, library_in, name_in, item_in):
     xml_out = ''
+    item_lower = re.sub('[^a-zA-Z0-9_]', '', item_in.lower())
+
     for t in tier_list:
 
         if t != '':
@@ -319,7 +293,7 @@ def create_mi_library(id_in, tier_list, library_in, name_in, item_in):
         xml_out += (f'\t\t\t\t<{menu_str}magicitems>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.core{item_in.lower()}{t.lower()}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.core{item_lower}{t.lower()}@{library_in}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
         xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
         xml_out += (f'\t\t\t\t</{menu_str}magicitems>\n')
