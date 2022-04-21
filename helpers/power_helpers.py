@@ -231,6 +231,9 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         level_str =  row["Level"].replace('\\', '')
         recharge_str =  row["Usage"].replace('\\', '')
 
+##        if name_str not in ['Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]']:
+##            continue
+        
         action_str = ''
         description_str = ''
         flavor_str = ''
@@ -266,6 +269,15 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
         # Published In
         published_tag = parsed_html.find(class_='publishedIn').extract()
+        if published_tag:
+            # remove p classnames
+            del published_tag['class']
+            # remove the a tags
+            anchor_tag = published_tag.find('a')
+            while anchor_tag:
+                anchor_tag.replaceWithChildren()
+                anchor_tag = published_tag.find('a')
+            published_str = '\\n' + str(published_tag)
 
         # Source
         source_str = parsed_html.find('span', class_='level').text
@@ -347,27 +359,14 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
             # Description
             if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
-                # remove p classnames
                 for tag in description_tags:
+                    # remove p classnames
                     del tag['class']
-                description_str = ''.join(map(str, description_tags))
+            description_str = ''.join(map(str, description_tags))
 
             # Short Description
-            # remove b tags
-            shortdescription_str = re.sub('(</?b>)+', '', description_str)
-            # replace p, br with \n
-            shortdescription_str = re.sub('(</?p>|<br/?>)+', '\n', shortdescription_str).strip()
-
-            # Published In
-            if published_tag:
-                # remove p classnames
-                del published_tag['class']
-                # remove the a tags
-                anchor_tag = published_tag.find('a')
-                while anchor_tag:
-                    anchor_tag.replaceWithChildren()
-                    anchor_tag = published_tag.find('a')
-                published_str = '\\n' + str(published_tag)
+            # remove tags
+            shortdescription_str = re.sub('<.*?>', '', description_str.replace('</p><p>', '\n'))
 
             # Group - this is the subheading on the Powers table
             if level_str == '0':
