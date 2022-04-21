@@ -74,6 +74,7 @@ def parse_argv(args_in):
     out_dict["items"] = options.items if options.items != None else False
     out_dict["mundane"] = options.mundane if options.mundane != None else False
     out_dict["magic"] = options.magic if options.magic != None else False
+    out_dict["monsters"] = False
 
     # Note these are currently internal/debug options that are more granular than is currently offered by the switches
     out_dict["armor"] = False

@@ -10,7 +10,6 @@ from .mod_helpers import power_construct
 from .mod_helpers import powers_format
 from .mod_helpers import props_format
 
-
 def classes_list():
     cc_out = ['Cleric','Fighter','Rogue','Warlord','Wizard']
     cc_db = []
@@ -356,17 +355,18 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
             # Short Description
             # remove b tags
             shortdescription_str = re.sub('(</?b>)+', '', description_str)
-            # replace p with \n
-            shortdescription_str = re.sub('(</?p>)+', '\n', shortdescription_str).strip()
-
+            # replace p, br with \n
+            shortdescription_str = re.sub('(</?p>|<br/?>)+', '\n', shortdescription_str).strip()
 
             # Published In
             if published_tag:
                 # remove p classnames
                 del published_tag['class']
-                # remove the a tag
-                if anchor_tag := published_tag.find('a'):
+                # remove the a tags
+                anchor_tag = published_tag.find('a')
+                while anchor_tag:
                     anchor_tag.replaceWithChildren()
+                    anchor_tag = published_tag.find('a')
                 published_str = '\\n' + str(published_tag)
 
             # Group - this is the subheading on the Powers table

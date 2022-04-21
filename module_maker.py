@@ -12,6 +12,28 @@ from helpers.mod_helpers import create_mi_desc
 from helpers.mod_helpers import create_mi_library
 from helpers.mod_helpers import create_mi_table
 
+from helpers.alchemy_helpers import extract_alchemy_list
+from helpers.alchemy_helpers import create_alchemy_item_library
+from helpers.alchemy_helpers import create_alchemy_formula_library
+from helpers.alchemy_helpers import create_alchemy_item_table
+from helpers.alchemy_helpers import create_alchemy_formula_table
+from helpers.alchemy_helpers import create_alchemy_formula_desc
+
+from helpers.ritual_helpers import extract_ritual_list
+from helpers.ritual_helpers import create_ritual_library
+from helpers.ritual_helpers import create_ritual_table
+from helpers.ritual_helpers import create_ritual_desc
+
+from helpers.feat_helpers import extract_feat_list
+from helpers.feat_helpers import create_feat_library
+from helpers.feat_helpers import create_feat_table
+from helpers.feat_helpers import create_feat_desc
+
+from helpers.power_helpers import extract_power_list
+from helpers.power_helpers import create_power_library
+from helpers.power_helpers import create_power_table
+from helpers.power_helpers import create_power_desc
+
 from helpers.armor_helpers import armor_list_sorter
 from helpers.armor_helpers import create_armor_reference
 from helpers.armor_helpers import create_armor_library
@@ -36,27 +58,10 @@ from helpers.mi_other_helpers import extract_mi_other_list
 
 from helpers.mi_weaplements_helpers import extract_mi_weaplements_list
 
-from helpers.feat_helpers import extract_feat_list
-from helpers.feat_helpers import create_feat_library
-from helpers.feat_helpers import create_feat_table
-from helpers.feat_helpers import create_feat_desc
-
-from helpers.power_helpers import extract_power_list
-from helpers.power_helpers import create_power_library
-from helpers.power_helpers import create_power_table
-from helpers.power_helpers import create_power_desc
-
-from helpers.ritual_helpers import extract_ritual_list
-from helpers.ritual_helpers import create_ritual_library
-from helpers.ritual_helpers import create_ritual_table
-from helpers.ritual_helpers import create_ritual_desc
-
-from helpers.alchemy_helpers import extract_alchemy_list
-from helpers.alchemy_helpers import create_alchemy_item_library
-from helpers.alchemy_helpers import create_alchemy_formula_library
-from helpers.alchemy_helpers import create_alchemy_item_table
-from helpers.alchemy_helpers import create_alchemy_formula_table
-from helpers.alchemy_helpers import create_alchemy_formula_desc
+##from helpers.monster_helpers import extract_monster_list
+##from helpers.monster_helpers import create_monster_library
+##from helpers.monster_helpers import create_monster_table
+##from helpers.monster_helpers import create_monster_desc
 
 if __name__ == '__main__':
 
@@ -98,6 +103,7 @@ if __name__ == '__main__':
 ##    argv_dict["mi_ring"] = True
 ##    argv_dict["mi_waist"] = True
 ##    argv_dict["mi_wondrous"] = True
+##    argv_dict["monsters"] = False
 
     # Pull Items data from Portable Compendium
     item_db = []
@@ -404,6 +410,32 @@ if __name__ == '__main__':
         power_lib, menu_id = create_power_library(menu_id, argv_dict["library"], power_list, 'Powers')
         power_tbl = create_power_table(power_list, argv_dict["library"])
         power_desc = create_power_desc(power_list)
+
+    #===========================
+    # MONSTERS
+    #===========================
+
+    monster_lib = ''
+    monster_tbl = ''
+    monster_desc = ''
+
+    if argv_dict["monsters"]:
+        # Pull Powers data from Portable Compendium
+        monster_db = []
+        try:
+            monster_db = create_db('sql\ddiMonster.sql', "','")
+        except:
+            print('Error reading Power data source.')
+    
+        if not monster_db:
+            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        monster_list = extract_monster_list(monster_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
+        monster_lib, menu_id = create_monster_library(menu_id, argv_dict["library"], monster_list, 'Powers')
+        monster_tbl = create_monster_table(monster_list, argv_dict["library"])
+        monster_desc = create_monster_desc(monster_list)
 
     #===========================
     # XML
