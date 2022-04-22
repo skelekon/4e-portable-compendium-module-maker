@@ -23,24 +23,24 @@ def create_feat_library(id_in, library_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
-        return xml_out
+        return xml_out, id_in
 
     previous_class = ''
     for feat_dict in sorted(list_in, key=library_list_sorter):
         if feat_dict["class"] != previous_class:
             previous_class = feat_dict["class"]
-            class_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"].lower())
+            class_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"])
 
             id_in += 1
             entry_id = '000'[0:len('000')-len(str(id_in))] + str(id_in)
 
-            xml_out += (f'\t\t\t\t<a{entry_id}feats-{class_lower}>\n')
+            xml_out += (f'\t\t\t\t<a{entry_id}-feats{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
-            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.feats-{class_lower}@{library_in}</recordname>\n')
+            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.feats{class_camel}@{library_in}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
             xml_out += (f'\t\t\t\t\t<name type="string">Feats - {feat_dict["class"]}</name>\n')
-            xml_out += (f'\t\t\t\t</a{entry_id}feats-{class_lower}>\n')
+            xml_out += (f'\t\t\t\t</a{entry_id}-feats{class_camel}>\n')
     return xml_out, id_in
 
 def create_feat_table(list_in, library_in):
@@ -51,75 +51,74 @@ def create_feat_table(list_in, library_in):
 
     previous_class = ''
     previous_group = ''
-    class_lower = ''
-    level_lower = ''
+    class_camel = ''
 
     # Feat List
     # This controls the table that appears when you click on a Library menu
 
     # Create individual item entries
     for feat_dict in sorted(list_in, key=feat_list_sorter):
-        class_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"].lower())
-        group_lower = feat_dict["group"]
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["name"])
+        class_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"])
+        group_camel = feat_dict["group"]
+        name_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["name"])
 
         #Check for new Class
-        if class_lower != previous_class:
+        if class_camel != previous_class:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t</{previous_class}-{previous_group}>\n')
+                xml_out += (f'\t\t\t\t</{previous_class}{previous_group}>\n')
 
             # Close previous Class
             if previous_class != '':
                 xml_out += ('\t\t\t</groups>\n')
-                xml_out += (f'\t\t</feats-{previous_class}>\n')
+                xml_out += (f'\t\t</feats{previous_class}>\n')
 
             # Open new Class
-            previous_group = group_lower
-            xml_out += (f'\t\t<feats-{class_lower}>\n')
-            xml_out += ('\t\t\t<description type="string">Feats</description>\n')
+            previous_group = group_camel
+            xml_out += (f'\t\t<feats{class_camel}>\n')
+            xml_out += (f'\t\t\t<description type="string">{feat_dict["class"]} Feats</description>\n')
             xml_out += ('\t\t\t<groups>\n')
     
             # Open new Group
-            xml_out += (f'\t\t\t\t<{class_lower}-{group_lower}>\n')
-            xml_out += (f'\t\t\t\t<description type="string">{feat_dict["group"]} Feats</description>\n')
+            xml_out += (f'\t\t\t\t<{class_camel}{group_camel}>\n')
+            xml_out += ('\t\t\t\t<description type="string">Feats</description>\n')
             xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Check for new Group
-        if group_lower != previous_group:
+        if group_camel != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t</{class_lower}-{previous_group}>\n')
+                xml_out += (f'\t\t\t\t</{class_camel}{previous_group}>\n')
 
             # Open new Group if not the first entry in the table
             if previous_class != '':
-                xml_out += (f'\t\t\t\t<{class_lower}-{group_lower}>\n')
-                xml_out += (f'\t\t\t\t<description type="string">{feat_dict["group"]} Feats</description>\n')
+                xml_out += (f'\t\t\t\t<{class_camel}{group_camel}>\n')
+                xml_out += ('\t\t\t\t<description type="string">Feats</description>\n')
                 xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Feats list entry
-        xml_out += (f'\t\t\t\t\t\t<feat{name_lower}>\n')
+        xml_out += (f'\t\t\t\t\t\t<feat{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.feat{name_lower}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.feat{name_camel}@{library_in}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<source type="string">{feat_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t\t\t\t</feat{name_lower}>\n')
+        xml_out += (f'\t\t\t\t\t\t</feat{name_camel}>\n')
 
-        previous_class = class_lower
-        previous_group = group_lower
+        previous_class = class_camel
+        previous_group = group_camel
 
     # Close final Group
     xml_out += ('\t\t\t\t\t</powers>\n')
-    xml_out += (f'\t\t\t\t</{class_lower}-{previous_group}>\n')
+    xml_out += (f'\t\t\t\t</{class_camel}{previous_group}>\n')
 
     # Close final Class
     xml_out += ('\t\t\t</groups>\n')
-    xml_out += (f'\t\t</feats-{class_lower}>\n')
+    xml_out += (f'\t\t</feats{class_camel}>\n')
 
     return xml_out
 
@@ -162,9 +161,13 @@ def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
         name_str =  row["Name"].replace('\\', '')
         class_str =  row["Tier"].replace('\\', '')
 
+##        if name_str[0:14] != 'Battle-Scarred':
+##            continue
+
         class_id = ''
         description_str = ''
         prerequisite_str = ''
+        published_str = ''
         shortdescription_str = ''
 
         # Class ID (top level sort order)
@@ -178,27 +181,59 @@ def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
             class_str = 'Other'
             class_id = 4
 
-        # Description
-        if description_tag := parsed_html.find('p', class_='flavor'):
-            if tier_tag := description_tag.find('b', string=re.compile('Tier$')):
-                tier_tag.decompose()
-            for br in description_tag('br'):
-                br.replace_with('\\n')
-            description_str = str(description_tag)
+        # Published In
+        published_tag = parsed_html.find(class_='publishedIn').extract()
+        if published_tag:
+            # remove p classnames
+            del published_tag['class']
+            # remove the a tags
+            anchor_tag = published_tag.find('a')
+            while anchor_tag:
+                anchor_tag.replaceWithChildren()
+                anchor_tag = published_tag.find('a')
+            published_str = str(published_tag)
 
-        # Prerequisite
-        if prerequisite_tag := parsed_html.find(string=re.compile('^Prerequisite')):
-            prerequisite_str = re.sub(':\w*', '', prerequisite_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+        # Name
+        name_tag = parsed_html.find('h1', class_='player').extract()
+        if name_tag:
+            name_str = name_tag.text
 
-        # Shortdescription (Benefit)
-        if shortdescription_tag := parsed_html.find(string=re.compile('^Benefit')):
-            shortdescription_str = re.sub(':\w*', '', shortdescription_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+        # Build list of strings for Prerequisite / Short Description (Benefit) / Description
+        detail_div = parsed_html.find('div', id='detail')
+
+        # Copy detail strings to a list of strings
+        raw_str = []
+        for div in detail_div.strings:
+            if div.replace('\n', '').strip() != '' and not re.search('Tier$', div):
+                raw_str.append(re.sub(r'&', r'&amp;', div))
+
+        # Combine consecutive items where next item starts with a ':'
+        desc_str = []
+        skip_flag = False;
+        for idx, raw in enumerate(raw_str):
+            if skip_flag:
+                skip_flag = False
+            elif idx < len(raw_str) - 1 and raw_str[idx + 1][0:1] == ':':
+                desc_str.append(raw + raw_str[idx + 1])
+                skip_flag = True
+            else:
+                desc_str.append(raw)
+
+        # Prerequisite / Short Description (Benefit) / Description
+        for desc in desc_str:
+            if prerequisite_tag := re.search(r'^Prerequisite:\s*(.*)\s*$', desc):
+                prerequisite_str = prerequisite_tag.group(1)
+            elif shortdescription_tag := re.search(r'^Benefit:\s*(.*)\s*$', desc):
+                shortdescription_str = shortdescription_tag.group(1)
+            description_str += ('<p>' + desc + '</p>').strip()
+        # bold the Prerequisite & Benefit headings
+        description_str = re.sub(r'(Prerequisite:|Benefit:)', r'<b>\1</b>', description_str)            
 
         export_dict = {}
         export_dict["class"] = class_str
         export_dict["class_id"] = class_id
-        export_dict["description"] = description_str
-        # we only need one level of hierarchy for Feats, even though the code is set up for Class + Group
+        export_dict["description"] = description_str + published_str
+        # we only need one level of hierarchy for Feats, even though the code is set up for two levels (Class + Group)
         export_dict["group"] = class_str
         export_dict["name"] = name_str
         export_dict["prerequisite"] = prerequisite_str

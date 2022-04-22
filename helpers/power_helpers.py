@@ -63,24 +63,24 @@ def create_power_library(id_in, library_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
-        return xml_out
+        return xml_out, id_in
 
     previous_class = ''
     for power_dict in sorted(list_in, key=library_list_sorter):
         if power_dict["class"] != previous_class:
             previous_class = power_dict["class"]
-            class_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"].lower())
+            class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
 
             id_in += 1
             entry_id = '000'[0:len('000')-len(str(id_in))] + str(id_in)
 
-            xml_out += (f'\t\t\t\t<a{entry_id}class-{class_lower}>\n')
+            xml_out += (f'\t\t\t\t<a{entry_id}-powers{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
-            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.class-{class_lower}@{library_in}</recordname>\n')
+            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{library_in}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
             xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}</name>\n')
-            xml_out += (f'\t\t\t\t</a{entry_id}class-{class_lower}>\n')
+            xml_out += (f'\t\t\t\t</a{entry_id}-powers{class_camel}>\n')
     return xml_out, id_in
 
 def create_power_table(list_in, library_in):
@@ -99,12 +99,12 @@ def create_power_table(list_in, library_in):
 
     # Create individual item entries
     for power_dict in sorted(list_in, key=power_list_sorter):
-        class_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"].lower())
-        group_lower = power_dict["group_id"]
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
+        class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
+        group_camel = power_dict["group_id"]
+        name_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
 
         #Check for new Class
-        if class_lower != previous_class:
+        if class_camel != previous_class:
 
             # Close previous Group
             if previous_group != '':
@@ -114,52 +114,52 @@ def create_power_table(list_in, library_in):
             # Close previous Class
             if previous_class != '':
                 xml_out += ('\t\t\t</groups>\n')
-                xml_out += (f'\t\t</class-{previous_class}>\n')
+                xml_out += (f'\t\t</powers{previous_class}>\n')
 
             # Open new Class
-            previous_group = group_lower
-            xml_out += (f'\t\t<class-{class_lower}>\n')
+            previous_group = group_camel
+            xml_out += (f'\t\t<powers{class_camel}>\n')
             xml_out += (f'\t\t\t<description type="string">{power_dict["class"]}</description>\n')
             xml_out += ('\t\t\t<groups>\n')
     
             # Open new Group
-            xml_out += (f'\t\t\t\t<{class_lower}-{group_lower}>\n')
+            xml_out += (f'\t\t\t\t<{class_camel}-{group_camel}>\n')
             xml_out += (f'\t\t\t\t<description type="string">{power_dict["group"]}</description>\n')
             xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Check for new Group
-        if group_lower != previous_group:
+        if group_camel != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t</{class_lower}-{previous_group}>\n')
+                xml_out += (f'\t\t\t\t</{class_camel}-{previous_group}>\n')
 
             # Open new Group if not the first entry in the table
             if previous_class != '':
-                xml_out += (f'\t\t\t\t<{class_lower}-{group_lower}>\n')
+                xml_out += (f'\t\t\t\t<{class_camel}-{group_camel}>\n')
                 xml_out += (f'\t\t\t\t<description type="string">{power_dict["group"]}</description>\n')
                 xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Powers list entry
-        xml_out += (f'\t\t\t\t\t\t<power{name_lower}>\n')
+        xml_out += (f'\t\t\t\t\t\t<power{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.power{name_lower}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.power{name_camel}@{library_in}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<source type="string">{power_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t\t\t\t</power{name_lower}>\n')
+        xml_out += (f'\t\t\t\t\t\t</power{name_camel}>\n')
 
-        previous_class = class_lower
-        previous_group = group_lower
+        previous_class = class_camel
+        previous_group = group_camel
 
     # Close final Group
     xml_out += ('\t\t\t\t\t</powers>\n')
-    xml_out += (f'\t\t\t\t</{class_lower}-{previous_group}>\n')
+    xml_out += (f'\t\t\t\t</{class_camel}-{previous_group}>\n')
 
     # Close final Class
     xml_out += ('\t\t\t</groups>\n')
-    xml_out += (f'\t\t</class-{class_lower}>\n')
+    xml_out += (f'\t\t</powers{class_camel}>\n')
 
     return xml_out
 
@@ -187,8 +187,6 @@ def create_power_desc(list_in):
         xml_out += (f'\t\t\t<recharge type="string">{power_dict["recharge"]}</recharge>\n')
         xml_out += (f'\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n')
         xml_out += (f'\t\t\t<source type="string">{power_dict["source"]}</source>\n')
-##        xml_out += (f'\t\t\t<class type="string">{power_dict["class"]}</class>\n')
-##        xml_out += (f'\t\t\t<level type="string">{power_dict["level"]}</level>\n')
         xml_out += (f'\t\t</power{name_lower}>\n')
 
     return xml_out
@@ -196,7 +194,7 @@ def create_power_desc(list_in):
 def extract_power_list(db_in, library_in, min_lvl, max_lvl):
     power_out = []
 
-    # Build regex expressions for checking Classes/Races/PPs/EDs
+    # Lists for checking what type of power it is
     try:
         cc_list = classes_list()
     except:
@@ -223,17 +221,18 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         # Parse the HTML text 
         html = row["Txt"]
         html = html.replace('\\r\\n','\r\n').replace('\\','')
-        parsed_html = BeautifulSoup(html, features="html.parser")
+        parsed_html = BeautifulSoup(html, features='html.parser')
 
         # Retrieve the data with dedicated columns
         name_str =  row["Name"].replace('\\', '')
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
-        recharge_str =  row["Usage"].replace('\\', '')
 
 ##        if name_str not in ['Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]']:
+##        if name_str not in ['Turn Undead', 'Healing Word', 'Holy Cleansing']:
 ##            continue
-        
+##        print(name_str)        
+
         action_str = ''
         description_str = ''
         flavor_str = ''
@@ -244,6 +243,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         published_str = ''
         range_str = ''
         recharge_id = ''
+        recharge_str = ''
         shortdescription_str = ''
         source_str = ''
 
@@ -265,8 +265,6 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
             prefix_id = 1
             prefix_str = 'Powers'
 
-        # Get these before we start destroying the html for Monk powers
-
         # Published In
         published_tag = parsed_html.find(class_='publishedIn').extract()
         if published_tag:
@@ -279,135 +277,151 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
                 anchor_tag = published_tag.find('a')
             published_str = '\\n' + str(published_tag)
 
-        # Source
-        source_str = parsed_html.find('span', class_='level').text
+        power_id = 0
+        previous_name = ''
+        in_power = False
+        power_complete = False
+        power_html = BeautifulSoup('', features='html.parser')
 
-        # Monk Fulll Discipline
-        # make two separate html soup objects and then process them both
-        multi_power = []
-        if re.search(r'(Attack Technique)', name_str):
+        # Get all the Power tags
+        detail_div = parsed_html.find('div', id='detail')
 
-            parsed_copy = copy.copy(parsed_html)
+        # Append a dummy tag to the end to ensure that it loops around one extra time to process the last power 
+        dummy_tag = BeautifulSoup('<h1 class="atwillpower"></h1>', features='html.parser')
+        detail_div.append(dummy_tag)
 
-            # Attack Technique
-            power_all = parsed_html.find('div', id='detail')
-            att_flag = False
-            move_flag = False
-            for tag in power_all.find_all():
-                if tag.has_attr('class'):
-                    if tag['class'][0] == 'publishedIn':
-                        break
-                    if tag['class'][0] in ['atwillpower', 'encounterpower'] and att_flag == True:
-                        move_flag = True
-                    elif tag['class'][0] in ['atwillpower', 'encounterpower']:
-                        att_flag = True
-                if move_flag == True:
-                    dev_nul = tag.extract()
-            multi_power.append(parsed_html)
+        # Loop through all the tags
+        for pwr_tag in detail_div.find_all(recursive=False):
+            # Found the start of a power
+            if pwr_tag.has_attr('class'):
+                if pwr_tag.get('class')[0] in ['atwillpower', 'encounterpower', 'dailypower']:
+                    # trigger on the start of the first power so we can know when a power has ended
+                    if in_power == False:
+                        in_power = True
+                    # on second or later encounters with a power start signify is it ready to process
+                    else:
+                        power_complete = True
 
-            # Movement Technique
-            power_all = parsed_copy.find('div', id='detail')
-            att_flag = False
-            move_flag = False
-            for tag in power_all.find_all():
-                if tag.has_attr('class'):
-                    if tag['class'][0] == 'publishedIn':
-                        break
-                    if tag['class'][0] in ['atwillpower', 'encounterpower'] and att_flag == True:
-                        move_flag = True
-                    elif tag['class'][0] in ['atwillpower', 'encounterpower']:
-                        att_flag = True
-                if att_flag == True and move_flag == False:
-                    dev_nul = tag.extract()
-            multi_power.append(parsed_copy)
+            # Process all the power details and add it to the output list
+            if power_complete == True:
 
-        else:
-            multi_power.append(parsed_html)
+                # Counter that can be used to distinguish between additional powers from the same base power
+                power_id += 1
 
-        for j, power_html in enumerate(multi_power, start=1):
+                # Source / Name
+                if source_tag := power_html.select_one('span', class_='level'):
+                    source_str = source_tag.text
+                    name_str = source_tag.next_sibling.strip()
 
-            if j == 2:
-                name_str = name_str.replace('Attack Technique', 'Movement Technique')
+                # Flavor
+                if flavor_tag := power_html.select_one('.flavor > i'):
+                    flavor_str = flavor_tag.text
 
-            # Flavor
-            if flavor_tag := power_html.select_one('.flavor > i'):
-                flavor_str = flavor_tag.text
+                # Recharge
+                if recharge_tag := power_html.select_one('.powerstat > b'):
+                    recharge_str = recharge_tag.text
 
-            # Powerstat class
-            powerstat_lbl = power_html.find('p', class_='powerstat')
-            # Action
-            powerstat_br = powerstat_lbl.find('br')
-            action_tag = powerstat_br.find_next_sibling('b')
-            action_str = action_tag.text
+                # Powerstat class
+                powerstat_lbl = power_html.find('p', class_='powerstat')
 
-            # Range
-            range_tag = action_tag.find_next_sibling('b')
-            if range_tag:
-                range_next = range_tag.next_sibling
-                range_str = range_tag.text + range_next.text if range_next else range_tag.text
+                # Action
+                powerstat_br = powerstat_lbl.find('br')
+                action_tag = powerstat_br.find_next_sibling('b')
+                action_str = action_tag.text
 
-            # Keywords
-            keywords = []
-            power_bullet = powerstat_lbl.find('img', attrs={'src': 'images/bullet.gif'})
-            if power_bullet:
-                for tag in power_bullet.next_siblings:
-                    if tag.name == "br":
-                        break
-                    elif tag.name == "b":
-                        keywords.append(tag.text)
-            keywords_str = ", ".join(keywords)
+                # Range
+                range_tag = action_tag.find_next_sibling('b')
+                if range_tag:
+                    range_next = range_tag.next_sibling
+                    range_str = range_tag.text + range_next.text if range_next else range_tag.text
 
-            # Description
-            if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
-                for tag in description_tags:
-                    # remove p classnames
-                    del tag['class']
-            description_str = ''.join(map(str, description_tags))
+                # Keywords
+                keywords = []
+                power_bullet = powerstat_lbl.find('img', attrs={'src': 'images/bullet.gif'})
+                if power_bullet:
+                    for tag in power_bullet.next_siblings:
+                        if tag.name == "br":
+                            break
+                        elif tag.name == "b":
+                            keywords.append(tag.text)
+                keywords_str = ", ".join(keywords)
 
-            # Short Description
-            # remove tags
-            shortdescription_str = re.sub('<.*?>', '', description_str.replace('</p><p>', '\n'))
+                # Description
+                if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
+                    for tag in description_tags:
+                        # remove p classnames
+                        del tag['class']
+                    description_str = ''.join(map(str, description_tags))
 
-            # Group - this is the subheading on the Powers table
-            if level_str == '0':
-                group_str = recharge_str + ' Features'
+                # Short Description
+                # remove tags
+                shortdescription_str = re.sub('<.*?>', '', description_str.replace('</p><p>', '\n'))
+
+                # Group - this is the subheading on the Powers table
+                if level_str == '0':
+                    group_str = recharge_str + ' Features'
+                    if recharge_str == 'At-Will':
+                        recharge_id = '1at'
+                    elif recharge_str == 'At-Will (Special)':
+                        recharge_id = '1sp'
+                    elif recharge_str == 'Encounter':
+                        recharge_id = '2en'
+                    elif recharge_str == 'Encounter (Special)':
+                        recharge_id = '2sp'
+                    elif recharge_str == 'Daily':
+                        recharge_id = '3da'
+                    elif recharge_str == 'Daily (Special)':
+                        recharge_id = '3sp'
+                    else:
+                        recharge_id = '5zz'
+                elif re.search(r'Utility', source_str):
+                    group_str = 'Level ' + level_str + ' Utility'
+                else:
+                    group_str = 'Level ' + level_str + ' ' + recharge_str 
+
+                # Group ID - this is in the correct sort order according to the Group, by Level then Recharge
+                if recharge_id == '':
+                    if re.search(r'Utility', source_str):
+                        recharge_id = '4ut'
+                    elif recharge_str == 'At-Will':
+                        recharge_id = '1at'
+                    elif recharge_str == 'Encounter':
+                        recharge_id = '2en'
+                    elif recharge_str == 'Daily':
+                        recharge_id = '3da'
+                    else:
+                        recharge_id = '5zz'
+                # concatenate padded level and recharge id
+                group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
+
+                export_dict = {}
+                export_dict["action"] = action_str
+                export_dict["class"] = class_str
+                export_dict["description"] = description_str + published_str
+                export_dict["flavor"] = flavor_str
+                export_dict["group"] = group_str
+                export_dict["group_id"] = group_id
+                export_dict["keywords"] = keywords_str
+                ## add a suffix if a secondary power has the same name as the primary - I don't think this ever occurs
+                export_dict["name"] = name_str if name_str != previous_name else name_str + str(power_id)
+                export_dict["prefix"] = prefix_str
+                export_dict["prefix_id"] = prefix_id
+                export_dict["published"] = published_str
+                export_dict["range"] = range_str
+                export_dict["recharge"] = recharge_str
+                export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
+                export_dict["source"] = source_str
+
+                # Append a copy of generated item dictionary
+                power_out.append(copy.deepcopy(export_dict))
+
+                # Start next power with the tag that triggered this power creation
+                power_html = pwr_tag
+                power_complete = False
+                previous_name = name_str
+            # keep adding to the power html until it gets processed
             else:
-                group_str = 'Level ' + level_str + ' ' + recharge_str 
-
-            # Group ID - this is in the correct sort order according to the Group, by Level then Recharge
-            if recharge_str == 'At-Will':
-                recharge_id = '1at'
-            elif recharge_str == 'Encounter':
-                recharge_id = '2en'
-            elif recharge_str == 'Daily':
-                recharge_id = '3da'
-            elif recharge_str == 'Utility':
-                recharge_id = '4ut'
-            else:
-                recharge_id = '5zz'
-            # concatenate padded level and recharge id
-            group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
-
-            export_dict = {}
-            export_dict["action"] = action_str
-            export_dict["class"] = class_str
-            export_dict["description"] = description_str + published_str
-            export_dict["flavor"] = flavor_str
-            export_dict["group"] = group_str
-            export_dict["group_id"] = group_id
-            export_dict["keywords"] = keywords_str
-            export_dict["level"] = level_str
-            export_dict["name"] = name_str
-            export_dict["prefix"] = prefix_str
-            export_dict["prefix_id"] = prefix_id
-            export_dict["published"] = published_str
-            export_dict["range"] = range_str
-            export_dict["recharge"] = recharge_str
-            export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
-            export_dict["source"] = source_str
-
-            # Append a copy of generated item dictionary
-            power_out.append(copy.deepcopy(export_dict))
+                power_html.append(pwr_tag)
 
     print(str(len(db_in)) + ' entries checked.')
     print(str(len(power_out)) + ' entries exported.')
