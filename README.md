@@ -41,7 +41,9 @@ Options:
 
 3. Open a command prompt or PowerShell and navigate to the Portable Compendium directory.
 
-4. Run `module_maker.exe` with the switches to create the modules you want. e.g.
+4. Run `module_maker.exe` with the switches as above to create the modules you want.
+
+You can use `run_all.bat` to create the following two Libraries, which include everything currently available:
 ```
 module_maker.exe --filename 4E_Powers --library "4E Powers" -f -p
 module_maker.exe --filename 4E_Items --library "4E Items" -a -r -i -t
