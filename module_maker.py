@@ -112,18 +112,6 @@ if __name__ == '__main__':
     settings.min_lvl = argv_dict["min"]
     settings.max_lvl = argv_dict["max"]
 
-    # Pull Items data from Portable Compendium
-    item_db = []
-    try:
-        item_db = create_db('sql\ddiItem.sql', "','")
-    except:
-        print('Error reading Item data source.')
-
-    if not item_db:
-        print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
-        input('Press enter to close.')
-        sys.exit(0)
-
     # Counter the determines the order of Library menu items
     menu_id = 0
 
@@ -135,13 +123,7 @@ if __name__ == '__main__':
     # this is always empty for 'other' magic items
     empty_tier_list = ['']
 
-    # Check if any magic items are being exported as we'll need a <magicitemlist>
-    mi_flag = False
-    for arg in argv_dict:
-        if re.search(r'^mi_', arg) and argv_dict[arg]:
-            mi_flag = True
-
-    # Set a suffix for Magic Items menu items if a level restriction is in place
+    # Set a suffix if a level restriction is in place
     if argv_dict["min"] <= 1 and argv_dict["max"] == 10:
             suffix_str = ' (Heroic)'
     elif argv_dict["min"] == 11 and argv_dict["max"] == 20:
@@ -155,6 +137,30 @@ if __name__ == '__main__':
             suffix_str = f' (Levels {argv_dict["min"]}-{argv_dict["max"]})'
     else:
         suffix_str = ''
+
+    # Check if any magic items are being exported as we'll need a <magicitemlist>
+    mi_flag = False
+    for arg in argv_dict:
+        if re.search(r'^mi_', arg) and argv_dict[arg]:
+            mi_flag = True
+
+    # Check if any magic or mundane items are being exported as we need to read the item database
+    item_flag = False
+    if mi_flag or argv_dict["armor"] or argv_dict["weapons"] or argv_dict["equipment"]:
+        item_falg = True
+
+    if item_flag:
+        # Pull Items data from Portable Compendium
+        item_db = []
+        try:
+            item_db = create_db('sql\ddiItem.sql', "','")
+        except:
+            print('Error reading Item data source.')
+
+        if not item_db:
+            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            input('Press enter to close.')
+            sys.exit(0)
 
     #===========================
     # ALCHEMY
@@ -183,7 +189,7 @@ if __name__ == '__main__':
 
         alchemy_list = extract_alchemy_list(alchemy_db, 'Alchemical Formulas')
         alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_list, 'Alchemical Items')
-        alchemy_lib, menu_id = create_alchemy_formula_library(menu_id, alchemy_list, 'Alchemical Formulas')
+        alchemy_lib, menu_id = create_alchemy_formula_library(menu_id, alchemy_list, 'Alchemical Formulas' + suffix_str)
         alchemy_item_tbl = create_alchemy_item_table(alchemy_list)
         alchemy_tbl = create_alchemy_formula_table(alchemy_list)
         alchemy_desc, alchemy_mi_desc, alchemy_power = create_alchemy_formula_desc(alchemy_list)
@@ -210,7 +216,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         ritual_list = extract_ritual_list(ritual_db, 'Rituals')
-        ritual_lib, menu_id = create_ritual_library(menu_id, ritual_list, 'Rituals')
+        ritual_lib, menu_id = create_ritual_library(menu_id, ritual_list, 'Rituals' + suffix_str)
         ritual_tbl = create_ritual_table(ritual_list)
         ritual_desc = create_ritual_desc(ritual_list)
 
@@ -414,7 +420,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         power_list = extract_power_list(power_db)
-        power_lib, menu_id = create_power_library(menu_id, power_list, 'Powers')
+        power_lib, menu_id = create_power_library(menu_id, power_list, suffix_str)
         power_tbl = create_power_table(power_list)
         power_desc = create_power_desc(power_list)
 

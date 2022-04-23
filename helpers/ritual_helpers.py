@@ -186,21 +186,22 @@ def extract_ritual_list(db_in, filter_in):
             details_str = re.sub(r'<th>', r'<td><b>', details_str)
             details_str = re.sub(r'</th>', r'</b></td>', details_str)
 
-            export_dict = {}
-            export_dict["category"] = category_str
-            export_dict["component"] = component_str
-            export_dict["details"] = details_str
-            export_dict["duration"] = duration_str
-            export_dict["flavor"] = flavor_str
-            export_dict["level"] = level_str
-            export_dict["name"] = name_str
-            export_dict["prerequisite"] = prerequisite_str
-            export_dict["price"] = price_str
-            export_dict["skill"] = skill_str
-            export_dict["time"] = time_str
+            if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
+                export_dict = {}
+                export_dict["category"] = category_str
+                export_dict["component"] = component_str
+                export_dict["details"] = details_str
+                export_dict["duration"] = duration_str
+                export_dict["flavor"] = flavor_str
+                export_dict["level"] = level_str
+                export_dict["name"] = name_str
+                export_dict["prerequisite"] = prerequisite_str
+                export_dict["price"] = price_str
+                export_dict["skill"] = skill_str
+                export_dict["time"] = time_str
 
-            # Append a copy of generated item dictionary
-            ritual_out.append(copy.deepcopy(export_dict))
+                # Append a copy of generated item dictionary
+                ritual_out.append(copy.deepcopy(export_dict))
 
     print(str(len(db_in)) + ' entries parsed.')
     print(str(len(ritual_out)) + ' entries exported.')

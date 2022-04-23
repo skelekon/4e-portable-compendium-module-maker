@@ -61,7 +61,7 @@ def power_list_sorter(entry_in):
 
     return (clss, group_id, name)
 
-def create_power_library(id_in, list_in, name_in):
+def create_power_library(id_in, list_in, suffix_in):
     xml_out = ''
 
     if not list_in:
@@ -81,7 +81,7 @@ def create_power_library(id_in, list_in, name_in):
             xml_out += ('\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
             xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
-            xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}</name>\n')
+            xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}{suffix_in}</name>\n')
             xml_out += (f'\t\t\t\t</a{entry_id}-powers{class_camel}>\n')
     return xml_out, id_in
 
@@ -433,27 +433,28 @@ def extract_power_list(db_in):
                 # concatenate padded level and recharge id
                 group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
 
-                export_dict = {}
-                export_dict["action"] = action_str
-                export_dict["basename"] = basename_str
-                export_dict["class"] = class_str
-                export_dict["description"] = description_str + published_str
-                export_dict["flavor"] = flavor_str
-                export_dict["group"] = group_str
-                export_dict["group_id"] = group_id
-                export_dict["keywords"] = keywords_str
-                ## add a suffix if a secondary power has the same name as the primary - I don't think this ever occurs
-                export_dict["name"] = name_str if name_str != previous_name else name_str + str(power_id)
-                export_dict["prefix"] = prefix_str
-                export_dict["prefix_id"] = prefix_id
-                export_dict["published"] = published_str
-                export_dict["range"] = range_str
-                export_dict["recharge"] = recharge_str
-                export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
-                export_dict["source"] = source_str
+                if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
+                    export_dict = {}
+                    export_dict["action"] = action_str
+                    export_dict["basename"] = basename_str
+                    export_dict["class"] = class_str
+                    export_dict["description"] = description_str + published_str
+                    export_dict["flavor"] = flavor_str
+                    export_dict["group"] = group_str
+                    export_dict["group_id"] = group_id
+                    export_dict["keywords"] = keywords_str
+                    ## add a suffix if a secondary power has the same name as the primary - I don't think this ever occurs
+                    export_dict["name"] = name_str if name_str != previous_name else name_str + str(power_id)
+                    export_dict["prefix"] = prefix_str
+                    export_dict["prefix_id"] = prefix_id
+                    export_dict["published"] = published_str
+                    export_dict["range"] = range_str
+                    export_dict["recharge"] = recharge_str
+                    export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
+                    export_dict["source"] = source_str
 
-                # Append a copy of generated item dictionary
-                power_out.append(copy.deepcopy(export_dict))
+                    # Append a copy of generated item dictionary
+                    power_out.append(copy.deepcopy(export_dict))
 
                 # Start next power with the tag that triggered this power creation
                 power_html = pwr_tag

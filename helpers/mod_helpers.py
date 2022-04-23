@@ -66,8 +66,8 @@ def parse_argv(args_in):
     out_dict = {}
     out_dict["filename"] = options.filename
     out_dict["library"] = options.library
-    out_dict["min"] = int(options.min)
-    out_dict["max"] = int(options.max)
+    out_dict["min"] = int(options.min) if int(options.min) >= 0 else 0
+    out_dict["max"] = int(options.max) if int(options.min) <= 99 else 99
     out_dict["alchemy"] = options.alchemy if options.alchemy != None else False
     out_dict["rituals"] = options.rituals if options.rituals != None else False
     out_dict["feats"] = options.feats if options.feats != None else False
