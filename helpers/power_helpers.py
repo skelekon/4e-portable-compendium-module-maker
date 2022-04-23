@@ -163,18 +163,42 @@ def create_power_table(list_in, library_in):
 
     return xml_out
 
-def create_power_desc(list_in):
+def create_linkedpowers(basename_in, name_in, list_in, library_in):
+    xml_out = ''
+    linked_list = []
+
+    # Loop through the list of powers to find a related power
+    for pwr_dict in list_in:
+        if pwr_dict["basename"] == basename_in and pwr_dict["name"] != name_in:
+            linked_list.append(pwr_dict["name"])
+
+    # Create any linked power entries
+    for pwr in linked_list:
+        power_camel = re.sub('[^a-zA-Z0-9_]', '', pwr)
+        xml_out += (f'\t\t\t\t<power{power_camel}>\n')
+        xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{library_in}</recordname>\n')
+        xml_out += ('\t\t\t\t\t</link>\n')
+        xml_out += (f'\t\t\t\t</power{power_camel}>\n')
+    
+    return xml_out
+
+def create_power_desc(list_in, library_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    section_str = ''
     entry_str = ''
+    linked_powers = ''
+    section_str = ''
     name_lower = ''
 
     # Create individual item entries
     for power_dict in sorted(list_in, key=power_list_sorter):
+        linked_powers = create_linkedpowers(power_dict["basename"], power_dict["name"], list_in, library_in)
+
         name_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
 
         xml_out += (f'\t\t<power{name_lower}>\n')
@@ -187,6 +211,8 @@ def create_power_desc(list_in):
         xml_out += (f'\t\t\t<recharge type="string">{power_dict["recharge"]}</recharge>\n')
         xml_out += (f'\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n')
         xml_out += (f'\t\t\t<source type="string">{power_dict["source"]}</source>\n')
+        if linked_powers != '':
+            xml_out += (f'\t\t\t<linkedpowers>\n{linked_powers}\t\t\t</linkedpowers>\n')
         xml_out += (f'\t\t</power{name_lower}>\n')
 
     return xml_out
@@ -224,31 +250,20 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
         parsed_html = BeautifulSoup(html, features='html.parser')
 
         # Retrieve the data with dedicated columns
-        name_str =  row["Name"].replace('\\', '')
+        basename_str =  row["Name"].replace('\\', '')
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
 
-##        if name_str not in ['Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]']:
-##        if name_str not in ['Turn Undead', 'Healing Word', 'Holy Cleansing']:
+##        if basename_str not in ['Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]']:
+##        if basename_str not in ['Turn Undead', 'Healing Word', 'Holy Cleansing']:
+##        if basename_str not in ['Grease']:
 ##            continue
-##        print(name_str)        
+##        print(basename_str)        
 
-        action_str = ''
-        description_str = ''
-        flavor_str = ''
-        group_id = ''
-        group_str = ''
-        keywords_str = ''
-        prefix_str = ''
-        published_str = ''
-        range_str = ''
-        recharge_id = ''
-        recharge_str = ''
-        shortdescription_str = ''
-        source_str = ''
-
-        # sort order for the Library list
+        # sort order for the Library list based on the broad class of the power
         prefix_id = 0
+        prefix_str = ''
+
         if class_str in cc_list:
             prefix_id = 2
             prefix_str = 'Class'
@@ -265,7 +280,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
             prefix_id = 1
             prefix_str = 'Powers'
 
-        # Published In
+        # Published In - only one of these required per base power entry
         published_tag = parsed_html.find(class_='publishedIn').extract()
         if published_tag:
             # remove p classnames
@@ -277,6 +292,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
                 anchor_tag = published_tag.find('a')
             published_str = '\\n' + str(published_tag)
 
+        # set up variables used for looping mutiple power entries
         power_id = 0
         previous_name = ''
         in_power = False
@@ -305,6 +321,21 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
             # Process all the power details and add it to the output list
             if power_complete == True:
 
+                # Initialize variables that are per-power entry
+                action_str = ''
+                description_str = ''
+                flavor_str = ''
+                group_id = ''
+                group_str = ''
+                keywords_str = ''
+                name_str = ''
+                published_str = ''
+                range_str = ''
+                recharge_id = ''
+                recharge_str = ''
+                shortdescription_str = ''
+                source_str = ''
+
                 # Counter that can be used to distinguish between additional powers from the same base power
                 power_id += 1
 
@@ -312,6 +343,8 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
                 if source_tag := power_html.select_one('span', class_='level'):
                     source_str = source_tag.text
                     name_str = source_tag.next_sibling.strip()
+                if name_str == '':
+                    name_str = basename_str
 
                 # Flavor
                 if flavor_tag := power_html.select_one('.flavor > i'):
@@ -320,8 +353,11 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
                 # Recharge
                 if recharge_tag := power_html.select_one('.powerstat > b'):
                     recharge_str = recharge_tag.text
+                # small number of powers have alternate capitlaization
+                if recharge_str == 'At-will':
+                    recharge_str = 'At-Will'
 
-                # Powerstat class
+                # Powerstat class - this is used to find Action, Range, Keywords
                 powerstat_lbl = power_html.find('p', class_='powerstat')
 
                 # Action
@@ -381,6 +417,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
                 # Group ID - this is in the correct sort order according to the Group, by Level then Recharge
                 if recharge_id == '':
+                    # Utility takes priority over A/E/D
                     if re.search(r'Utility', source_str):
                         recharge_id = '4ut'
                     elif recharge_str == 'At-Will':
@@ -396,6 +433,7 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
 
                 export_dict = {}
                 export_dict["action"] = action_str
+                export_dict["basename"] = basename_str
                 export_dict["class"] = class_str
                 export_dict["description"] = description_str + published_str
                 export_dict["flavor"] = flavor_str
