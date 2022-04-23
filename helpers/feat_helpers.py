@@ -142,9 +142,25 @@ def create_feat_desc(list_in):
         xml_out += (f'\t\t\t<prerequisite type="string">{feat_dict["prerequisite"]}</prerequisite>\n')
         xml_out += (f'\t\t\t<shortdescription type="string">{feat_dict["shortdescription"]}</shortdescription>\n')
         xml_out += (f'\t\t\t<source type="string">Feat</source>\n')
+        if feat_dict["linkedpowers"] != '':
+            xml_out += (f'\t\t\t<linkedpowers>\n{feat_dict["linkedpowers"]}\t\t\t</linkedpowers>\n')
         xml_out += (f'\t\t</feat{name_lower}>\n')
 
     return xml_out
+
+def create_linkedpowers(power_in, library_in):
+    power_camel = re.sub('[^a-zA-Z0-9_]', '', power_in)
+
+    xml_out = ''
+    xml_out += (f'\t\t\t\t<power{power_camel}>\n')
+    xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
+    xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{library_in}</recordname>\n')
+    xml_out += ('\t\t\t\t\t</link>\n')
+    xml_out += (f'\t\t\t\t</power{power_camel}>\n')
+    
+    return xml_out
+                        
 
 def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
     feat_out = []
@@ -161,11 +177,12 @@ def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
         name_str =  row["Name"].replace('\\', '')
         class_str =  row["Tier"].replace('\\', '')
 
-##        if name_str[0:14] != 'Battle-Scarred':
+##        if name_str != 'Anthem of Civilization':
 ##            continue
 
         class_id = ''
         description_str = ''
+        linkedpowers_str = ''
         prerequisite_str = ''
         published_str = ''
         shortdescription_str = ''
@@ -202,32 +219,42 @@ def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
         detail_div = parsed_html.find('div', id='detail')
 
         # Copy detail strings to a list of strings
-        raw_str = []
+        raw_list = []
         for div in detail_div.strings:
             if div.replace('\n', '').strip() != '' and not re.search('Tier$', div):
-                raw_str.append(re.sub(r'&', r'&amp;', div))
+                raw_list.append(re.sub(r'&', r'&amp;', div))
 
         # Combine consecutive items where next item starts with a ':'
-        desc_str = []
+        desc_list = []
         skip_flag = False;
-        for idx, raw in enumerate(raw_str):
+        for idx, raw_str in enumerate(raw_list):
             if skip_flag:
                 skip_flag = False
-            elif idx < len(raw_str) - 1 and raw_str[idx + 1][0:1] == ':':
-                desc_str.append(raw + raw_str[idx + 1])
+            elif idx < len(raw_list) - 1 and raw_list[idx + 1][0:1] == ':':
+                desc_list.append(raw_str + raw_list[idx + 1])
                 skip_flag = True
             else:
-                desc_str.append(raw)
+                desc_list.append(raw_str)
 
+        power_list = []
+        power_flag = False
         # Prerequisite / Short Description (Benefit) / Description
-        for desc in desc_str:
-            if prerequisite_tag := re.search(r'^Prerequisite:\s*(.*)\s*$', desc):
-                prerequisite_str = prerequisite_tag.group(1)
-            elif shortdescription_tag := re.search(r'^Benefit:\s*(.*)\s*$', desc):
-                shortdescription_str = shortdescription_tag.group(1)
-            description_str += ('<p>' + desc + '</p>').strip()
+        for desc in desc_list:
+            if re.search('Feat (Attack|Utility)', desc):
+                power_flag = True
+            if power_flag:
+                power_list.append(desc)
+            else:
+                if prerequisite_tag := re.search(r'^Prerequisite:\s*(.*)\s*$', desc):
+                    prerequisite_str = prerequisite_tag.group(1)
+                elif shortdescription_tag := re.search(r'^Benefit:\s*(.*)\s*$', desc):
+                    shortdescription_str = shortdescription_tag.group(1)
+                description_str += ('<p>' + desc + '</p>').strip()
         # bold the Prerequisite & Benefit headings
         description_str = re.sub(r'(Prerequisite:|Benefit:)', r'<b>\1</b>', description_str)            
+
+        if power_flag:
+            linkedpowers_str = create_linkedpowers(power_list[1], library_in)
 
         export_dict = {}
         export_dict["class"] = class_str
@@ -236,6 +263,7 @@ def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
         # we only need one level of hierarchy for Feats, even though the code is set up for two levels (Class + Group)
         export_dict["group"] = class_str
         export_dict["name"] = name_str
+        export_dict["linkedpowers"] = linkedpowers_str
         export_dict["prerequisite"] = prerequisite_str
         export_dict["shortdescription"] = shortdescription_str
 
