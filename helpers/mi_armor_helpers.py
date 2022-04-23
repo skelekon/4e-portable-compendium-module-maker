@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -8,7 +10,7 @@ from .mod_helpers import power_construct
 from .mod_helpers import powers_format
 from .mod_helpers import props_format
 
-def extract_mi_armor_list(db_in, library_in, min_lvl, max_lvl):
+def extract_mi_armor_list(db_in):
     mi_armor_out = []
 
     print('\n\n\n=========== MAGIC ARMOR ===========')
@@ -78,7 +80,7 @@ def extract_mi_armor_list(db_in, library_in, min_lvl, max_lvl):
                 subclass_str = re.sub('\s\s', ' ', cat_lbl.parent.next_sibling.strip())
 
             # Powers
-            powerdesc_str, mipowers_str = powers_format(parsed_html, name_str, library_in)
+            powerdesc_str, mipowers_str = powers_format(parsed_html, name_str)
 
             # Prerequisite
             if prerequisite_lbl := parsed_html.find(string=re.compile('^(Prerequisite|Requirement):$')):
@@ -97,7 +99,7 @@ def extract_mi_armor_list(db_in, library_in, min_lvl, max_lvl):
             # Build the item entry
             previous_name = ''
             for item in multi_list:
-                if int(item["level"]) >= min_lvl and int(item["level"]) <= max_lvl:
+                if int(item["level"]) >= settings.min_lvl and int(item["level"]) <= settings.max_lvl:
                     export_dict = {}
                     export_dict['bonus'] = item['bonus']
                     export_dict['cat'] = cat_str

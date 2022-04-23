@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -12,7 +14,7 @@ def ritual_list_sorter(entry_in):
 
     return (name)
 
-def create_ritual_library(id_in, library_in, list_in, name_in):
+def create_ritual_library(id_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -25,14 +27,14 @@ def create_ritual_library(id_in, library_in, list_in, name_in):
     xml_out += (f'\t\t\t\t<a{entry_id}rituals>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>rituallists@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>rituallists@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</a{entry_id}rituals>\n')
 
     return xml_out, id_in
 
-def create_ritual_table(list_in, library_in):
+def create_ritual_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -54,7 +56,7 @@ def create_ritual_table(list_in, library_in):
         xml_out += (f'\t\t\t<ritual{name_camel}>\n')
         xml_out += ('\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t<class>reference_ritual</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.ritual{name_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.ritual{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t<source type="string">{ritual_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t</ritual{name_camel}>\n')
@@ -91,7 +93,7 @@ def create_ritual_desc(list_in):
 
     return xml_out
 
-def extract_ritual_list(db_in, library_in, min_lvl, max_lvl, filter_in):
+def extract_ritual_list(db_in, filter_in):
     ritual_out = []
 
     print('\n\n\n=========== RITUALS ===========')

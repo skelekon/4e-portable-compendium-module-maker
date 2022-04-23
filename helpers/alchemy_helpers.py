@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -47,7 +49,7 @@ def create_power_desc(soup_in, name_in):
 
     return power_out
 
-def create_mi_desc(item_in, name_in, library_in):
+def create_mi_desc(item_in, name_in):
     mi_out = ''
     power_out = ''
 
@@ -74,7 +76,7 @@ def create_mi_desc(item_in, name_in, library_in):
     mi_out += f'\t\t\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n'
     mi_out += '\t\t\t\t\t<link type="windowreference">\n'
     mi_out += '\t\t\t\t\t\t<class>powerdesc</class>\n'
-    mi_out += f'\t\t\t\t\t\t<recordname>powerdesc.alchemy{name_camel}Power-{suffix_str}@{library_in}</recordname>\n'
+    mi_out += f'\t\t\t\t\t\t<recordname>powerdesc.alchemy{name_camel}Power-{suffix_str}@{settings.library}</recordname>\n'
     mi_out += '\t\t\t\t\t</link>\n'
     mi_out += '\t\t\t\t</id-001>\n'
     mi_out += '\t\t\t</powers>\n'
@@ -100,7 +102,7 @@ def create_mi_desc(item_in, name_in, library_in):
 
     return mi_out, power_out
 
-def extract_mi_details(soup_in, name_in, library_in):
+def extract_mi_details(soup_in, name_in):
     # Extracts one Alchemical Item details from passed in html soup
 
     cost_str = ''
@@ -138,7 +140,7 @@ def extract_mi_details(soup_in, name_in, library_in):
     mi_table_out += f'\t\t\t\t\t\t<a{suffix_str}{name_camel}>\n'
     mi_table_out += '\t\t\t\t\t\t\t<link type="windowreference">\n'
     mi_table_out += '\t\t\t\t\t\t\t\t<class>referencemagicitem</class>\n'
-    mi_table_out += f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.alchemy{name_camel}_{suffix_str}@{library_in}</recordname>\n'
+    mi_table_out += f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.alchemy{name_camel}_{suffix_str}@{settings.library}</recordname>\n'
     mi_table_out += '\t\t\t\t\t\t\t</link>\n'
     mi_table_out += f'\t\t\t\t\t\t\t<name type="string">{name_in}</name>\n'
     mi_table_out += '\t\t\t\t\t\t\t<cat type="string"></cat>\n'
@@ -147,7 +149,7 @@ def extract_mi_details(soup_in, name_in, library_in):
     mi_table_out += f'\t\t\t\t\t\t</a{suffix_str}{name_camel}>\n'
 
     # These are the links to the Alchemy Items that appear on the Alchemy Formula item card
-    linklist_out += f'\n\t\t\t\t\t<link class="referencemagicitem" recordname="magicitemdesc.alchemy{name_camel}_{suffix_str}@{library_in}">Level {level_str} - {name_in}</link>'
+    linklist_out += f'\n\t\t\t\t\t<link class="referencemagicitem" recordname="magicitemdesc.alchemy{name_camel}_{suffix_str}@{settings.library}">Level {level_str} - {name_in}</link>'
 
 
     mi_dict = {}
@@ -156,7 +158,7 @@ def extract_mi_details(soup_in, name_in, library_in):
     mi_dict["flavor"] = flavor_str
     mi_dict["power"] = copy.copy(power_soup)
 
-    mi_out, power_out = create_mi_desc(mi_dict, name_in, library_in)
+    mi_out, power_out = create_mi_desc(mi_dict, name_in)
 
     return mi_table_out, linklist_out, mi_out, power_out
 
@@ -165,7 +167,7 @@ def alchemy_list_sorter(entry_in):
 
     return (name)
 
-def create_alchemy_item_library(id_in, library_in, list_in, name_in):
+def create_alchemy_item_library(id_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -178,14 +180,14 @@ def create_alchemy_item_library(id_in, library_in, list_in, name_in):
     xml_out += (f'\t\t\t\t<a{entry_id}alchemyitems>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.ritualalchemicalitem@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.ritualalchemicalitem@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</a{entry_id}alchemyitems>\n')
 
     return xml_out, id_in
 
-def create_alchemy_formula_library(id_in, library_in, list_in, name_in):
+def create_alchemy_formula_library(id_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -198,14 +200,14 @@ def create_alchemy_formula_library(id_in, library_in, list_in, name_in):
     xml_out += (f'\t\t\t\t<a{entry_id}alchemyformulas>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>alchemylists@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>alchemylists@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</a{entry_id}alchemyformulas>\n')
 
     return xml_out, id_in
 
-def create_alchemy_item_table(list_in, library_in):
+def create_alchemy_item_table(list_in):
     xml_out = ''
 
     # Alchemy Item Table
@@ -228,7 +230,7 @@ def create_alchemy_item_table(list_in, library_in):
 
     return xml_out
 
-def create_alchemy_formula_table(list_in, library_in):
+def create_alchemy_formula_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -251,7 +253,7 @@ def create_alchemy_formula_table(list_in, library_in):
         xml_out += (f'\t\t\t<alchemy{name_camel}>\n')
         xml_out += ('\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t<class>reference_ritual</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.alchemy{name_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.alchemy{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t<source type="string">{alchemy_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t</alchemy{name_camel}>\n')
@@ -294,7 +296,7 @@ def create_alchemy_formula_desc(list_in):
 
     return xml_out, mi_out, power_out
 
-def extract_alchemy_list(db_in, library_in, min_lvl, max_lvl, filter_in):
+def extract_alchemy_list(db_in, filter_in):
     alchemy_out = []
 
     print('\n\n\n=========== ALCHEMY ===========')
@@ -345,7 +347,7 @@ def extract_alchemy_list(db_in, library_in, min_lvl, max_lvl, filter_in):
                     # Foe each found item, generate a dictonary with details, plus Magic Item & Item Power structures
                     if p.find('h1', class_='magicitem'):
                         item_soup = p.extract()
-                        tbl_str, ll_str, mi_str, pow_str = extract_mi_details(item_soup, name_str, library_in)
+                        tbl_str, ll_str, mi_str, pow_str = extract_mi_details(item_soup, name_str)
                         mi_table_str += tbl_str
                         linklist_str += ll_str
                         mi_desc_str += mi_str

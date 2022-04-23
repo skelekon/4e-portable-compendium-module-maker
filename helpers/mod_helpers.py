@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import optparse
 import os
@@ -158,7 +160,7 @@ def parse_argv(args_in):
     return out_dict
 
 
-def create_module(xml_in, filename_in, library_in):
+def create_module(xml_in, filename_in):
 
     # Write FG XML client file
     with open('client.xml', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
@@ -166,7 +168,7 @@ def create_module(xml_in, filename_in, library_in):
     print('\nclient.xml written')
 
     # Write FG XML definition file
-    definition_str = (f'<?xml version="1.0" encoding="iso-8859-1"?>\n<root version="2.2">\n\t<name>{library_in}</name>\n\t<author>skelekon</author>\n\t<ruleset>4E</ruleset>\n</root>')
+    definition_str = (f'<?xml version="1.0" encoding="iso-8859-1"?>\n<root version="2.2">\n\t<name>{settings.library}</name>\n\t<author>skelekon</author>\n\t<ruleset>4E</ruleset>\n</root>')
     with open('definition.xml', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
         file.write(definition_str)
     print('\ndefinition.xml written.')
@@ -277,7 +279,7 @@ def mi_list_sorter(entry_in):
     name = entry_in["name"]
     return (name)
 
-def create_mi_library(id_in, tier_list, library_in, name_in, item_in):
+def create_mi_library(id_in, tier_list, name_in, item_in):
     xml_out = ''
     item_lower = re.sub('[^a-zA-Z0-9_]', '', item_in.lower())
 
@@ -294,14 +296,14 @@ def create_mi_library(id_in, tier_list, library_in, name_in, item_in):
         xml_out += (f'\t\t\t\t<{menu_str}magicitems>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.core{item_lower}{t.lower()}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.core{item_lower}{t.lower()}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
         xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
         xml_out += (f'\t\t\t\t</{menu_str}magicitems>\n')
 
     return xml_out, id_in
 
-def create_mi_table(list_in, tier_list, library_in, type_in):
+def create_mi_table(list_in, tier_list, type_in):
     xml_out = ''
 
     if not list_in:
@@ -355,7 +357,7 @@ def create_mi_table(list_in, tier_list, library_in, type_in):
                 xml_out += (f'\t\t\t\t\t\t<a{level_str}{name_lower}>\n')
                 xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
                 xml_out += ('\t\t\t\t\t\t\t\t<class>referencemagicitem</class>\n')
-                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.{name_lower}_{level_str}@{library_in}</recordname>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.{name_lower}_{level_str}@{settings.library}</recordname>\n')
                 xml_out += ('\t\t\t\t\t\t\t</link>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]} {entry_dict["bonus"]}</name>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<cat type="string">{entry_dict["cat"]}</cat>\n')
@@ -501,7 +503,7 @@ def power_construct(lines_list):
 
     return power_dict
 
-def powers_format(soup_in, name_in, library_in):
+def powers_format(soup_in, name_in):
     name_alpha = re.sub('[^a-zA-Z0-9_]', '', name_in)
     id = 0
     powers_list = []
@@ -567,7 +569,7 @@ def powers_format(soup_in, name_in, library_in):
             magicitemsdesc_out += f'\t\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
         magicitemsdesc_out += '\t\t\t\t\t<link type="windowreference">\n'
         magicitemsdesc_out += '\t\t\t\t\t\t<class>powerdesc</class>\n'
-        magicitemsdesc_out += f'\t\t\t\t\t\t<recordname>powerdesc.item{name_alpha}Power-{entry_id}@{library_in}</recordname>\n'
+        magicitemsdesc_out += f'\t\t\t\t\t\t<recordname>powerdesc.item{name_alpha}Power-{entry_id}@{settings.library}</recordname>\n'
         magicitemsdesc_out += '\t\t\t\t\t</link>\n'
         magicitemsdesc_out += f'\t\t\t\t</id-{entry_id}>\n'
 

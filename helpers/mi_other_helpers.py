@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -8,7 +10,7 @@ from .mod_helpers import power_construct
 from .mod_helpers import powers_format
 from .mod_helpers import props_format
 
-def extract_mi_other_list(db_in, library_in, min_lvl, max_lvl, filter_in):
+def extract_mi_other_list(db_in, filter_in):
     mi_other_out = []
 
     alt_reward_expr = re.compile('(Alternative Reward|Battle Scars|Divine Boon|Echo of Power|Elemental gift|Elemental Gift|Fey Magic Gift|Glory Boon|Grandmaster Training|Legendary Boon|Lost Rune|Primal Blessing|Psionic Talent|Secret of the Way|Sorcerer-King\'s Boon|Templar Brand|Veiled Alliance Mystery|Wanderer\'s Secret)')
@@ -134,7 +136,7 @@ def extract_mi_other_list(db_in, library_in, min_lvl, max_lvl, filter_in):
             cat_str = subclass_str
 
             # Powers
-            powerdesc_str, mipowers_str = powers_format(parsed_html, name_str, library_in)
+            powerdesc_str, mipowers_str = powers_format(parsed_html, name_str)
 
             # Prerequisite
             if prerequisite_lbl := parsed_html.find(string=re.compile('^(Prerequisite|Requirement):$')):
@@ -153,7 +155,7 @@ def extract_mi_other_list(db_in, library_in, min_lvl, max_lvl, filter_in):
             # Build the item entry
             previous_name = ''
             for item in multi_list:
-                if int(item["level"]) >= min_lvl and int(item["level"]) <= max_lvl:
+                if int(item["level"]) >= settings.min_lvl and int(item["level"]) <= settings.max_lvl:
                     # only need to output powerdesc once for each item as it will be the same for all level versions
                     powerdesc_flag = False
 

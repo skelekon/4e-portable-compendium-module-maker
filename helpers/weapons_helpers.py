@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -8,7 +10,7 @@ def weapons_list_sorter(entry_in):
 
     return (section_id, name)
 
-def create_weapons_library(id_in, library_in, name_in):
+def create_weapons_library(id_in, name_in):
     id_in += 1
     menu_str = 'a' + '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
 
@@ -16,14 +18,14 @@ def create_weapons_library(id_in, library_in, name_in):
     xml_out += (f'\t\t\t\t<{menu_str}weapons>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classweapontablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>weaponlists.core@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>weaponlists.core@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</{menu_str}weapons>\n')
 
     return xml_out, id_in
 
-def create_weapons_table(list_in, library_in):
+def create_weapons_table(list_in):
     xml_out = ''
     item_id = 0
     section_id = 0
@@ -58,7 +60,7 @@ def create_weapons_table(list_in, library_in):
         xml_out += (f'\t\t\t\t\t\t<a{entry_str}{name_lower}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>referenceweapon</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.weapon.{name_lower}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.weapon.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t\t\t\t<profbonus type="number">{entry_dict["profbonus"]}</profbonus>\n')

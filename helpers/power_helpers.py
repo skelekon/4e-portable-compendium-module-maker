@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -59,7 +61,7 @@ def power_list_sorter(entry_in):
 
     return (clss, group_id, name)
 
-def create_power_library(id_in, library_in, list_in, name_in):
+def create_power_library(id_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -77,13 +79,13 @@ def create_power_library(id_in, library_in, list_in, name_in):
             xml_out += (f'\t\t\t\t<a{entry_id}-powers{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
-            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{library_in}</recordname>\n')
+            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
             xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}</name>\n')
             xml_out += (f'\t\t\t\t</a{entry_id}-powers{class_camel}>\n')
     return xml_out, id_in
 
-def create_power_table(list_in, library_in):
+def create_power_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -145,7 +147,7 @@ def create_power_table(list_in, library_in):
         xml_out += (f'\t\t\t\t\t\t<power{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.power{name_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.power{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<source type="string">{power_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t\t\t\t</power{name_camel}>\n')
@@ -163,7 +165,7 @@ def create_power_table(list_in, library_in):
 
     return xml_out
 
-def create_linkedpowers(basename_in, name_in, list_in, library_in):
+def create_linkedpowers(basename_in, name_in, list_in):
     xml_out = ''
     linked_list = []
 
@@ -178,13 +180,13 @@ def create_linkedpowers(basename_in, name_in, list_in, library_in):
         xml_out += (f'\t\t\t\t<power{power_camel}>\n')
         xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t</power{power_camel}>\n')
     
     return xml_out
 
-def create_power_desc(list_in, library_in):
+def create_power_desc(list_in):
     xml_out = ''
 
     if not list_in:
@@ -197,7 +199,7 @@ def create_power_desc(list_in, library_in):
 
     # Create individual item entries
     for power_dict in sorted(list_in, key=power_list_sorter):
-        linked_powers = create_linkedpowers(power_dict["basename"], power_dict["name"], list_in, library_in)
+        linked_powers = create_linkedpowers(power_dict["basename"], power_dict["name"], list_in)
 
         name_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
 
@@ -217,7 +219,7 @@ def create_power_desc(list_in, library_in):
 
     return xml_out
 
-def extract_power_list(db_in, library_in, min_lvl, max_lvl):
+def extract_power_list(db_in):
     power_out = []
 
     # Lists for checking what type of power it is

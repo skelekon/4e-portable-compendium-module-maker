@@ -1,3 +1,5 @@
+import settings
+
 import re
 import sys
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -75,15 +77,15 @@ if __name__ == '__main__':
 ##    argv_dict["filename"] = '4E_Powers'
 ##    argv_dict["library"] = '4E Powers'
 ##    argv_dict["min"] = 0
-##    argv_dict["max"] = 10
+##    argv_dict["max"] = 99
 ##    argv_dict["feats"] = True
 ##    argv_dict["powers"] = True
 ##    argv_dict["rituals"] = True
 ##    argv_dict["alchemy"] = True
-##    argv_dict["tiers"] = False
 ##    argv_dict["armor"] = True
 ##    argv_dict["equipment"] = True
 ##    argv_dict["weapons"] = True
+##    argv_dict["tiers"] = True
 ##    argv_dict["mi_armor"] = True
 ##    argv_dict["mi_implements"] = True
 ##    argv_dict["mi_weapons"] = True
@@ -104,6 +106,11 @@ if __name__ == '__main__':
 ##    argv_dict["mi_waist"] = True
 ##    argv_dict["mi_wondrous"] = True
 ##    argv_dict["monsters"] = False
+
+    # Set global variables so they don't need to be passed everywhere
+    settings.library = argv_dict["library"]
+    settings.min_lvl = argv_dict["min"]
+    settings.max_lvl = argv_dict["max"]
 
     # Pull Items data from Portable Compendium
     item_db = []
@@ -174,11 +181,11 @@ if __name__ == '__main__':
             input('Press enter to close.')
             sys.exit(0)
 
-        alchemy_list = extract_alchemy_list(alchemy_db, argv_dict["library"], argv_dict["min"], argv_dict["max"], 'Alchemical Formulas')
-        alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, argv_dict["library"], alchemy_list, 'Alchemical Items')
-        alchemy_lib, menu_id = create_alchemy_formula_library(menu_id, argv_dict["library"], alchemy_list, 'Alchemical Formulas')
-        alchemy_item_tbl = create_alchemy_item_table(alchemy_list, argv_dict["library"])
-        alchemy_tbl = create_alchemy_formula_table(alchemy_list, argv_dict["library"])
+        alchemy_list = extract_alchemy_list(alchemy_db, 'Alchemical Formulas')
+        alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_list, 'Alchemical Items')
+        alchemy_lib, menu_id = create_alchemy_formula_library(menu_id, alchemy_list, 'Alchemical Formulas')
+        alchemy_item_tbl = create_alchemy_item_table(alchemy_list)
+        alchemy_tbl = create_alchemy_formula_table(alchemy_list)
         alchemy_desc, alchemy_mi_desc, alchemy_power = create_alchemy_formula_desc(alchemy_list)
 
     #===========================
@@ -202,9 +209,9 @@ if __name__ == '__main__':
             input('Press enter to close.')
             sys.exit(0)
 
-        ritual_list = extract_ritual_list(ritual_db, argv_dict["library"], argv_dict["min"], argv_dict["max"], 'Rituals')
-        ritual_lib, menu_id = create_ritual_library(menu_id, argv_dict["library"], ritual_list, 'Rituals')
-        ritual_tbl = create_ritual_table(ritual_list, argv_dict["library"])
+        ritual_list = extract_ritual_list(ritual_db, 'Rituals')
+        ritual_lib, menu_id = create_ritual_library(menu_id, ritual_list, 'Rituals')
+        ritual_tbl = create_ritual_table(ritual_list)
         ritual_desc = create_ritual_desc(ritual_list)
 
     #===========================
@@ -217,8 +224,8 @@ if __name__ == '__main__':
         armor_list = extract_armor_list(item_db)
 
         # Call the three functions to generate the _lib, _tbl & _ref xml
-        armor_lib, menu_id = create_armor_library(menu_id, argv_dict["library"], 'Items - Armor')
-        armor_tbl = create_armor_table(armor_list, argv_dict["library"])
+        armor_lib, menu_id = create_armor_library(menu_id, 'Items - Armor')
+        armor_tbl = create_armor_table(armor_list)
         armor_ref = create_armor_reference(armor_list)
     else:
         armor_ref = ''
@@ -236,8 +243,8 @@ if __name__ == '__main__':
         weapons_list = extract_weapons_list(item_db)
 
         # Call the three functions to generate the _lib, _tbl & _ref xml
-        weapons_lib, menu_id = create_weapons_library(menu_id, argv_dict["library"], 'Items - Weapons')
-        weapons_tbl = create_weapons_table(weapons_list, argv_dict["library"])
+        weapons_lib, menu_id = create_weapons_library(menu_id, 'Items - Weapons')
+        weapons_tbl = create_weapons_table(weapons_list)
         weapons_ref = create_weapons_reference(weapons_list)
     else:
         weapons_ref = ''
@@ -254,8 +261,8 @@ if __name__ == '__main__':
         equipment_list = extract_equipment_list(item_db)
 
         # Call the three functions to generate the _lib, _tbl & _ref xml
-        equipment_lib, menu_id = create_equipment_library(menu_id, argv_dict["library"], 'Items - Equipment')
-        equipment_tbl = create_equipment_table(equipment_list, argv_dict["library"])
+        equipment_lib, menu_id = create_equipment_library(menu_id, 'Items - Equipment')
+        equipment_tbl = create_equipment_table(equipment_list)
         equipment_ref = create_equipment_reference(equipment_list)
     else:
         equipment_ref = ''
@@ -269,11 +276,11 @@ if __name__ == '__main__':
     if argv_dict["mi_armor"]:
 
         # Extract all the Equipment data into a list
-        mi_armor_list = extract_mi_armor_list(item_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
+        mi_armor_list = extract_mi_armor_list(item_db)
 
         # Call the three functions to generate the _ref, _lib & _tbl xml
-        mi_armor_lib, menu_id = create_mi_library(menu_id, tier_list, argv_dict["library"], 'Magic Items - Armor' + suffix_str, 'Armor')
-        mi_armor_tbl = create_mi_table(mi_armor_list, tier_list, argv_dict["library"], 'Armor')
+        mi_armor_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Armor' + suffix_str, 'Armor')
+        mi_armor_tbl = create_mi_table(mi_armor_list, tier_list, 'Armor')
         mi_armor_desc, mi_armor_power = create_mi_desc(mi_armor_list)
     else:
         mi_armor_desc = ''
@@ -288,11 +295,11 @@ if __name__ == '__main__':
     if argv_dict["mi_implements"]:
 
         # Extract all the Equipment data into a list
-        mi_implements_list = extract_mi_weaplements_list(item_db, argv_dict["library"], argv_dict["min"], argv_dict["max"], 'Implement')
+        mi_implements_list = extract_mi_weaplements_list(item_db, 'Implement')
 
         # Call the three functions to generate the _desc, _power, _lib & _tbl xml
-        mi_implements_lib, menu_id = create_mi_library(menu_id, tier_list, argv_dict["library"], 'Magic Items - Implements' + suffix_str, 'Implement')
-        mi_implements_tbl = create_mi_table(mi_implements_list, tier_list, argv_dict["library"], 'Implement')
+        mi_implements_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Implements' + suffix_str, 'Implement')
+        mi_implements_tbl = create_mi_table(mi_implements_list, tier_list, 'Implement')
         mi_implements_desc, mi_implements_power = create_mi_desc(mi_implements_list)
     else:
         mi_implements_desc = ''
@@ -307,11 +314,11 @@ if __name__ == '__main__':
     if argv_dict["mi_weapons"]:
 
         # Extract all the Equipment data into a list
-        mi_weapons_list = extract_mi_weaplements_list(item_db, argv_dict["library"], argv_dict["min"], argv_dict["max"], 'Weapon')
+        mi_weapons_list = extract_mi_weaplements_list(item_db, 'Weapon')
 
         # Call the three functions to generate the _desc, _power, _lib & _tbl xml
-        mi_weapons_lib, menu_id = create_mi_library(menu_id, tier_list, argv_dict["library"], 'Magic Items - Weapons' + suffix_str, 'Weapon')
-        mi_weapons_tbl = create_mi_table(mi_weapons_list, tier_list, argv_dict["library"], 'Weapon')
+        mi_weapons_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Weapons' + suffix_str, 'Weapon')
+        mi_weapons_tbl = create_mi_table(mi_weapons_list, tier_list, 'Weapon')
         mi_weapons_desc, mi_weapons_power = create_mi_desc(mi_weapons_list)
     else:
         mi_weapons_desc = ''
@@ -338,11 +345,11 @@ if __name__ == '__main__':
         if argv_dict[mi["arg"]]:
 
             # Extract all the Equipment data into a list
-            mi_other_list = extract_mi_other_list(item_db, argv_dict["library"], argv_dict["min"], argv_dict["max"], mi["filter"])
+            mi_other_list = extract_mi_other_list(item_db, mi["filter"])
 
             # Call the three functions to generate the _ref, _lib & _tbl xml
-            mi_other_lib, menu_id = create_mi_library(menu_id, empty_tier_list, argv_dict["library"], 'Magic Items - ' + mi["literal"] + suffix_str, mi["literal"])
-            mi_other_tbl = create_mi_table(mi_other_list, empty_tier_list, argv_dict["library"], mi["literal"])
+            mi_other_lib, menu_id = create_mi_library(menu_id, empty_tier_list, 'Magic Items - ' + mi["literal"] + suffix_str, mi["literal"])
+            mi_other_tbl = create_mi_table(mi_other_list, empty_tier_list, mi["literal"])
             mi_other_desc, mi_other_power = create_mi_desc(mi_other_list)
 
             # Concatenate all the results together
@@ -380,9 +387,9 @@ if __name__ == '__main__':
             input('Press enter to close.')
             sys.exit(0)
 
-        feat_list = extract_feat_list(feat_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
-        feat_lib, menu_id = create_feat_library(menu_id, argv_dict["library"], feat_list, 'feats')
-        feat_tbl = create_feat_table(feat_list, argv_dict["library"])
+        feat_list = extract_feat_list(feat_db)
+        feat_lib, menu_id = create_feat_library(menu_id, feat_list)
+        feat_tbl = create_feat_table(feat_list)
         feat_desc = create_feat_desc(feat_list)
 
     #===========================
@@ -406,10 +413,10 @@ if __name__ == '__main__':
             input('Press enter to close.')
             sys.exit(0)
 
-        power_list = extract_power_list(power_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
-        power_lib, menu_id = create_power_library(menu_id, argv_dict["library"], power_list, 'Powers')
-        power_tbl = create_power_table(power_list, argv_dict["library"])
-        power_desc = create_power_desc(power_list, argv_dict["library"])
+        power_list = extract_power_list(power_db)
+        power_lib, menu_id = create_power_library(menu_id, power_list, 'Powers')
+        power_tbl = create_power_table(power_list)
+        power_desc = create_power_desc(power_list)
 
     #===========================
     # MONSTERS
@@ -561,4 +568,4 @@ if __name__ == '__main__':
     export_xml = re.sub('[×]', 'x', export_xml)     # x's
     export_xml = re.sub('[•✦]', '-', export_xml)    # bullets
 
-    create_module(export_xml, argv_dict["filename"], argv_dict["library"])
+    create_module(export_xml, argv_dict["filename"])
