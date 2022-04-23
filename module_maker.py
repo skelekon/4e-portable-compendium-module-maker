@@ -409,7 +409,7 @@ if __name__ == '__main__':
         power_list = extract_power_list(power_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
         power_lib, menu_id = create_power_library(menu_id, argv_dict["library"], power_list, 'Powers')
         power_tbl = create_power_table(power_list, argv_dict["library"])
-        power_desc = create_power_desc(power_list)
+        power_desc = create_power_desc(power_list, argv_dict["library"])
 
     #===========================
     # MONSTERS
