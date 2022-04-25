@@ -77,11 +77,11 @@ if __name__ == '__main__':
 ##    argv_dict["filename"] = '4E_Powers'
 ##    argv_dict["library"] = '4E Powers'
 ##    argv_dict["min"] = 0
-##    argv_dict["max"] = 99
+##    argv_dict["max"] = 5
 ##    argv_dict["feats"] = True
 ##    argv_dict["powers"] = True
-##    argv_dict["rituals"] = True
 ##    argv_dict["alchemy"] = True
+##    argv_dict["rituals"] = True
 ##    argv_dict["armor"] = True
 ##    argv_dict["equipment"] = True
 ##    argv_dict["weapons"] = True
@@ -115,12 +115,19 @@ if __name__ == '__main__':
     # Counter the determines the order of Library menu items
     menu_id = 0
 
+    tier_list = []
     # Create a tier_list depending on whether the 'tiers' option is set or not
+    # only include Tiers that overlap with the selected Min-Max level range
     if argv_dict["tiers"]:
-        tier_list = ['Heroic', 'Paragon', 'Epic']
+        if settings.min_lvl <= 10:
+            tier_list.append('Heroic')
+        if settings.min_lvl <= 20 and settings.max_lvl >= 11:
+            tier_list.append('Paragon')
+        if settings.max_lvl >= 21:
+            tier_list.append('Epic')
     else:
         tier_list = ['']
-    # this is always empty for 'other' magic items
+    # this is always empty to use for 'other' magic items
     empty_tier_list = ['']
 
     # Set a suffix if a level restriction is in place
@@ -147,7 +154,7 @@ if __name__ == '__main__':
     # Check if any magic or mundane items are being exported as we need to read the item database
     item_flag = False
     if mi_flag or argv_dict["armor"] or argv_dict["weapons"] or argv_dict["equipment"]:
-        item_falg = True
+        item_flag = True
 
     if item_flag:
         # Pull Items data from Portable Compendium
@@ -166,10 +173,10 @@ if __name__ == '__main__':
     # ALCHEMY
     #===========================
 
-    alchemy_item_lib = ''
-    alchemy_item_tbl = ''
     alchemy_lib = ''
     alchemy_tbl = ''
+    alchemy_item_lib = ''
+    alchemy_item_tbl = ''
     alchemy_desc = ''
     alchemy_mi_desc = ''
     alchemy_power = ''
@@ -188,10 +195,10 @@ if __name__ == '__main__':
             sys.exit(0)
 
         alchemy_list = extract_alchemy_list(alchemy_db, 'Alchemical Formulas')
-        alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_list, 'Alchemical Items')
         alchemy_lib, menu_id = create_alchemy_formula_library(menu_id, alchemy_list, 'Alchemical Formulas' + suffix_str)
-        alchemy_item_tbl = create_alchemy_item_table(alchemy_list)
+        alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_list, 'Alchemical Items')
         alchemy_tbl = create_alchemy_formula_table(alchemy_list)
+        alchemy_item_tbl = create_alchemy_item_table(alchemy_list)
         alchemy_desc, alchemy_mi_desc, alchemy_power = create_alchemy_formula_desc(alchemy_list)
 
     #===========================
@@ -359,11 +366,7 @@ if __name__ == '__main__':
             mi_other_desc, mi_other_power = create_mi_desc(mi_other_list)
 
             # Concatenate all the results together
-            if mi_other_lib_xml != '':
-                mi_other_lib_xml += '\n'
             mi_other_lib_xml += mi_other_lib
-            if mi_other_tbl_xml != '':
-                mi_other_tbl_xml += '\n'
             mi_other_tbl_xml += mi_other_tbl
             if mi_other_desc_xml != '':
                 mi_other_desc_xml += '\n'
@@ -487,8 +490,8 @@ if __name__ == '__main__':
     # These control the tables that appears when you click on a Library menu
 
     # tables for mundane items - the start and end tags are in the data string
-    export_xml += weapons_tbl
     export_xml += armor_tbl
+    export_xml += weapons_tbl
     export_xml += equipment_tbl
 
     # MAGICITEMLISTS
@@ -498,8 +501,8 @@ if __name__ == '__main__':
         export_xml += mi_armor_tbl
         export_xml += mi_implements_tbl
         export_xml += mi_weapons_tbl
-        export_xml += alchemy_item_tbl
         export_xml += mi_other_tbl_xml
+        export_xml += alchemy_item_tbl
         export_xml += ('\t</magicitemlists>\n')
 
     # POWERLIST
@@ -526,8 +529,8 @@ if __name__ == '__main__':
     # These are the individual cards for mundane items that appear when you click on a table entry
     if argv_dict["weapons"] or argv_dict["armor"] or argv_dict["equipment"]:
         export_xml +=('\t<reference static="true">\n')
-        export_xml += weapons_ref
         export_xml += armor_ref
+        export_xml += weapons_ref
         export_xml += equipment_ref
         export_xml +=('\t</reference>\n')
 
@@ -554,11 +557,11 @@ if __name__ == '__main__':
     # These are the individual cards for character or item Powers
     if mi_flag or argv_dict["feats"] or argv_dict["powers"] or argv_dict["alchemy"]:
         export_xml +=('\t<powerdesc>\n')
+        export_xml += feat_desc
         export_xml += mi_armor_power
         export_xml += mi_implements_power
         export_xml += mi_weapons_power
         export_xml += mi_other_power_xml
-        export_xml += feat_desc
         export_xml += power_desc
         export_xml += alchemy_power
         export_xml +=('\t</powerdesc>\n')

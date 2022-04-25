@@ -332,19 +332,20 @@ def extract_alchemy_list(db_in, filter_in):
         if component_tag := parsed_html.find(string=re.compile('^Component')):
             component_str = re.sub(':\w*', '', component_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
-        if re.search(r'(See Alchemical Item|See below|See the item\'s price)', component_str):
+        if re.search(r'(See Alchemical|See below|See the item\'s price)', component_str, re.IGNORECASE)\
+           or name_str in ['Grayflower Perfume', 'Keen Oil', 'Panther Tears']:
             class_str = 'Alchemical Formulas'
             section_id = 1
 
         if section_id < 100:
 ##        if name_str == 'Walking Death':
 
-            # Find all the Items
+            # Find all the Items appearing within this Formula
             item_list = []
             power_list = []
             if p_tags := parsed_html.find_all('p'):
                 for p in p_tags:
-                    # Foe each found item, generate a dictonary with details, plus Magic Item & Item Power structures
+                    # For each found item, generate a dictonary with details, plus Magic Item & Item Power structures
                     if p.find('h1', class_='magicitem'):
                         item_soup = p.extract()
                         tbl_str, ll_str, mi_str, pow_str = extract_mi_details(item_soup, name_str)
@@ -390,18 +391,25 @@ def extract_alchemy_list(db_in, filter_in):
 
             # Details
             if detail_tag := parsed_html.find('div', id='detail'):
-                for tag in detail_tag.find_all(recursive=False):
+                for tag in detail_tag.find_all('p'):
+                    # skip heading & flavor
                     if tag.name in ['h1', 'i']:
                         continue
-                    # skip if this contains the ritual info
-                    if tag.find(class_='ritualstats'):
+                    # remove the stats tag
+                    if stats_tag := tag.find(class_='ritualstats'):
                         continue
+                    # remove the tag class
                     del tag['class']
                     # remove the a tag
                     if anchor_tag := tag.find('a'):
                         anchor_tag.replaceWithChildren()
                     # append details
                     details_str += str(tag)
+
+            # turn <br/> into new <p> as line breaks inside <p> don't render in formattedtext
+            details_str = re.sub(r'(^\s*<br/>|<br/>\s*$)', r'', details_str)
+            details_str = re.sub(r'<br/>', r'</p><p>', details_str)
+
             # replace <th> with <td><b> as FG appear to not render <th> correctly
             details_str = re.sub(r'<th>', r'<td><b>', details_str)
             details_str = re.sub(r'</th>', r'</b></td>', details_str)
