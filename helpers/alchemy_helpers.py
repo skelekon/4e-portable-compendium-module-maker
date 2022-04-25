@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -47,7 +49,7 @@ def create_power_desc(soup_in, name_in):
 
     return power_out
 
-def create_mi_desc(item_in, name_in, library_in):
+def create_mi_desc(item_in, name_in):
     mi_out = ''
     power_out = ''
 
@@ -74,7 +76,7 @@ def create_mi_desc(item_in, name_in, library_in):
     mi_out += f'\t\t\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n'
     mi_out += '\t\t\t\t\t<link type="windowreference">\n'
     mi_out += '\t\t\t\t\t\t<class>powerdesc</class>\n'
-    mi_out += f'\t\t\t\t\t\t<recordname>powerdesc.alchemy{name_camel}Power-{suffix_str}@{library_in}</recordname>\n'
+    mi_out += f'\t\t\t\t\t\t<recordname>powerdesc.alchemy{name_camel}Power-{suffix_str}@{settings.library}</recordname>\n'
     mi_out += '\t\t\t\t\t</link>\n'
     mi_out += '\t\t\t\t</id-001>\n'
     mi_out += '\t\t\t</powers>\n'
@@ -100,7 +102,7 @@ def create_mi_desc(item_in, name_in, library_in):
 
     return mi_out, power_out
 
-def extract_mi_details(soup_in, name_in, library_in):
+def extract_mi_details(soup_in, name_in):
     # Extracts one Alchemical Item details from passed in html soup
 
     cost_str = ''
@@ -138,7 +140,7 @@ def extract_mi_details(soup_in, name_in, library_in):
     mi_table_out += f'\t\t\t\t\t\t<a{suffix_str}{name_camel}>\n'
     mi_table_out += '\t\t\t\t\t\t\t<link type="windowreference">\n'
     mi_table_out += '\t\t\t\t\t\t\t\t<class>referencemagicitem</class>\n'
-    mi_table_out += f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.alchemy{name_camel}_{suffix_str}@{library_in}</recordname>\n'
+    mi_table_out += f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.alchemy{name_camel}_{suffix_str}@{settings.library}</recordname>\n'
     mi_table_out += '\t\t\t\t\t\t\t</link>\n'
     mi_table_out += f'\t\t\t\t\t\t\t<name type="string">{name_in}</name>\n'
     mi_table_out += '\t\t\t\t\t\t\t<cat type="string"></cat>\n'
@@ -147,7 +149,7 @@ def extract_mi_details(soup_in, name_in, library_in):
     mi_table_out += f'\t\t\t\t\t\t</a{suffix_str}{name_camel}>\n'
 
     # These are the links to the Alchemy Items that appear on the Alchemy Formula item card
-    linklist_out += f'\n\t\t\t\t\t<link class="referencemagicitem" recordname="magicitemdesc.alchemy{name_camel}_{suffix_str}@{library_in}">Level {level_str} - {name_in}</link>'
+    linklist_out += f'\n\t\t\t\t\t<link class="referencemagicitem" recordname="magicitemdesc.alchemy{name_camel}_{suffix_str}@{settings.library}">Level {level_str} - {name_in}</link>'
 
 
     mi_dict = {}
@@ -156,7 +158,7 @@ def extract_mi_details(soup_in, name_in, library_in):
     mi_dict["flavor"] = flavor_str
     mi_dict["power"] = copy.copy(power_soup)
 
-    mi_out, power_out = create_mi_desc(mi_dict, name_in, library_in)
+    mi_out, power_out = create_mi_desc(mi_dict, name_in)
 
     return mi_table_out, linklist_out, mi_out, power_out
 
@@ -165,7 +167,7 @@ def alchemy_list_sorter(entry_in):
 
     return (name)
 
-def create_alchemy_item_library(id_in, library_in, list_in, name_in):
+def create_alchemy_item_library(id_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -178,14 +180,14 @@ def create_alchemy_item_library(id_in, library_in, list_in, name_in):
     xml_out += (f'\t\t\t\t<a{entry_id}alchemyitems>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.ritualalchemicalitem@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.ritualalchemicalitem@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</a{entry_id}alchemyitems>\n')
 
     return xml_out, id_in
 
-def create_alchemy_formula_library(id_in, library_in, list_in, name_in):
+def create_alchemy_formula_library(id_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -198,14 +200,14 @@ def create_alchemy_formula_library(id_in, library_in, list_in, name_in):
     xml_out += (f'\t\t\t\t<a{entry_id}alchemyformulas>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>alchemylists@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>alchemylists@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</a{entry_id}alchemyformulas>\n')
 
     return xml_out, id_in
 
-def create_alchemy_item_table(list_in, library_in):
+def create_alchemy_item_table(list_in):
     xml_out = ''
 
     # Alchemy Item Table
@@ -228,7 +230,7 @@ def create_alchemy_item_table(list_in, library_in):
 
     return xml_out
 
-def create_alchemy_formula_table(list_in, library_in):
+def create_alchemy_formula_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -251,7 +253,7 @@ def create_alchemy_formula_table(list_in, library_in):
         xml_out += (f'\t\t\t<alchemy{name_camel}>\n')
         xml_out += ('\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t<class>reference_ritual</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.alchemy{name_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.alchemy{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t<source type="string">{alchemy_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t</alchemy{name_camel}>\n')
@@ -294,7 +296,7 @@ def create_alchemy_formula_desc(list_in):
 
     return xml_out, mi_out, power_out
 
-def extract_alchemy_list(db_in, library_in, min_lvl, max_lvl, filter_in):
+def extract_alchemy_list(db_in, filter_in):
     alchemy_out = []
 
     print('\n\n\n=========== ALCHEMY ===========')
@@ -330,22 +332,23 @@ def extract_alchemy_list(db_in, library_in, min_lvl, max_lvl, filter_in):
         if component_tag := parsed_html.find(string=re.compile('^Component')):
             component_str = re.sub(':\w*', '', component_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
-        if re.search(r'(See Alchemical Item|See below|See the item\'s price)', component_str):
+        if re.search(r'(See Alchemical|See below|See the item\'s price)', component_str, re.IGNORECASE)\
+           or name_str in ['Grayflower Perfume', 'Keen Oil', 'Panther Tears']:
             class_str = 'Alchemical Formulas'
             section_id = 1
 
         if section_id < 100:
 ##        if name_str == 'Walking Death':
 
-            # Find all the Items
+            # Find all the Items appearing within this Formula
             item_list = []
             power_list = []
             if p_tags := parsed_html.find_all('p'):
                 for p in p_tags:
-                    # Foe each found item, generate a dictonary with details, plus Magic Item & Item Power structures
+                    # For each found item, generate a dictonary with details, plus Magic Item & Item Power structures
                     if p.find('h1', class_='magicitem'):
                         item_soup = p.extract()
-                        tbl_str, ll_str, mi_str, pow_str = extract_mi_details(item_soup, name_str, library_in)
+                        tbl_str, ll_str, mi_str, pow_str = extract_mi_details(item_soup, name_str)
                         mi_table_str += tbl_str
                         linklist_str += ll_str
                         mi_desc_str += mi_str
@@ -388,41 +391,49 @@ def extract_alchemy_list(db_in, library_in, min_lvl, max_lvl, filter_in):
 
             # Details
             if detail_tag := parsed_html.find('div', id='detail'):
-                for tag in detail_tag.find_all(recursive=False):
+                for tag in detail_tag.find_all('p'):
+                    # skip heading & flavor
                     if tag.name in ['h1', 'i']:
                         continue
-                    # skip if this contains the ritual info
-                    if tag.find(class_='ritualstats'):
+                    # remove the stats tag
+                    if stats_tag := tag.find(class_='ritualstats'):
                         continue
+                    # remove the tag class
                     del tag['class']
                     # remove the a tag
                     if anchor_tag := tag.find('a'):
                         anchor_tag.replaceWithChildren()
                     # append details
                     details_str += str(tag)
+
+            # turn <br/> into new <p> as line breaks inside <p> don't render in formattedtext
+            details_str = re.sub(r'(^\s*<br/>|<br/>\s*$)', r'', details_str)
+            details_str = re.sub(r'<br/>', r'</p><p>', details_str)
+
             # replace <th> with <td><b> as FG appear to not render <th> correctly
             details_str = re.sub(r'<th>', r'<td><b>', details_str)
             details_str = re.sub(r'</th>', r'</b></td>', details_str)
 
-            export_dict = {}
-            export_dict["category"] = category_str
-            export_dict["component"] = component_str
-            export_dict["details"] = details_str
-            export_dict["duration"] = duration_str
-            export_dict["flavor"] = flavor_str
-            export_dict["level"] = level_str
-            export_dict["linklist"] = linklist_str
-            export_dict["mi_desc"] = mi_desc_str
-            export_dict["mi_table"] = mi_table_str
-            export_dict["name"] = name_str
-            export_dict["power"] = power_str
-            export_dict["prerequisite"] = prerequisite_str
-            export_dict["price"] = price_str
-            export_dict["skill"] = skill_str
-            export_dict["time"] = time_str
+            if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
+                export_dict = {}
+                export_dict["category"] = category_str
+                export_dict["component"] = component_str
+                export_dict["details"] = details_str
+                export_dict["duration"] = duration_str
+                export_dict["flavor"] = flavor_str
+                export_dict["level"] = level_str
+                export_dict["linklist"] = linklist_str
+                export_dict["mi_desc"] = mi_desc_str
+                export_dict["mi_table"] = mi_table_str
+                export_dict["name"] = name_str
+                export_dict["power"] = power_str
+                export_dict["prerequisite"] = prerequisite_str
+                export_dict["price"] = price_str
+                export_dict["skill"] = skill_str
+                export_dict["time"] = time_str
 
-            # Append a copy of generated item dictionary
-            alchemy_out.append(copy.deepcopy(export_dict))
+                # Append a copy of generated item dictionary
+                alchemy_out.append(copy.deepcopy(export_dict))
 
     print(str(len(db_in)) + ' entries parsed.')
     print(str(len(alchemy_out)) + ' entries exported.')

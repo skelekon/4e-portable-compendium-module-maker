@@ -19,20 +19,19 @@ It is designed to work with `.sql` data files from the Beta 30 version of the 4e
 Usage: module_maker.exe [options]
 
 Options:
-  -h, --help            show this help message and exit
-  --filename=FILE       create library at FILE
-  -l LIBRARY, --library=LIBRARY
-                        Fantasy Grounds' internal name for the Library
-  --min=MIN             only export magic items of this level and above
-  --max=MAX             only export magic items of this level and below
-  -f, --feats           exports Feat information
-  -p, --powers          exports Power information
-  -a, --alchemy         exports Alchemical Item information
-  -r, --rituals         exports Ritual information
-  -t, --tiers           divide Magic Armor, Implements and Weapons into Tiers
-  -i, --items           export all item types (= --mundane & --magic)
-  --mundane             export all mundane items
-  --magic               export all magic items
+  -h, --help         show this help message and exit
+  --filename=FILE    create library at FILE
+  --library=LIBRARY  Fantasy Grounds' internal name for the Library
+  --min=MIN          only export magic items of this level and above
+  --max=MAX          only export magic items of this level and below
+  -a, --alchemy      exports Alchemical Item information
+  -r, --rituals      exports Ritual information
+  -f, --feats        exports Feat information
+  -p, --powers       exports Power information
+  -t, --tiers        divide Magic Armor, Implements and Weapons into Tiers
+  -i, --items        export all item types (= --mundane & --magic)
+  --mundane          export all mundane items
+  --magic            export all magic items
 ```
 
 1. Copy `module_maker.exe` into the unzipped Portable Compendium directory (default will be `/Portable Compendium New`. It will use the data files in the `/sql` subdirectory to create modules.

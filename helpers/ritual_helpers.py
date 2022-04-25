@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -12,7 +14,7 @@ def ritual_list_sorter(entry_in):
 
     return (name)
 
-def create_ritual_library(id_in, library_in, list_in, name_in):
+def create_ritual_library(id_in, list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -25,14 +27,14 @@ def create_ritual_library(id_in, library_in, list_in, name_in):
     xml_out += (f'\t\t\t\t<a{entry_id}rituals>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>rituallists@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>rituallists@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</a{entry_id}rituals>\n')
 
     return xml_out, id_in
 
-def create_ritual_table(list_in, library_in):
+def create_ritual_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -54,7 +56,7 @@ def create_ritual_table(list_in, library_in):
         xml_out += (f'\t\t\t<ritual{name_camel}>\n')
         xml_out += ('\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t<class>reference_ritual</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.ritual{name_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.ritual{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t<source type="string">{ritual_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t</ritual{name_camel}>\n')
@@ -91,7 +93,7 @@ def create_ritual_desc(list_in):
 
     return xml_out
 
-def extract_ritual_list(db_in, library_in, min_lvl, max_lvl, filter_in):
+def extract_ritual_list(db_in, filter_in):
     ritual_out = []
 
     print('\n\n\n=========== RITUALS ===========')
@@ -104,6 +106,9 @@ def extract_ritual_list(db_in, library_in, min_lvl, max_lvl, filter_in):
 
         # Retrieve the data with dedicated columns
         name_str =  row["Name"].replace('\\', '')
+
+##        if name_str not in ['Aberrant Totemic Link']:
+##            continue
         
         category_str = ''
         class_str = ''
@@ -123,7 +128,8 @@ def extract_ritual_list(db_in, library_in, min_lvl, max_lvl, filter_in):
         if component_tag := parsed_html.find(string=re.compile('^Component')):
             component_str = re.sub(':\w*', '', component_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
-        if re.search(r'(See Alchemical Item|See below|See the item\'s price)', component_str):
+        if re.search(r'(See Alchemical|See below|See the item\'s price)', component_str, re.IGNORECASE)\
+           or name_str in ['Grayflower Perfume', 'Keen Oil', 'Panther Tears']:
             class_str = 'Alchemical Formulas'
         else:
             class_str = 'Rituals'
@@ -168,37 +174,45 @@ def extract_ritual_list(db_in, library_in, min_lvl, max_lvl, filter_in):
 
             # Details
             if detail_tag := parsed_html.find('div', id='detail'):
-                for tag in detail_tag.find_all(recursive=False):
+                for tag in detail_tag.find_all('p'):
+                    # skip heading & flavor
                     if tag.name in ['h1', 'i']:
                         continue
-                    # skip if this contains the ritual info
-                    if tag.find(class_='ritualstats'):
+                    # remove the stats tag
+                    if stats_tag := tag.find(class_='ritualstats'):
                         continue
+                    # remove the tag class
                     del tag['class']
                     # remove the a tag
                     if anchor_tag := tag.find('a'):
                         anchor_tag.replaceWithChildren()
                     # append details
                     details_str += str(tag)
+
+            # turn <br/> into new <p> as line breaks inside <p> don't render in formattedtext
+            details_str = re.sub(r'(^\s*<br/>|<br/>\s*$)', r'', details_str)
+            details_str = re.sub(r'<br/>', r'</p><p>', details_str)
+
             # replace <th> with <td><b> as FG appear to not render <th> correctly
             details_str = re.sub(r'<th>', r'<td><b>', details_str)
             details_str = re.sub(r'</th>', r'</b></td>', details_str)
 
-            export_dict = {}
-            export_dict["category"] = category_str
-            export_dict["component"] = component_str
-            export_dict["details"] = details_str
-            export_dict["duration"] = duration_str
-            export_dict["flavor"] = flavor_str
-            export_dict["level"] = level_str
-            export_dict["name"] = name_str
-            export_dict["prerequisite"] = prerequisite_str
-            export_dict["price"] = price_str
-            export_dict["skill"] = skill_str
-            export_dict["time"] = time_str
+            if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
+                export_dict = {}
+                export_dict["category"] = category_str
+                export_dict["component"] = component_str
+                export_dict["details"] = details_str
+                export_dict["duration"] = duration_str
+                export_dict["flavor"] = flavor_str
+                export_dict["level"] = level_str
+                export_dict["name"] = name_str
+                export_dict["prerequisite"] = prerequisite_str
+                export_dict["price"] = price_str
+                export_dict["skill"] = skill_str
+                export_dict["time"] = time_str
 
-            # Append a copy of generated item dictionary
-            ritual_out.append(copy.deepcopy(export_dict))
+                # Append a copy of generated item dictionary
+                ritual_out.append(copy.deepcopy(export_dict))
 
     print(str(len(db_in)) + ' entries parsed.')
     print(str(len(ritual_out)) + ' entries exported.')

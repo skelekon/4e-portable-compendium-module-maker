@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -19,7 +21,7 @@ def feat_list_sorter(entry_in):
 
     return (class_id, group, name)
 
-def create_feat_library(id_in, library_in, list_in, name_in):
+def create_feat_library(id_in, list_in):
     xml_out = ''
 
     if not list_in:
@@ -37,13 +39,13 @@ def create_feat_library(id_in, library_in, list_in, name_in):
             xml_out += (f'\t\t\t\t<a{entry_id}-feats{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
-            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.feats{class_camel}@{library_in}</recordname>\n')
+            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.feats{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
             xml_out += (f'\t\t\t\t\t<name type="string">Feats - {feat_dict["class"]}</name>\n')
             xml_out += (f'\t\t\t\t</a{entry_id}-feats{class_camel}>\n')
     return xml_out, id_in
 
-def create_feat_table(list_in, library_in):
+def create_feat_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -104,7 +106,7 @@ def create_feat_table(list_in, library_in):
         xml_out += (f'\t\t\t\t\t\t<feat{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.feat{name_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.feat{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<source type="string">{feat_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t\t\t\t</feat{name_camel}>\n')
@@ -148,21 +150,21 @@ def create_feat_desc(list_in):
 
     return xml_out
 
-def create_linkedpowers(power_in, library_in):
+def create_linkedpowers(power_in):
     power_camel = re.sub('[^a-zA-Z0-9_]', '', power_in)
 
     xml_out = ''
     xml_out += (f'\t\t\t\t<power{power_camel}>\n')
     xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</link>\n')
     xml_out += (f'\t\t\t\t</power{power_camel}>\n')
     
     return xml_out
                         
 
-def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
+def extract_feat_list(db_in):
     feat_out = []
 
     print('\n\n\n=========== FEATS ===========')
@@ -254,7 +256,7 @@ def extract_feat_list(db_in, library_in, min_lvl, max_lvl):
         description_str = re.sub(r'(Prerequisite:|Benefit:)', r'<b>\1</b>', description_str)            
 
         if power_flag:
-            linkedpowers_str = create_linkedpowers(power_list[1], library_in)
+            linkedpowers_str = create_linkedpowers(power_list[1])
 
         export_dict = {}
         export_dict["class"] = class_str

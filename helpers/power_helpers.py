@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -59,7 +61,7 @@ def power_list_sorter(entry_in):
 
     return (clss, group_id, name)
 
-def create_power_library(id_in, library_in, list_in, name_in):
+def create_power_library(id_in, list_in, suffix_in):
     xml_out = ''
 
     if not list_in:
@@ -77,13 +79,13 @@ def create_power_library(id_in, library_in, list_in, name_in):
             xml_out += (f'\t\t\t\t<a{entry_id}-powers{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
-            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{library_in}</recordname>\n')
+            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
-            xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}</name>\n')
+            xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}{suffix_in}</name>\n')
             xml_out += (f'\t\t\t\t</a{entry_id}-powers{class_camel}>\n')
     return xml_out, id_in
 
-def create_power_table(list_in, library_in):
+def create_power_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -145,7 +147,7 @@ def create_power_table(list_in, library_in):
         xml_out += (f'\t\t\t\t\t\t<power{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.power{name_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.power{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<source type="string">{power_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t\t\t\t</power{name_camel}>\n')
@@ -163,7 +165,7 @@ def create_power_table(list_in, library_in):
 
     return xml_out
 
-def create_linkedpowers(basename_in, name_in, list_in, library_in):
+def create_linkedpowers(basename_in, name_in, list_in):
     xml_out = ''
     linked_list = []
 
@@ -178,13 +180,13 @@ def create_linkedpowers(basename_in, name_in, list_in, library_in):
         xml_out += (f'\t\t\t\t<power{power_camel}>\n')
         xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t</power{power_camel}>\n')
     
     return xml_out
 
-def create_power_desc(list_in, library_in):
+def create_power_desc(list_in):
     xml_out = ''
 
     if not list_in:
@@ -197,7 +199,7 @@ def create_power_desc(list_in, library_in):
 
     # Create individual item entries
     for power_dict in sorted(list_in, key=power_list_sorter):
-        linked_powers = create_linkedpowers(power_dict["basename"], power_dict["name"], list_in, library_in)
+        linked_powers = create_linkedpowers(power_dict["basename"], power_dict["name"], list_in)
 
         name_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
 
@@ -217,7 +219,7 @@ def create_power_desc(list_in, library_in):
 
     return xml_out
 
-def extract_power_list(db_in, library_in, min_lvl, max_lvl):
+def extract_power_list(db_in):
     power_out = []
 
     # Lists for checking what type of power it is
@@ -431,27 +433,28 @@ def extract_power_list(db_in, library_in, min_lvl, max_lvl):
                 # concatenate padded level and recharge id
                 group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
 
-                export_dict = {}
-                export_dict["action"] = action_str
-                export_dict["basename"] = basename_str
-                export_dict["class"] = class_str
-                export_dict["description"] = description_str + published_str
-                export_dict["flavor"] = flavor_str
-                export_dict["group"] = group_str
-                export_dict["group_id"] = group_id
-                export_dict["keywords"] = keywords_str
-                ## add a suffix if a secondary power has the same name as the primary - I don't think this ever occurs
-                export_dict["name"] = name_str if name_str != previous_name else name_str + str(power_id)
-                export_dict["prefix"] = prefix_str
-                export_dict["prefix_id"] = prefix_id
-                export_dict["published"] = published_str
-                export_dict["range"] = range_str
-                export_dict["recharge"] = recharge_str
-                export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
-                export_dict["source"] = source_str
+                if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
+                    export_dict = {}
+                    export_dict["action"] = action_str
+                    export_dict["basename"] = basename_str
+                    export_dict["class"] = class_str
+                    export_dict["description"] = description_str + published_str
+                    export_dict["flavor"] = flavor_str
+                    export_dict["group"] = group_str
+                    export_dict["group_id"] = group_id
+                    export_dict["keywords"] = keywords_str
+                    ## add a suffix if a secondary power has the same name as the primary - I don't think this ever occurs
+                    export_dict["name"] = name_str if name_str != previous_name else name_str + str(power_id)
+                    export_dict["prefix"] = prefix_str
+                    export_dict["prefix_id"] = prefix_id
+                    export_dict["published"] = published_str
+                    export_dict["range"] = range_str
+                    export_dict["recharge"] = recharge_str
+                    export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
+                    export_dict["source"] = source_str
 
-                # Append a copy of generated item dictionary
-                power_out.append(copy.deepcopy(export_dict))
+                    # Append a copy of generated item dictionary
+                    power_out.append(copy.deepcopy(export_dict))
 
                 # Start next power with the tag that triggered this power creation
                 power_html = pwr_tag

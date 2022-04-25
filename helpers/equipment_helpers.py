@@ -1,3 +1,5 @@
+import settings
+
 import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
@@ -8,7 +10,7 @@ def equipment_list_sorter(entry_in):
 
     return (section_id, name)
 
-def create_equipment_library(id_in, library_in, name_in):
+def create_equipment_library(id_in, name_in):
     id_in += 1
     menu_str = 'a' + '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
 
@@ -16,16 +18,15 @@ def create_equipment_library(id_in, library_in, name_in):
     xml_out += (f'\t\t\t\t<{menu_str}equipment>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classequipmenttablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>equipmentlists.core@{library_in}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>equipmentlists.core@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</{menu_str}equipment>\n')
 
     return xml_out, id_in
 
-def create_equipment_table(list_in, library_in):
+def create_equipment_table(list_in):
     xml_out = ''
-    item_id = 0
     section_id = 0
 
     # Item List part
@@ -37,8 +38,7 @@ def create_equipment_table(list_in, library_in):
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=equipment_list_sorter):
-        item_id += 1
-        name_lower = re.sub('\W', '', entry_dict["name"].lower())
+        name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
         #Check for new section
         if entry_dict["section_id"] != section_id:
@@ -58,15 +58,15 @@ def create_equipment_table(list_in, library_in):
             xml_out += ('\t\t\t\t\t<equipments>\n')
 
         # Equipment entry
-        xml_out += (f'\t\t\t\t\t\t<{name_lower}>\n')
+        xml_out += (f'\t\t\t\t\t\t<{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>referenceequipment</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.equipment.{name_lower}@{library_in}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.equipment.{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
         xml_out += (f'\t\t\t\t\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t\t\t</{name_lower}>\n')
+        xml_out += (f'\t\t\t\t\t\t</{name_camel}>\n')
 
     # Close final Section
     xml_out += ('\t\t\t\t\t</equipments>\n')
@@ -88,16 +88,16 @@ def create_equipment_reference(list_in):
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=equipment_list_sorter):
-        name_lower = re.sub('\W', '', entry_dict["name"].lower())
+        name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
-        xml_out += (f'\t\t\t<{name_lower}>\n')
+        xml_out += (f'\t\t\t<{name_camel}>\n')
         xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
         xml_out += (f'\t\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t\t<subtype type="string">{entry_dict["subtype"]}</subtype>\n')
         xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}\n\t\t\t\t</description>\n')
-        xml_out += (f'\t\t\t</{name_lower}>\n')
+        xml_out += (f'\t\t\t\t<subtype type="string">{entry_dict["subtype"]}</subtype>\n')
+        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += (f'\t\t\t</{name_camel}>\n')
 
     xml_out +=('\t\t</equipment>\n')
 
