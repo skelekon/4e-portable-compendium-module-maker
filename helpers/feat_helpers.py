@@ -34,15 +34,15 @@ def create_feat_library(id_in, list_in):
             class_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"])
 
             id_in += 1
-            entry_id = '000'[0:len('000')-len(str(id_in))] + str(id_in)
+            lib_id = 'a' + str(id_in).rjust(3, '0')
 
-            xml_out += (f'\t\t\t\t<a{entry_id}-feats{class_camel}>\n')
+            xml_out += (f'\t\t\t\t<{lib_id}-feats{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
             xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.feats{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
             xml_out += (f'\t\t\t\t\t<name type="string">Feats - {feat_dict["class"]}</name>\n')
-            xml_out += (f'\t\t\t\t</a{entry_id}-feats{class_camel}>\n')
+            xml_out += (f'\t\t\t\t</{lib_id}-feats{class_camel}>\n')
     return xml_out, id_in
 
 def create_feat_table(list_in):

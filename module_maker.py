@@ -60,10 +60,10 @@ from helpers.mi_other_helpers import extract_mi_other_list
 
 from helpers.mi_weaplements_helpers import extract_mi_weaplements_list
 
-##from helpers.monster_helpers import extract_monster_list
-##from helpers.monster_helpers import create_monster_library
-##from helpers.monster_helpers import create_monster_table
-##from helpers.monster_helpers import create_monster_desc
+from helpers.monster_helpers import extract_monster_list
+from helpers.monster_helpers import create_monster_library
+from helpers.monster_helpers import create_monster_table
+from helpers.monster_helpers import create_monster_desc
 
 if __name__ == '__main__':
 
@@ -74,14 +74,16 @@ if __name__ == '__main__':
     argv_dict = parse_argv(sys.argv)
 
 ##    # temp settings for testing
-##    argv_dict["filename"] = '4E_Powers'
-##    argv_dict["library"] = '4E Powers'
+##    argv_dict["filename"] = '4E_Items'
+##    argv_dict["library"] = '4E Items'
 ##    argv_dict["min"] = 0
 ##    argv_dict["max"] = 5
+##    argv_dict["npcs"] = True
 ##    argv_dict["feats"] = True
 ##    argv_dict["powers"] = True
 ##    argv_dict["alchemy"] = True
 ##    argv_dict["rituals"] = True
+##    argv_dict["practices"] = True
 ##    argv_dict["armor"] = True
 ##    argv_dict["equipment"] = True
 ##    argv_dict["weapons"] = True
@@ -105,7 +107,6 @@ if __name__ == '__main__':
 ##    argv_dict["mi_ring"] = True
 ##    argv_dict["mi_waist"] = True
 ##    argv_dict["mi_wondrous"] = True
-##    argv_dict["monsters"] = False
 
     # Set global variables so they don't need to be passed everywhere
     settings.library = argv_dict["library"]
@@ -132,11 +133,11 @@ if __name__ == '__main__':
 
     # Set a suffix if a level restriction is in place
     if argv_dict["min"] <= 1 and argv_dict["max"] == 10:
-            suffix_str = ' (Heroic)'
+        suffix_str = ' (Heroic)'
     elif argv_dict["min"] == 11 and argv_dict["max"] == 20:
-            suffix_str = ' (Paragon)'
+        suffix_str = ' (Paragon)'
     elif argv_dict["min"] == 21 and argv_dict["max"] >= 30:
-            suffix_str = ' (Epic)'
+        suffix_str = ' (Epic)'
     elif argv_dict["min"] != 0 or argv_dict["max"] != 99:
         if argv_dict["min"] == argv_dict["max"]:
             suffix_str = f' (Level {argv_dict["min"]})'
@@ -152,22 +153,66 @@ if __name__ == '__main__':
             mi_flag = True
 
     # Check if any magic or mundane items are being exported as we need to read the item database
-    item_flag = False
     if mi_flag or argv_dict["armor"] or argv_dict["weapons"] or argv_dict["equipment"]:
-        item_flag = True
-
-    if item_flag:
         # Pull Items data from Portable Compendium
         item_db = []
         try:
-            item_db = create_db('sql\ddiItem.sql', "','")
+            item_db = create_db('sql\ddiItem.sql', '\',\'')
         except:
             print('Error reading Item data source.')
 
         if not item_db:
-            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
             input('Press enter to close.')
             sys.exit(0)
+
+    # Check if any types of rituals are being exported as we need to read the rituals database
+    if argv_dict["alchemy"] or argv_dict["rituals"] or argv_dict["practices"]:
+        # Pull Rituals data from Portable Compendium
+        ritual_db = []
+        try:
+            ritual_db = create_db('sql\ddiRitual.sql', "','")
+        except:
+            print('Error reading Ritual data source.')
+
+        if not ritual_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+    #===========================
+    # MONSTERS
+    #===========================
+
+    monster_lib_xml = ''
+    monster_tbl_xml = ''
+    monster_desc = ''
+    monster_tbl_list = ['NPCs By Letter', 'NPCs By Level', 'NPCs By Level/Role', 'NPCs By Role/Level']
+
+    if argv_dict["npcs"]:
+        # Pull Powers data from Portable Compendium
+        monster_db = []
+        try:
+            monster_db = create_db('sql\ddiMonster.sql', "','")
+        except:
+            print('Error reading Power data source.')
+    
+        if not monster_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        # Only need to get the list of monsters once
+        monster_list = extract_monster_list(monster_db)
+
+        # Loop through the different monster table types to build the library menus and tables
+        for tbl_name in monster_tbl_list:
+            monster_lib, menu_id = create_monster_library(menu_id, tier_list, tbl_name + suffix_str)
+            monster_tbl = create_monster_table(monster_list, tier_list, tbl_name + suffix_str)
+            monster_lib_xml += monster_lib
+            monster_tbl_xml += monster_tbl
+
+        monster_desc = create_monster_desc(monster_list)
 
     #===========================
     # ALCHEMY
@@ -182,19 +227,7 @@ if __name__ == '__main__':
     alchemy_power = ''
 
     if argv_dict["alchemy"]:
-        # Pull Alchemy data from Portable Compendium
-        alchemy_db = []
-        try:
-            alchemy_db = create_db('sql\ddiRitual.sql', "','")
-        except:
-            print('Error reading Ritual data source.')
-
-        if not alchemy_db:
-            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
-            input('Press enter to close.')
-            sys.exit(0)
-
-        alchemy_list = extract_alchemy_list(alchemy_db, 'Alchemical Formulas')
+        alchemy_list = extract_alchemy_list(ritual_db, 'Alchemical Formulas')
         alchemy_lib, menu_id = create_alchemy_formula_library(menu_id, alchemy_list, 'Alchemical Formulas' + suffix_str)
         alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_list, 'Alchemical Items')
         alchemy_tbl = create_alchemy_formula_table(alchemy_list)
@@ -210,22 +243,24 @@ if __name__ == '__main__':
     ritual_desc = ''
 
     if argv_dict["rituals"]:
-        # Pull Rituals data from Portable Compendium
-        ritual_db = []
-        try:
-            ritual_db = create_db('sql\ddiRitual.sql', "','")
-        except:
-            print('Error reading Ritual data source.')
-
-        if not ritual_db:
-            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
-            input('Press enter to close.')
-            sys.exit(0)
-
         ritual_list = extract_ritual_list(ritual_db, 'Rituals')
         ritual_lib, menu_id = create_ritual_library(menu_id, ritual_list, 'Rituals' + suffix_str)
-        ritual_tbl = create_ritual_table(ritual_list)
+        ritual_tbl = create_ritual_table(ritual_list, 'Rituals' + suffix_str)
         ritual_desc = create_ritual_desc(ritual_list)
+
+    #===========================
+    # MARTIAL PRACTICES
+    #===========================
+
+    practice_lib = ''
+    practice_tbl = ''
+    practice_desc = ''
+
+    if argv_dict["practices"]:
+        practice_list = extract_ritual_list(ritual_db, 'Martial Practice')
+        practice_lib, menu_id = create_ritual_library(menu_id, practice_list, 'Martial Practices' + suffix_str)
+        practice_tbl = create_ritual_table(practice_list, 'Martial Practices' + suffix_str)
+        practice_desc = create_ritual_desc(practice_list)
 
     #===========================
     # ARMOR
@@ -392,7 +427,7 @@ if __name__ == '__main__':
             print('Error reading Feat data source.')
 
         if not feat_db:
-            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
             input('Press enter to close.')
             sys.exit(0)
 
@@ -418,7 +453,7 @@ if __name__ == '__main__':
             print('Error reading Power data source.')
     
         if not power_db:
-            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
             input('Press enter to close.')
             sys.exit(0)
 
@@ -428,50 +463,26 @@ if __name__ == '__main__':
         power_desc = create_power_desc(power_list)
 
     #===========================
-    # MONSTERS
-    #===========================
-
-    monster_lib = ''
-    monster_tbl = ''
-    monster_desc = ''
-
-    if argv_dict["monsters"]:
-        # Pull Powers data from Portable Compendium
-        monster_db = []
-        try:
-            monster_db = create_db('sql\ddiMonster.sql', "','")
-        except:
-            print('Error reading Power data source.')
-    
-        if not monster_db:
-            print('NO DATA FOUND IN SOURCES, MAKE SURE YOU HAVE COPIED YOUR 4E PORTABLE COMPENDIUM DATA TO SOURCES!')
-            input('Press enter to close.')
-            sys.exit(0)
-
-        monster_list = extract_monster_list(monster_db, argv_dict["library"], argv_dict["min"], argv_dict["max"])
-        monster_lib, menu_id = create_monster_library(menu_id, argv_dict["library"], monster_list, 'Powers')
-        monster_tbl = create_monster_table(monster_list, argv_dict["library"])
-        monster_desc = create_monster_desc(monster_list)
-
-    #===========================
     # XML
     #===========================
 
     # OPEN
     export_xml =('<?xml version="1.0" encoding="ISO-8859-1"?>\n')
-    export_xml +=('<root version="2.9">\n')
+    export_xml +=('<root version="2.2">\n')
 
     # LIBRARY
     # These control the right-hand menu on the Modules screen
-    export_xml +=('\t<library>\n')
-    export_xml +=('\t\t<lib4ecompendium>\n')
-    export_xml +=(f'\t\t\t<name type="string">{argv_dict["library"]}</name>\n')
-    export_xml +=('\t\t\t<categoryname type="string">4E Core</categoryname>\n')
-    export_xml +=('\t\t\t<entries>\n')
+    export_xml += ('\t<library>\n')
+    export_xml += ('\t\t<lib4ecompendium>\n')
+    export_xml += (f'\t\t\t<name type="string">{argv_dict["library"]}</name>\n')
+    export_xml += ('\t\t\t<categoryname type="string">4E Core</categoryname>\n')
+    export_xml += ('\t\t\t<entries>\n')
 
+    export_xml += monster_lib_xml
     export_xml += alchemy_lib
     export_xml += alchemy_item_lib
     export_xml += ritual_lib
+    export_xml += practice_lib
     export_xml += armor_lib
     export_xml += weapons_lib
     export_xml += equipment_lib
@@ -482,12 +493,19 @@ if __name__ == '__main__':
     export_xml += feat_lib
     export_xml += power_lib
 
-    export_xml +=('\t\t\t</entries>\n')
+    export_xml += ('\t\t\t</entries>\n')
     export_xml += ('\t\t</lib4ecompendium>\n')
-    export_xml +=('\t</library>\n')
+    export_xml += ('\t</library>\n')
 
     # TABLES
     # These control the tables that appears when you click on a Library menu
+
+    # MONSTERLISTS
+    # this is the table of Rituals
+    if argv_dict["npcs"]:
+        export_xml += ('\t<monsterlists>\n')
+        export_xml += monster_tbl_xml
+        export_xml += ('\t</monsterlists>\n')
 
     # tables for mundane items - the start and end tags are in the data string
     export_xml += armor_tbl
@@ -513,6 +531,11 @@ if __name__ == '__main__':
         export_xml += power_tbl
         export_xml += ('\t</powerlists>\n')
 
+    # ALCCHEMYLISTS
+    # this is the table of Alchemical Formulas
+    if argv_dict["alchemy"]:
+        export_xml += alchemy_tbl
+
     # RITUALLISTS
     # this is the table of Rituals
     if argv_dict["rituals"]:
@@ -520,26 +543,34 @@ if __name__ == '__main__':
         export_xml += ritual_tbl
         export_xml += ('\t</rituallists>\n')
 
-    # ALCCHEMYLISTS
-    # this is the table of Alchemical Formulas
-    if argv_dict["alchemy"]:
-        export_xml += alchemy_tbl
+    # PRACTICELISTS
+    # this is the table of Rituals
+    if argv_dict["practices"]:
+        export_xml += ('\t<practicelists>\n')
+        export_xml += practice_tbl
+        export_xml += ('\t</practicelists>\n')
 
-    # REFERENCE
+    # ITEMSDESC
     # These are the individual cards for mundane items that appear when you click on a table entry
     if argv_dict["weapons"] or argv_dict["armor"] or argv_dict["equipment"]:
-        export_xml +=('\t<reference static="true">\n')
         export_xml += armor_ref
         export_xml += weapons_ref
         export_xml += equipment_ref
-        export_xml +=('\t</reference>\n')
+
+    # MONSTERDESC
+    # these are the individual monster cards
+    if argv_dict["npcs"]:
+        export_xml += ('\t<monsterdesc>\n')
+        export_xml += monster_desc
+        export_xml += ('\t</monsterdesc>\n')
 
     # RITUALDESC
     # these are the individual ritual cards
-    if argv_dict["rituals"] or argv_dict["alchemy"]:
+    if argv_dict["alchemy"] or argv_dict["rituals"] or argv_dict["practices"]:
         export_xml += ('\t<ritualdesc>\n')
-        export_xml += ritual_desc
         export_xml += alchemy_desc
+        export_xml += ritual_desc
+        export_xml += practice_desc
         export_xml += ('\t</ritualdesc>\n')
 
     # MAGICITEMDESC
@@ -556,7 +587,7 @@ if __name__ == '__main__':
     # POWERDESC
     # These are the individual cards for character or item Powers
     if mi_flag or argv_dict["feats"] or argv_dict["powers"] or argv_dict["alchemy"]:
-        export_xml +=('\t<powerdesc>\n')
+        export_xml += ('\t<powerdesc>\n')
         export_xml += feat_desc
         export_xml += mi_armor_power
         export_xml += mi_implements_power
@@ -564,17 +595,19 @@ if __name__ == '__main__':
         export_xml += mi_other_power_xml
         export_xml += power_desc
         export_xml += alchemy_power
-        export_xml +=('\t</powerdesc>\n')
+        export_xml += ('\t</powerdesc>\n')
 
     # CLOSE
-    export_xml +=('</root>\n')
+    export_xml += ('</root>\n')
 
     # Fix up all the dodgy characters before we export
     export_xml = export_xml.replace(u'\xa0', ' ')   # &nbsp;
     export_xml = re.sub('[—−‑–]', '-', export_xml)  # hyphens
-    export_xml = re.sub('’', '\'', export_xml)      # single quotes
+    export_xml = re.sub('[‘’]', '\'', export_xml)   # single quotes
     export_xml = re.sub('[“”]', '"', export_xml)    # double marks
     export_xml = re.sub('[×]', 'x', export_xml)     # x's
-    export_xml = re.sub('[•✦]', '-', export_xml)    # bullets
+    export_xml = re.sub('[•✦]', '-', export_xml)   # bullets
+    export_xml = re.sub('[ﬂ]', 'fl', export_xml)    # ligature fl
+    export_xml = re.sub('[ﬁ]', 'fi', export_xml)    # ligature fi
 
-    create_module(export_xml, argv_dict["filename"])
+    create_module(export_xml, argv_dict["filename"], argv_dict["npcs"])

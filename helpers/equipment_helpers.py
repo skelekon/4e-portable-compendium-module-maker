@@ -12,21 +12,25 @@ def equipment_list_sorter(entry_in):
 
 def create_equipment_library(id_in, name_in):
     id_in += 1
-    menu_str = 'a' + '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
+    lib_id = 'a' + str(id_in).rjust(3, '0')
 
     xml_out = ''
-    xml_out += (f'\t\t\t\t<{menu_str}equipment>\n')
+    xml_out += (f'\t\t\t\t<{lib_id}-equipment>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classequipmenttablelist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>equipmentlists.core@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
-    xml_out += (f'\t\t\t\t</{menu_str}equipment>\n')
+    xml_out += (f'\t\t\t\t</{lib_id}-equipment>\n')
 
     return xml_out, id_in
 
 def create_equipment_table(list_in):
     xml_out = ''
+
+    if not list_in:
+        return xml_out
+
     section_id = 0
 
     # Item List part
@@ -46,12 +50,12 @@ def create_equipment_table(list_in):
 
             # Close previous Section
             if section_id != 1:
-                section_str = "000"[0:len("000")-len(str(section_id - 1))] + str(section_id - 1)
+                section_str = str(section_id - 1).rjust(3, '0')
                 xml_out += ('\t\t\t\t\t</equipments>\n')
                 xml_out += (f'\t\t\t\t</section{section_str}>\n')
 
             # Open new Section
-            section_str = "000"[0:len("000")-len(str(section_id))] + str(section_id)
+            section_str = str(section_id).rjust(3, '0')
             xml_out += (f'\t\t\t\t<section{section_str}>\n')
             xml_out += (f'\t\t\t\t\t<description type="string">{entry_dict["type"]}</description>\n')
             xml_out += (f'\t\t\t\t\t<subdescription type="string">{entry_dict["subtype"]}</subdescription>\n')
@@ -61,7 +65,7 @@ def create_equipment_table(list_in):
         xml_out += (f'\t\t\t\t\t\t<{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>referenceequipment</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.equipment.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>equipmentdesc.{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
@@ -80,26 +84,31 @@ def create_equipment_table(list_in):
     return xml_out
 
 def create_equipment_reference(list_in):
+    xml_out = ''
+
+    if not list_in:
+        return xml_out
+    
     section_str = ''
     entry_str = ''
     name_lower = ''
 
-    xml_out =('\t\t<equipment>\n')
+    xml_out =('\t<equipmentdesc>\n')
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=equipment_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
-        xml_out += (f'\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}\n\t\t\t\t</description>\n')
-        xml_out += (f'\t\t\t\t<subtype type="string">{entry_dict["subtype"]}</subtype>\n')
-        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t<{name_camel}>\n')
+        xml_out += (f'\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t<description type="formattedtext">{entry_dict["description"]}\n\t\t\t\t</description>\n')
+        xml_out += (f'\t\t\t<subtype type="string">{entry_dict["subtype"]}</subtype>\n')
+        xml_out += (f'\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += (f'\t\t</{name_camel}>\n')
 
-    xml_out +=('\t\t</equipment>\n')
+    xml_out +=('\t</equipmentdesc>\n')
 
     return xml_out
 
@@ -117,6 +126,9 @@ def extract_equipment_list(db_in):
         # Retrieve the data with dedicated columns
         name_str =  row['Name'].replace('\\', '')
 
+#        if name_str not in ['Typical Room (per day)']:
+#            continue
+        
         cost_str = ''
         description_str = ''
         section_id = 100
@@ -188,7 +200,7 @@ def extract_equipment_list(db_in):
                 if re.search(r'cp', cost_str):
                     cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
                 # Divide by 10 if cost is in sp
-                elif re.search(r'sp', cost_lbl):
+                elif re.search(r'sp', cost_str):
                     cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
                 else:
                     cost_str = re.sub('[^\.\d]', '', cost_str)
