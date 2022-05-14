@@ -22,13 +22,18 @@ Options:
   -h, --help         show this help message and exit
   --filename=FILE    create library at FILE
   --library=LIBRARY  Fantasy Grounds' internal name for the Library
-  --min=MIN          only export magic items of this level and above
-  --max=MAX          only export magic items of this level and below
+  --min=MIN          export items of this level and above. Applies to NPCs,
+                     Alchemical Items, Rituals, Martial Practices and Powers.
+  --max=MAX          export items of this level and below. Applies to NPCs,
+                     Alchemical Items, Rituals, Martial Practices and Powers.
+  -n, --npcs         export all NPCs (Monsters)
   -a, --alchemy      exports Alchemical Item information
   -r, --rituals      exports Ritual information
+  -m, --martial      exports Martial Practice information
   -f, --feats        exports Feat information
   -p, --powers       exports Power information
-  -t, --tiers        divide Magic Armor, Implements and Weapons into Tiers
+  -t, --tiers        divide Magic Armor, Implements and Weapons, NPCs into
+                     Tiers
   -i, --items        export all item types (= --mundane & --magic)
   --mundane          export all mundane items
   --magic            export all magic items
@@ -42,11 +47,14 @@ Options:
 
 4. Run `module_maker.exe` with the switches as above to create the modules you want.
 
-You can use `run_all.bat` to create the following two Libraries, which include everything currently available:
+You can use `run_all.bat` to create the following three Libraries, which include everything currently available:
+
 ```
+module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t
 module_maker.exe --filename 4E_Powers --library "4E Powers" -f -p
-module_maker.exe --filename 4E_Items --library "4E Items" -a -r -i -t
+module_maker.exe --filename 4E_Items --library "4E Items" -a -r -m -i -t
 ```
+
 Default filename/library will be `4E_Compendium` / `4E Compendium` if not supplied.
 
 5. Copy or Move the `.mod` file to into your FG modules folder (default should be `.../Fantasy Gounds/modules`) and load them in your campaign!
