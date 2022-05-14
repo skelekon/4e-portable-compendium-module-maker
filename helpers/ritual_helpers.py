@@ -20,21 +20,24 @@ def create_ritual_library(id_in, list_in, name_in):
     if not list_in:
         return xml_out, id_in
 
-
     id_in += 1
-    entry_id = '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
+    lib_id = 'a' + str(id_in).rjust(3, '0')
+    if re.search('(Martial Practices)', name_in):
+        list_str = 'practicelists'
+    else:
+        list_str = 'rituallists'
 
-    xml_out += (f'\t\t\t\t<a{entry_id}rituals>\n')
+    xml_out += (f'\t\t\t\t<{lib_id}-rituals>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>rituallists@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>{list_str}@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
-    xml_out += (f'\t\t\t\t</a{entry_id}rituals>\n')
+    xml_out += (f'\t\t\t\t</{lib_id}-rituals>\n')
 
     return xml_out, id_in
 
-def create_ritual_table(list_in):
+def create_ritual_table(list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -45,7 +48,7 @@ def create_ritual_table(list_in):
     # Ritual List
     # This controls the table that appears when you click on a Library menu
 
-    xml_out += ('\t\t<description type="string">Rituals</description>\n')
+    xml_out += (f'\t\t<description type="string">{name_in}</description>\n')
     xml_out += ('\t\t<groups>\n')
 
     # Create individual item entries
@@ -96,7 +99,7 @@ def create_ritual_desc(list_in):
 def extract_ritual_list(db_in, filter_in):
     ritual_out = []
 
-    print('\n\n\n=========== RITUALS ===========')
+    print('\n\n\n=========== ' + filter_in.upper() + ' ===========')
     for i, row in enumerate(db_in, start=1):
 
         # Parse the HTML text 
@@ -124,11 +127,17 @@ def extract_ritual_list(db_in, filter_in):
         skill_str =  ''
         time_str = ''
 
+        # Category
+        if category_tag := parsed_html.find(string=re.compile('^Category')):
+            category_str = re.sub(':\s*', '', category_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+
         # Component
         if component_tag := parsed_html.find(string=re.compile('^Component')):
-            component_str = re.sub(':\w*', '', component_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+            component_str = re.sub(':\s*', '', component_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
-        if re.search(r'(See Alchemical|See below|See the item\'s price)', component_str, re.IGNORECASE)\
+        if re.search(r'(Martial Practice)', category_str, re.IGNORECASE):
+            class_str = 'Martial Practice'
+        elif re.search(r'(See Alchemical|See below|See the item\'s price)', component_str, re.IGNORECASE)\
            or name_str in ['Grayflower Perfume', 'Keen Oil', 'Panther Tears']:
             class_str = 'Alchemical Formulas'
         else:
@@ -139,13 +148,9 @@ def extract_ritual_list(db_in, filter_in):
 
         if section_id < 100:
 
-            # Category
-            if category_tag := parsed_html.find(string=re.compile('^Category')):
-                category_str = re.sub(':\w*', '', category_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
-
             # Duration
             if duration_tag := parsed_html.find(string=re.compile('^Duration')):
-                duration_str = re.sub(':\w*', '', duration_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                duration_str = re.sub(':\s*', '', duration_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Flavor
             if flavor_tag := parsed_html.select_one('#detail > i'):
@@ -153,24 +158,24 @@ def extract_ritual_list(db_in, filter_in):
 
             # Level
             if level_tag := parsed_html.find(string=re.compile('^Level')):
-                level_str = re.sub(':\w*', '', level_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                level_str = re.sub(':\s*', '', level_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Prerequisite
             prerequisite_tag = parsed_html.find(string=re.compile('^Prerequisite'))
             if prerequisite_tag:
-                prerequisite_str = re.sub(':\w*', '', prerequisite_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                prerequisite_str = re.sub(':\s*', '', prerequisite_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Price
             if price_tag := parsed_html.find(string=re.compile('^Market Price')):
-                price_str = re.sub(':\w*', '', price_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                price_str = re.sub(':\s*', '', price_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Skill
             if skill_tag := parsed_html.find(string=re.compile('^Key Skill')):
-                skill_str = re.sub(':\w*', '', skill_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                skill_str = re.sub(':\s*', '', skill_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Time
             if time_tag := parsed_html.find(string=re.compile('^Time')):
-                time_str = re.sub(':\w*', '', time_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                time_str = re.sub(':\s*', '', time_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Details
             if detail_tag := parsed_html.find('div', id='detail'):

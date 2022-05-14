@@ -46,7 +46,8 @@ def extract_mi_weaplements_list(db_in, filter_in):
         # Class
         if (re.search(f'^({filter_in})$', category_str) and re.search('^(Common|Uncommon|Rare)', rarity_str)):
             class_str = category_str
-            mitype_str = filter_in.lower()
+            # implements are also 'weapons'
+            mitype_str = 'weapon'
             section_id = 1
 
         if section_id < 99:
@@ -98,9 +99,7 @@ def extract_mi_weaplements_list(db_in, filter_in):
             # Critical
             if critical_lbl := parsed_html.find(string='Critical:'):
                 critical_str = critical_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True)
-                # only weapons can have a 'critical' entry
                 if critical_str != '':
-                    mitype_str = 'weapon'
                     if multi_bonus == True:
                         for item in multi_list:
                             critical_test = re.search(r'(\+)(\d)(d)(\d{1,2})(.*)per plus(.*)', critical_str)

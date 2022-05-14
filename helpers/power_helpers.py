@@ -74,15 +74,15 @@ def create_power_library(id_in, list_in, suffix_in):
             class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
 
             id_in += 1
-            entry_id = '000'[0:len('000')-len(str(id_in))] + str(id_in)
+            lib_id = 'a' + str(id_in).rjust(3, '0')
 
-            xml_out += (f'\t\t\t\t<a{entry_id}-powers{class_camel}>\n')
+            xml_out += (f'\t\t\t\t<{lib_id}-powers{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
             xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
             xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}{suffix_in}</name>\n')
-            xml_out += (f'\t\t\t\t</a{entry_id}-powers{class_camel}>\n')
+            xml_out += (f'\t\t\t\t</{lib_id}-powers{class_camel}>\n')
     return xml_out, id_in
 
 def create_power_table(list_in):
@@ -431,7 +431,7 @@ def extract_power_list(db_in):
                     else:
                         recharge_id = '5zz'
                 # concatenate padded level and recharge id
-                group_id = '000'[0:len('000')-len(level_str)] + level_str + '-' + recharge_id
+                group_id = level_str.rjust(3, '0') + '-' + recharge_id
 
                 if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
                     export_dict = {}
@@ -457,12 +457,14 @@ def extract_power_list(db_in):
                     power_out.append(copy.deepcopy(export_dict))
 
                 # Start next power with the tag that triggered this power creation
-                power_html = pwr_tag
+                copy_tag = copy.copy(pwr_tag)
+                power_html = copy_tag
                 power_complete = False
                 previous_name = name_str
             # keep adding to the power html until it gets processed
             else:
-                power_html.append(pwr_tag)
+                copy_tag = copy.copy(pwr_tag)
+                power_html.append(copy_tag)
 
     print(str(len(db_in)) + ' entries checked.')
     print(str(len(power_out)) + ' entries exported.')

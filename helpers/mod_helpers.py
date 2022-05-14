@@ -9,8 +9,8 @@ import sys
 from zipfile import ZipFile, ZIP_DEFLATED
 
 def check_all_dbs():
-    file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPower.sql',\
-                 'sql\ddiRace.sql', 'sql\ddiRitual.sql']
+    file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiMonster.sql',\
+                 'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql']
     for f in file_list:
         if not os.path.isfile(f):
             print('Missing File: ' + f)
@@ -25,13 +25,15 @@ def parse_argv(args_in):
     parser.set_defaults(filename='4E_Compendium', library='4E Compendium', min=0, max=99)
     parser.add_option('--filename', action='store', dest='filename', help='create library at FILE', metavar='FILE')
     parser.add_option('--library', action='store', dest='library', help='Fantasy Grounds\' internal name for the Library', metavar='LIBRARY')
-    parser.add_option('--min', action='store', dest='min', help='only export magic items of this level and above')
-    parser.add_option('--max', action='store', dest='max', help='only export magic items of this level and below')
+    parser.add_option('--min', action='store', dest='min', help='export items of this level and above. Applies to NPCs, Alchemical Items, Rituals, Martial Practices and Powers.')
+    parser.add_option('--max', action='store', dest='max', help='export items of this level and below. Applies to NPCs, Alchemical Items, Rituals, Martial Practices and Powers.')
+    parser.add_option('-n', '--npcs', action='store_true', dest='npcs', help='export all NPCs (Monsters)')
     parser.add_option('-a', '--alchemy', action='store_true', dest='alchemy', help='exports Alchemical Item information')
     parser.add_option('-r', '--rituals', action='store_true', dest='rituals', help='exports Ritual information')
+    parser.add_option('-m', '--martial', action='store_true', dest='martial', help='exports Martial Practice information')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='exports Feat information')
     parser.add_option('-p', '--powers', action='store_true', dest='powers', help='exports Power information')
-    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons into Tiers')
+    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons, NPCs into Tiers')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='export all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='export all mundane items')
     parser.add_option('--magic', action='store_true', dest='magic', help='export all magic items')
@@ -68,15 +70,16 @@ def parse_argv(args_in):
     out_dict["library"] = options.library
     out_dict["min"] = int(options.min) if int(options.min) >= 0 else 0
     out_dict["max"] = int(options.max) if int(options.min) <= 99 else 99
+    out_dict["npcs"] = options.npcs if options.npcs != None else False
     out_dict["alchemy"] = options.alchemy if options.alchemy != None else False
     out_dict["rituals"] = options.rituals if options.rituals != None else False
+    out_dict["practices"] = options.martial if options.martial != None else False
     out_dict["feats"] = options.feats if options.feats != None else False
     out_dict["powers"] = options.powers if options.powers != None else False
-    out_dict["tiers"] = options.tiers if options.powers != None else False
+    out_dict["tiers"] = options.tiers if options.tiers != None else False
     out_dict["items"] = options.items if options.items != None else False
     out_dict["mundane"] = options.mundane if options.mundane != None else False
     out_dict["magic"] = options.magic if options.magic != None else False
-    out_dict["monsters"] = False
 
     # Note these are currently internal/debug options that are more granular than is currently offered by the switches
     out_dict["armor"] = False
@@ -160,22 +163,28 @@ def parse_argv(args_in):
     return out_dict
 
 
-def create_module(xml_in, filename_in):
+def create_module(xml_in, filename_in, dm_module_in):
+
+    # Use db.xml for DM only modules so they are not player readable
+    if dm_module_in:
+        db_filename = 'db.xml'
+    else:
+        db_filename = 'client.xml'
 
     # Write FG XML client file
-    with open('client.xml', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
+    with open(db_filename, mode='w', encoding='iso-8859-1', errors='strict', buffering=1) as file:
         file.write(xml_in)
-    print('\nclient.xml written')
+    print(f'\n{db_filename} written')
 
     # Write FG XML definition file
     definition_str = (f'<?xml version="1.0" encoding="iso-8859-1"?>\n<root version="2.2">\n\t<name>{settings.library}</name>\n\t<author>skelekon</author>\n\t<ruleset>4E</ruleset>\n</root>')
-    with open('definition.xml', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
+    with open('definition.xml', mode='w', encoding='iso-8859-1', errors='strict', buffering=1) as file:
         file.write(definition_str)
     print('\ndefinition.xml written.')
 
     try:
         with ZipFile(f'{filename_in}.mod', 'w', compression=ZIP_DEFLATED) as modzip:
-            modzip.write('client.xml')
+            modzip.write(db_filename)
             modzip.write('definition.xml')
             if os.path.isfile('thumbnail.png'):
                 modzip.write('thumbnail.png')
@@ -281,7 +290,7 @@ def mi_list_sorter(entry_in):
 
 def create_mi_library(id_in, tier_list, name_in, item_in):
     xml_out = ''
-    item_lower = re.sub('[^a-zA-Z0-9_]', '', item_in.lower())
+    item_camel = re.sub('[^a-zA-Z0-9_]', '', item_in)
 
     for t in tier_list:
 
@@ -290,26 +299,28 @@ def create_mi_library(id_in, tier_list, name_in, item_in):
         else:
             tier_str = ''
 
-        id_in += 1
-        menu_str = 'a' + '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
+        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
 
-        xml_out += (f'\t\t\t\t<{menu_str}magicitems>\n')
+        id_in += 1
+        lib_id = 'a' + str(id_in).rjust(3, '0')
+
+        xml_out += (f'\t\t\t\t<{lib_id}-magicitems>\n')
         xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.mi{item_lower}{t.lower()}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.mi{item_camel}{tier_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
-        xml_out += (f'\t\t\t\t</{menu_str}magicitems>\n')
+        xml_out += (f'\t\t\t\t</{lib_id}-magicitems>\n')
 
     return xml_out, id_in
 
-def create_mi_table(list_in, tier_list, type_in):
+def create_mi_table(list_in, tier_list, item_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    type_lower = re.sub('[^a-zA-Z0-9_]', '', type_in.lower())
+    item_camel = re.sub('[^a-zA-Z0-9_]', '', item_in)
 
     # Loop through the Tier list that has been built for this export
     for t in tier_list:
@@ -321,9 +332,11 @@ def create_mi_table(list_in, tier_list, type_in):
         else:
             tier_str = ''
 
+        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
+
         # Open Item List
         # This controls the table that appears when you click on a Library menu
-        xml_out += (f'\t\t<mi{type_lower}{t.lower()}>\n')
+        xml_out += (f'\t\t<mi{item_camel}{tier_camel}>\n')
         xml_out += (f'\t\t\t<description type="string">Magic Item Table</description>\n')
         xml_out += ('\t\t\t<groups>\n')
 
@@ -340,7 +353,7 @@ def create_mi_table(list_in, tier_list, type_in):
             else:
                 item_tier = 'Epic'
 
-            level_str = "000"[0:len("000")-len(str(entry_dict["level"]))] + str(entry_dict["level"])
+            level_str = str(entry_dict["level"]).rjust(3, '0')
             name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
             #Check for new section
@@ -349,14 +362,14 @@ def create_mi_table(list_in, tier_list, type_in):
 
                 # Close previous Section
                 if section_id != 1:
-                    section_str = "000"[0:len("000")-len(str(section_id - 1))] + str(section_id - 1)
+                    section_str = str(section_id - 1).rjust(3, '0')
                     xml_out += ('\t\t\t\t\t</items>\n')
                     xml_out += (f'\t\t\t\t</section{section_str}>\n')
 
                 # Open new Section
-                section_str = "000"[0:len("000")-len(str(section_id))] + str(section_id)
+                section_str = str(section_id).rjust(3, '0')
                 xml_out += (f'\t\t\t\t<section{section_str}>\n')
-                xml_out += (f'\t\t\t\t\t<description type="string">{type_in}{tier_str}</description>\n')
+                xml_out += (f'\t\t\t\t\t<description type="string">{item_in}{tier_str}</description>\n')
                 xml_out += ('\t\t\t\t\t<items>\n')
 
             # only output items for the correct tier
@@ -379,7 +392,7 @@ def create_mi_table(list_in, tier_list, type_in):
 
         # Close Item List
         xml_out += ('\t\t\t</groups>\n')
-        xml_out += (f'\t\t</mi{type_lower}{t.lower()}>\n')
+        xml_out += (f'\t\t</mi{item_camel}{tier_camel}>\n')
 
     return xml_out
 
@@ -426,7 +439,7 @@ def create_mi_desc(list_in):
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=mi_list_sorter):
-        level_str = "000"[0:len("000")-len(str(entry_dict["level"]))] + str(entry_dict["level"])
+        level_str = str(entry_dict["level"]).rjust(3, '0')
         name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
         # Create all Required Power entries
@@ -546,7 +559,7 @@ def powers_format(soup_in, name_in):
     for power in powers_list:
         id += 1
         recharge_alpha = re.sub('[^a-zA-Z0-9_]', '', power["recharge"])
-        entry_id = "000"[0:len("000")-len(str(id))] + str(id)
+        entry_id = str(id).rjust(3, '0')
 
         powerdesc_out += f'\t\t<item{name_alpha}Power-{entry_id}>\n'
         powerdesc_out += f'\t\t\t<name type="string">{name_in} Power - {power["recharge"]}</name>\n'
@@ -574,12 +587,12 @@ def powers_format(soup_in, name_in):
         magicitemsdesc_out += f'\t\t\t\t\t<name type="string">Power - {power["recharge"]}</name>\n'
         if power["action"] != '':
             magicitemsdesc_out += f'\t\t\t\t\t<action type="string">{power["action"]}</action>\n'
-        magicitemsdesc_out += '\t\t\t\t\t\t<class>powerdesc</class>\n'
         if power["recharge"] != '':
             magicitemsdesc_out += f'\t\t\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
         if power["shortdescription"] != '':
             magicitemsdesc_out += f'\t\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
         magicitemsdesc_out += '\t\t\t\t\t<link type="windowreference">\n'
+        magicitemsdesc_out += '\t\t\t\t\t\t<class>powerdesc</class>\n'
         magicitemsdesc_out += f'\t\t\t\t\t\t<recordname>powerdesc.item{name_alpha}Power-{entry_id}@{settings.library}</recordname>\n'
         magicitemsdesc_out += '\t\t\t\t\t</link>\n'
         magicitemsdesc_out += f'\t\t\t\t</id-{entry_id}>\n'
@@ -596,7 +609,7 @@ def props_format(props_in):
     # Loop though properties list to create all the tags
     for p in props_list:
         id += 1
-        entrry_id = "000"[0:len("000")-len(str(id))] + str(id)
+        entrry_id = str(id).rjust(3, '0')
         props_out += f'\t\t\t\t<id-{entrry_id}>\n'
         props_out += f'\t\t\t\t\t<shortdescription type="string">{p}</shortdescription>\n'
         props_out += f'\t\t\t\t</id-{entrry_id}>\n'

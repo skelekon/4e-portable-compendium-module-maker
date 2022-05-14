@@ -54,7 +54,7 @@ def create_mi_desc(item_in, name_in):
     power_out = ''
 
     name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
-    suffix_str = '000'[0:len('000')-len(item_in["level"])] + item_in["level"]
+    suffix_str = item_in["level"].rjust(3, '0')
 
     # Fetch the Item Power information as it will be needed to complete the Item Desc block
     power_dict = create_power_desc(item_in["power"], name_in)
@@ -134,7 +134,7 @@ def extract_mi_details(soup_in, name_in):
     power_soup = soup_in
 
     name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
-    suffix_str = '000'[0:len('000')-len(level_str)] + level_str
+    suffix_str = level_str.rjust(3, '0')
 
     # These are the links to the Alchemy Items that appear on the Alchemy Items table
     mi_table_out += f'\t\t\t\t\t\t<a{suffix_str}{name_camel}>\n'
@@ -175,15 +175,15 @@ def create_alchemy_item_library(id_in, list_in, name_in):
 
 
     id_in += 1
-    entry_id = '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
+    lib_id = 'a' + str(id_in).rjust(3, '0')
 
-    xml_out += (f'\t\t\t\t<a{entry_id}alchemyitems>\n')
+    xml_out += (f'\t\t\t\t<{lib_id}-alchemyitems>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.ritualalchemicalitem@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
-    xml_out += (f'\t\t\t\t</a{entry_id}alchemyitems>\n')
+    xml_out += (f'\t\t\t\t</{lib_id}-alchemyitems>\n')
 
     return xml_out, id_in
 
@@ -195,15 +195,15 @@ def create_alchemy_formula_library(id_in, list_in, name_in):
 
 
     id_in += 1
-    entry_id = '0000'[0:len('0000')-len(str(id_in))] + str(id_in)
+    lib_id = 'a' + str(id_in).rjust(3, '0')
 
-    xml_out += (f'\t\t\t\t<a{entry_id}alchemyformulas>\n')
+    xml_out += (f'\t\t\t\t<{lib_id}-alchemyformulas>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>alchemylists@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
-    xml_out += (f'\t\t\t\t</a{entry_id}alchemyformulas>\n')
+    xml_out += (f'\t\t\t\t</{lib_id}-alchemyformulas>\n')
 
     return xml_out, id_in
 
