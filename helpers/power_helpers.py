@@ -207,7 +207,7 @@ def create_power_desc(list_in):
         xml_out += (f'\t\t\t<name type="string">{power_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t<action type="string">{power_dict["action"]}</action>\n')
         xml_out += (f'\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n')
-        xml_out += (f'\t\t\t<flavor type="formattedtext">{power_dict["flavor"]}</flavor>\n')
+        xml_out += (f'\t\t\t<flavor type="string">{power_dict["flavor"]}</flavor>\n')
         xml_out += (f'\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n')
         xml_out += (f'\t\t\t<range type="string">{power_dict["range"]}</range>\n')
         xml_out += (f'\t\t\t<recharge type="string">{power_dict["recharge"]}</recharge>\n')
@@ -256,9 +256,7 @@ def extract_power_list(db_in):
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
 
-##        if basename_str not in ['Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]']:
-##        if basename_str not in ['Turn Undead', 'Healing Word', 'Holy Cleansing']:
-##        if basename_str not in ['Grease']:
+##        if basename_str not in ['Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
 ##            continue
 ##        print(basename_str)        
 
