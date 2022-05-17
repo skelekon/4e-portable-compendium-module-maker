@@ -65,11 +65,11 @@ def create_equipment_table(list_in):
         xml_out += (f'\t\t\t\t\t\t<{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>referenceequipment</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>equipmentdesc.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
         xml_out += (f'\t\t\t\t\t\t</{name_camel}>\n')
 
     # Close final Section
@@ -93,22 +93,20 @@ def create_equipment_reference(list_in):
     entry_str = ''
     name_lower = ''
 
-    xml_out =('\t<equipmentdesc>\n')
-
     # Create individual item entries
     for entry_dict in sorted(list_in, key=equipment_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
-        xml_out += (f'\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t<description type="formattedtext">{entry_dict["description"]}\n\t\t\t\t</description>\n')
-        xml_out += (f'\t\t\t<subtype type="string">{entry_dict["subtype"]}</subtype>\n')
-        xml_out += (f'\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t</{name_camel}>\n')
-
-    xml_out +=('\t</equipmentdesc>\n')
+        xml_out += (f'\t\t\t<{name_camel}>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}\n\t\t\t\t</description>\n')
+        xml_out += (f'\t\t\t\t<flavor type="string">{entry_dict["description"]}</flavor>\n')
+        xml_out += (f'\t\t\t\t<mitype type="string">other</mitype>\n')
+        xml_out += (f'\t\t\t\t<subtype type="string">{entry_dict["subtype"]}</subtype>\n')
+        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += (f'\t\t\t</{name_camel}>\n')
 
     return xml_out
 
@@ -196,14 +194,15 @@ def extract_equipment_list(db_in):
                 cost_str = cost_lbl.string
 
             if cost_str != '':
-                # Divide by 100 if cost is in cp
-                if re.search(r'cp', cost_str):
-                    cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
-                # Divide by 10 if cost is in sp
-                elif re.search(r'sp', cost_str):
-                    cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
-                else:
-                    cost_str = re.sub('[^\.\d]', '', cost_str)
+                cost_str = re.sub(r'(^:\s*|\.$)', '', cost_str)
+##                # Divide by 100 if cost is in cp
+##                if re.search(r'cp', cost_str):
+##                    cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
+##                # Divide by 10 if cost is in sp
+##                elif re.search(r'sp', cost_str):
+##                    cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
+##                else:
+##                    cost_str = re.sub('[^\.\d]', '', cost_str)
 
             # Description
             if description_lbl := parsed_html.find(string='Description'):
@@ -231,7 +230,7 @@ def extract_equipment_list(db_in):
 
             # Build the item entry
             export_dict = {}
-            export_dict['cost'] = float(cost_str) if cost_str != '' else 0
+            export_dict['cost'] = cost_str#float(cost_str) if cost_str != '' else 0
             export_dict['description'] = description_str
             export_dict['name'] = name_str
             export_dict['section_id'] = section_id

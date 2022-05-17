@@ -230,7 +230,7 @@ def create_monster_table(list_in, tier_list, name_in):
                 xml_out += (f'\t\t\t\t\t\t<npc{name_camel}>\n')
                 xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
                 xml_out += ('\t\t\t\t\t\t\t\t<class>npc</class>\n')
-                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>monsterdesc.npc{name_camel}@{settings.library}</recordname>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.npcs.{name_camel}@{settings.library}</recordname>\n')
                 xml_out += ('\t\t\t\t\t\t\t</link>\n')
                 xml_out += (f'\t\t\t\t\t\t</npc{name_camel}>\n')
 
@@ -262,42 +262,42 @@ def create_monster_desc(list_in):
     for monster_dict in sorted(list_in, key=monster_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])
 
-        xml_out += (f'\t\t<npc{name_camel}>\n')
-        xml_out += (f'\t\t\t<name type="string">{monster_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t<levelrole type="string">{monster_dict["levelrole"]}</levelrole>\n')
-        xml_out += (f'\t\t\t<type type="string">{monster_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t<xp type="number">{monster_dict["xp"]}</xp>\n')
-        xml_out += (f'\t\t\t<init type="number">{monster_dict["init"]}</init>\n')
+        xml_out += (f'\t\t\t<{name_camel}>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{monster_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<levelrole type="string">{monster_dict["levelrole"]}</levelrole>\n')
+        xml_out += (f'\t\t\t\t<type type="string">{monster_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t\t<xp type="number">{monster_dict["xp"]}</xp>\n')
+        xml_out += (f'\t\t\t\t<hp type="string">{monster_dict["hp"]}</hp>\n')
+        xml_out += (f'\t\t\t\t<init type="number">{monster_dict["init"]}</init>\n')
+        xml_out += (f'\t\t\t\t<ac type="number">{monster_dict["ac"]}</ac>\n')
+        xml_out += (f'\t\t\t\t<fortitude type="number">{monster_dict["fortitude"]}</fortitude>\n')
+        xml_out += (f'\t\t\t\t<reflex type="number">{monster_dict["reflex"]}</reflex>\n')
+        xml_out += (f'\t\t\t\t<will type="number">{monster_dict["will"]}</will>\n')
         if monster_dict["perceptionval"] != '':
-            xml_out += (f'\t\t\t<perceptionval type="number">{monster_dict["perceptionval"]}</perceptionval>\n')
+            xml_out += (f'\t\t\t\t<perceptionval type="number">{monster_dict["perceptionval"]}</perceptionval>\n')
         if monster_dict["senses"] != '':
-            xml_out += (f'\t\t\t<senses type="string">{monster_dict["senses"]}</senses>\n')
-        xml_out += (f'\t\t\t<hp type="string">{monster_dict["hp"]}</hp>\n')
-        xml_out += (f'\t\t\t<ac type="number">{monster_dict["ac"]}</ac>\n')
-        xml_out += (f'\t\t\t<fortitude type="number">{monster_dict["fortitude"]}</fortitude>\n')
-        xml_out += (f'\t\t\t<reflex type="number">{monster_dict["reflex"]}</reflex>\n')
-        xml_out += (f'\t\t\t<will type="number">{monster_dict["will"]}</will>\n')
-        xml_out += (f'\t\t\t<save type="number">{monster_dict["save"]}</save>\n')
+            xml_out += (f'\t\t\t\t<senses type="string">{monster_dict["senses"]}</senses>\n')
+        xml_out += (f'\t\t\t\t<speed type="string">{monster_dict["speed"]}</speed>\n')
+        xml_out += (f'\t\t\t\t<save type="number">{monster_dict["save"]}</save>\n')
         if monster_dict["ap"] != '':
-            xml_out += (f'\t\t\t<ap type="number">{monster_dict["ap"]}</ap>\n')
+            xml_out += (f'\t\t\t\t<ap type="number">{monster_dict["ap"]}</ap>\n')
         if monster_dict["specialdefenses"] != '':
-            xml_out += (f'\t\t\t<specialdefenses type="string">{monster_dict["specialdefenses"]}</specialdefenses>\n')
-        xml_out += (f'\t\t\t<speed type="string">{monster_dict["speed"]}</speed>\n')
-        xml_out += (f'\t\t\t<powers>\n{monster_dict["powers"]}\t\t\t</powers>\n')
-        xml_out += (f'\t\t\t<alignment type="string">{monster_dict["alignment"]}</alignment>\n')
-        if monster_dict["languages"] != '':
-            xml_out += (f'\t\t\t<languages type="string">{monster_dict["languages"]}</languages>\n')
+            xml_out += (f'\t\t\t\t<specialdefenses type="string">{monster_dict["specialdefenses"]}</specialdefenses>\n')
+        xml_out += (f'\t\t\t\t<powers>\n{monster_dict["powers"]}\t\t\t</powers>\n')
         if monster_dict["skills"] != '':
-            xml_out += (f'\t\t\t<skills type="string">{monster_dict["skills"]}</skills>\n')
+            xml_out += (f'\t\t\t\t<skills type="string">{monster_dict["skills"]}</skills>\n')
+        xml_out += (f'\t\t\t\t<strength type="number">{monster_dict["strength"]}</strength>\n')
+        xml_out += (f'\t\t\t\t<constitution type="number">{monster_dict["constitution"]}</constitution>\n')
+        xml_out += (f'\t\t\t\t<dexterity type="number">{monster_dict["dexterity"]}</dexterity>\n')
+        xml_out += (f'\t\t\t\t<intelligence type="number">{monster_dict["intelligence"]}</intelligence>\n')
+        xml_out += (f'\t\t\t\t<wisdom type="number">{monster_dict["wisdom"]}</wisdom>\n')
+        xml_out += (f'\t\t\t\t<charisma type="number">{monster_dict["charisma"]}</charisma>\n')
+        xml_out += (f'\t\t\t\t<alignment type="string">{monster_dict["alignment"]}</alignment>\n')
+        if monster_dict["languages"] != '':
+            xml_out += (f'\t\t\t\t<languages type="string">{monster_dict["languages"]}</languages>\n')
         if monster_dict["equipment"] != '':
-            xml_out += (f'\t\t\t<equipment type="string">{monster_dict["equipment"]}</equipment>\n')
-        xml_out += (f'\t\t\t<strength type="number">{monster_dict["strength"]}</strength>\n')
-        xml_out += (f'\t\t\t<constitution type="number">{monster_dict["constitution"]}</constitution>\n')
-        xml_out += (f'\t\t\t<dexterity type="number">{monster_dict["dexterity"]}</dexterity>\n')
-        xml_out += (f'\t\t\t<intelligence type="number">{monster_dict["intelligence"]}</intelligence>\n')
-        xml_out += (f'\t\t\t<wisdom type="number">{monster_dict["wisdom"]}</wisdom>\n')
-        xml_out += (f'\t\t\t<charisma type="number">{monster_dict["charisma"]}</charisma>\n')
-        xml_out += (f'\t\t</npc{name_camel}>\n')
+            xml_out += (f'\t\t\t\t<equipment type="string">{monster_dict["equipment"]}</equipment>\n')
+        xml_out += (f'\t\t\t</{name_camel}>\n')
 
     return xml_out
 

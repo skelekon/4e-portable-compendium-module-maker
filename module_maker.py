@@ -550,19 +550,34 @@ if __name__ == '__main__':
         export_xml += practice_tbl
         export_xml += ('\t</practicelists>\n')
 
-    # ITEMSDESC
+    # REFERENCE
+    # anything inside the <reference> tags will appear in the sidebar menus for Items, NPCs & Feats
+    export_xml += ('\t<reference>\n')
+
+    # ITEMS
     # These are the individual cards for mundane items that appear when you click on a table entry
     if argv_dict["weapons"] or argv_dict["armor"] or argv_dict["equipment"]:
+        export_xml +=('\t\t<items>\n')
         export_xml += armor_ref
         export_xml += weapons_ref
         export_xml += equipment_ref
+        export_xml +=('\t\t</items>\n')
 
-    # MONSTERDESC
+    # NPCS
     # these are the individual monster cards
     if argv_dict["npcs"]:
-        export_xml += ('\t<monsterdesc>\n')
+        export_xml += ('\t\t<npcs>\n')
         export_xml += monster_desc
-        export_xml += ('\t</monsterdesc>\n')
+        export_xml += ('\t\t</npcs>\n')
+
+    # FEATS
+    # These are the individual cards for Feats
+    if argv_dict["feats"]:
+        export_xml += ('\t<feats>\n')
+        export_xml += feat_desc
+        export_xml += ('\t</feats>\n')
+
+    export_xml += ('\t</reference>\n')
 
     # RITUALDESC
     # these are the individual ritual cards
@@ -588,7 +603,6 @@ if __name__ == '__main__':
     # These are the individual cards for character or item Powers
     if mi_flag or argv_dict["feats"] or argv_dict["powers"] or argv_dict["alchemy"]:
         export_xml += ('\t<powerdesc>\n')
-        export_xml += feat_desc
         export_xml += mi_armor_power
         export_xml += mi_implements_power
         export_xml += mi_weapons_power
