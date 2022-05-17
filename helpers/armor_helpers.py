@@ -8,11 +8,11 @@ def armor_list_sorter(entry_in):
     section_id = entry_in["section_id"]
     ac = entry_in["ac"]
     min_enhance = entry_in["min_enhance"]
-    checkpenalty = entry_in["checkpenalty"]
-    speed = entry_in["speed"]
+    # this is always penalties, so remove the minus sign so they sort from least penalty to most
+    checkpenalty = re.sub('[-]', '', str(entry_in["checkpenalty"]))
     name = entry_in["name"]
 
-    return (section_id, ac, min_enhance, checkpenalty, speed, name)
+    return (section_id, ac, min_enhance, checkpenalty, name)
 
 def create_armor_library(id_in, name_in):
     id_in += 1
@@ -57,21 +57,22 @@ def create_armor_table(list_in):
                 xml_out += (f'\t\t\t\t</section{section_str}>\n')
             section_str = str(section_id).rjust(3, '0')
             xml_out += (f'\t\t\t\t<section{section_str}>\n')
-            xml_out += (f'\t\t\t\t\t<description type="string">{entry_dict["prof"]} ({entry_dict["type"]})</description>\n')
+            xml_out += (f'\t\t\t\t\t<description type="string">{entry_dict["prof"]}</description>\n')
+            xml_out += (f'\t\t\t\t\t<subdescription type="string">{entry_dict["type"]}</subdescription>\n')
             xml_out += ('\t\t\t\t\t<armors>\n')
 
         xml_out += (f'\t\t\t\t\t\t<a{entry_str}-{name_camel}>\n')
         xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
         xml_out += (f'\t\t\t\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
         xml_out += (f'\t\t\t\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
         xml_out += (f'\t\t\t\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
         xml_out += (f'\t\t\t\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
         xml_out += (f'\t\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>referencearmor</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>armordesc.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t</a{entry_str}-{name_camel}>\n')
 
@@ -87,31 +88,34 @@ def create_armor_table(list_in):
     return xml_out
 
 def create_armor_reference(list_in):
+    xml_out = ''
+
+    if not list_in:
+        return xml_out
+
     section_str = ''
     entry_str = ''
     name_lower = ''
-
-    xml_out =('\t<armordesc>\n')
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=armor_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
-        xml_out += (f'\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
-        xml_out += (f'\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
-        xml_out += (f'\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t<description type="formattedtext">{entry_dict["description"]}</description>\n')
-        xml_out += (f'\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
-        xml_out += (f'\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
-        xml_out += (f'\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
-        xml_out += (f'\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
-        xml_out += (f'\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t</{name_camel}>\n')
-
-    xml_out +=('\t</armordesc>\n')
+        xml_out += (f'\t\t\t<{name_camel}>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
+        xml_out += (f'\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
+        xml_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}</description>\n')
+        xml_out += (f'\t\t\t\t<flavor type="string">{entry_dict["description"]}</flavor>\n')
+        xml_out += (f'\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
+        xml_out += (f'\t\t\t\t<mitype type="string">armor</mitype>\n')
+        xml_out += (f'\t\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
+        xml_out += (f'\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
+        xml_out += (f'\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
+        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += (f'\t\t\t</{name_camel}>\n')
 
     return xml_out
 
@@ -220,14 +224,15 @@ def extract_armor_list(db_in):
                 cost_str = cost_lbl.string
 
             if cost_str != '':
-                # Divide by 100 if cost is in cp
-                if re.search(r'cp', cost_str):
-                    cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
-                # Divide by 10 if cost is in sp
-                elif re.search(r'sp', cost_lbl):
-                    cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
-                else:
-                    cost_str = re.sub('[^\.\d]', '', cost_str)
+                cost_str = re.sub(r'(^:\s*|\.$)', '', cost_str)
+##                # Divide by 100 if cost is in cp
+##                if re.search(r'cp', cost_str):
+##                    cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
+##                # Divide by 10 if cost is in sp
+##                elif re.search(r'sp', cost_lbl):
+##                    cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
+##                else:
+##                    cost_str = re.sub('[^\.\d]', '', cost_str)
 
             # Description
             if description_lbl := parsed_html.find(string='Description'):
@@ -266,7 +271,7 @@ def extract_armor_list(db_in):
             export_dict = {}
             export_dict['ac'] = int(ac_str) if ac_str != '' else 0
             export_dict['checkpenalty'] = int(checkpenalty_str) if checkpenalty_str != '' else 0
-            export_dict['cost'] = float(cost_str) if cost_str != '' else 0
+            export_dict['cost'] = cost_str#float(cost_str) if cost_str != '' else 0
             export_dict['description'] = description_str
             export_dict['min_enhance'] = int(min_enhance_str) if min_enhance_str != '' else 0
             export_dict['name'] = name_str

@@ -106,7 +106,7 @@ def create_feat_table(list_in):
         xml_out += (f'\t\t\t\t\t\t<feat{name_camel}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>powerdesc.feat{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.feats.{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<source type="string">{feat_dict["name"]}</source>\n')
         xml_out += (f'\t\t\t\t\t\t</feat{name_camel}>\n')
@@ -138,15 +138,14 @@ def create_feat_desc(list_in):
     for feat_dict in sorted(list_in, key=feat_list_sorter):
         name_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["name"])
 
-        xml_out += (f'\t\t<feat{name_lower}>\n')
-        xml_out += (f'\t\t\t<name type="string">{feat_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t<description type="formattedtext">{feat_dict["description"]}</description>\n')
-        xml_out += (f'\t\t\t<prerequisite type="string">{feat_dict["prerequisite"]}</prerequisite>\n')
-        xml_out += (f'\t\t\t<shortdescription type="string">{feat_dict["shortdescription"]}</shortdescription>\n')
-        xml_out += (f'\t\t\t<source type="string">Feat</source>\n')
+        xml_out += (f'\t\t\t<{name_lower}>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{feat_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<description type="formattedtext">{feat_dict["description"]}</description>\n')
+        xml_out += (f'\t\t\t\t<prerequisite type="string">{feat_dict["prerequisite"]}</prerequisite>\n')
+        xml_out += (f'\t\t\t\t<shortdescription type="string">{feat_dict["shortdescription"]}</shortdescription>\n')
         if feat_dict["linkedpowers"] != '':
-            xml_out += (f'\t\t\t<linkedpowers>\n{feat_dict["linkedpowers"]}\t\t\t</linkedpowers>\n')
-        xml_out += (f'\t\t</feat{name_lower}>\n')
+            xml_out += (f'\t\t\t\t<linkedpowers>\n{feat_dict["linkedpowers"]}\t\t\t</linkedpowers>\n')
+        xml_out += (f'\t\t</{name_lower}>\n')
 
     return xml_out
 

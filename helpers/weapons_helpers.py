@@ -69,7 +69,7 @@ def create_weapons_table(list_in):
         xml_out += (f'\t\t\t\t\t\t\t<weight type="string">{entry_dict["weight"]}</weight>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>referenceweapon</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>weapondesc.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t</{name_camel}>\n')
 
@@ -85,32 +85,35 @@ def create_weapons_table(list_in):
     return xml_out
 
 def create_weapons_reference(list_in):
+    xml_out = ''
+
+    if not list_in:
+        return xml_out
+
     section_str = ''
     entry_str = ''
     name_lower = ''
-
-    xml_out =('\t<weapondesc>\n')
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=weapons_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
-        xml_out += (f'\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t<cost type="number">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t<damage type="string">{entry_dict["damage"]}</damage>\n')
-        xml_out += (f'\t\t\t<description type="formattedtext">{entry_dict["description"]}\n\t\t\t\t</description>\n')
-        xml_out += (f'\t\t\t<group type="string">{entry_dict["group"]}</group>\n')
-        xml_out += (f'\t\t\t<heft type="string">{entry_dict["heft"]}</heft>\n')
-        xml_out += (f'\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
-        xml_out += (f'\t\t\t<profbonus type="number">{entry_dict["profbonus"]}</profbonus>\n')
-        xml_out += (f'\t\t\t<properties type="string">{entry_dict["properties"]}</properties>\n')
-        xml_out += (f'\t\t\t<range type="number">{entry_dict["range"]}</range>\n')
-        xml_out += (f'\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t</{name_camel}>\n')
-
-    xml_out +=('\t</weapondesc>\n')
+        xml_out += (f'\t\t\t<{name_camel}>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t<damage type="string">{entry_dict["damage"]}</damage>\n')
+        xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}</description>\n')
+        xml_out += (f'\t\t\t\t<flavor type="string">{entry_dict["description"]}</flavor>\n')
+        xml_out += (f'\t\t\t\t<group type="string">{entry_dict["group"]}</group>\n')
+        xml_out += (f'\t\t\t\t<heft type="string">{entry_dict["heft"]}</heft>\n')
+        xml_out += (f'\t\t\t\t<mitype type="string">weapon</mitype>\n')
+        xml_out += (f'\t\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
+        xml_out += (f'\t\t\t\t<profbonus type="number">{entry_dict["profbonus"]}</profbonus>\n')
+        xml_out += (f'\t\t\t\t<properties type="string">{entry_dict["properties"]}</properties>\n')
+        xml_out += (f'\t\t\t\t<range type="number">{entry_dict["range"]}</range>\n')
+        xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += (f'\t\t\t</{name_camel}>\n')
 
     return xml_out
 
@@ -265,18 +268,19 @@ def extract_weapons_list(db_in):
                 cost_str = cost_lbl.string
 
             if cost_str != '':
-                # Divide by 100 if cost is in cp
-                if re.search(r'cp', cost_str):
-                    cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
-                # Divide by 10 if cost is in sp
-                elif re.search(r'sp', cost_lbl):
-                    cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
-                else:
-                    cost_str = re.sub('[^\.\d]', '', cost_str)
-                # remove trailing zeroes
-                cost_str = re.sub('(\.0*$)', '', cost_str)
-                # add leading zero
-                cost_str = re.sub('(^\.)', '0.', cost_str)
+                cost_str = re.sub(r'(^:\s*|^\s*Cost:\s*|\.$)', '', cost_str)
+##                # Divide by 100 if cost is in cp
+##                if re.search(r'cp', cost_str):
+##                    cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
+##                # Divide by 10 if cost is in sp
+##                elif re.search(r'sp', cost_lbl):
+##                    cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
+##                else:
+##                    cost_str = re.sub('[^\.\d]', '', cost_str)
+##                # remove trailing zeroes
+##                cost_str = re.sub('(\.0*$)', '', cost_str)
+##                # add leading zero
+##                cost_str = re.sub('(^\.)', '0.', cost_str)
 
             # Damage
             if damage_lbl := parsed_html.find(string='Damage'):
@@ -345,7 +349,7 @@ def extract_weapons_list(db_in):
 
             # Build the item dictionary
             export_dict = {}
-            export_dict['cost'] = cost_str if cost_str != '' else 0
+            export_dict['cost'] = cost_str# if cost_str != '' else 0
             export_dict['damage'] = damage_str
             export_dict['description'] = description_str
             export_dict['group'] = group_str
