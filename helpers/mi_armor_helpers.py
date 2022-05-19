@@ -112,7 +112,13 @@ def extract_mi_armor_list(db_in):
                     export_dict['level'] = item['level']
                     export_dict['mipowers'] = mipowers_str
                     export_dict['mitype'] = mitype_str
-                    export_dict['name'] = name_str
+                    # append bonus if it exists, else append level for multi-items
+                    if item["bonus"] != '':
+                        export_dict['name'] = name_str + ' ' + item["bonus"]
+                    elif len(multi_list) > 1:
+                        export_dict['name'] = name_str + ' (Level ' + item["level"].rjust(2, ' ') + ')'
+                    else:
+                        export_dict['name'] = name_str
                     # only output powerdesc once for each named item as it will be the same for all levels
                     if name_str != previous_name:
                         export_dict['powerdesc'] = powerdesc_str

@@ -302,7 +302,7 @@ def create_mi_library(id_in, tier_list, name_in, item_in):
         tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
 
         id_in += 1
-        lib_id = 'a' + str(id_in).rjust(3, '0')
+        lib_id = 'l' + str(id_in).rjust(3, '0')
 
         xml_out += (f'\t\t\t\t<{lib_id}-magicitems>\n')
         xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
@@ -353,8 +353,10 @@ def create_mi_table(list_in, tier_list, item_in):
             else:
                 item_tier = 'Epic'
 
-            level_str = str(entry_dict["level"]).rjust(3, '0')
+            level_str = str(entry_dict["level"]).rjust(2, '0')
             name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
+            # Remove '(Level nn)' as the table alreasy has a level column
+            name_display = re.sub(r'\s*\(Level\s*[0-9]*\)', '', entry_dict["name"])
 
             #Check for new section
             if entry_dict["section_id"] != section_id:
@@ -376,13 +378,13 @@ def create_mi_table(list_in, tier_list, item_in):
             if item_tier == t:
 
                 xml_out += (f'\t\t\t\t\t\t<mi{level_str}-{name_camel}>\n')
-                xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]} {entry_dict["bonus"]}</name>\n')
+                xml_out += (f'\t\t\t\t\t\t\t<name type="string">{name_display}</name>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<cat type="string">{entry_dict["cat"]}</cat>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<level type="number">{entry_dict["level"]}</level>\n')
                 xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
                 xml_out += ('\t\t\t\t\t\t\t\t<class>referencemagicitem</class>\n')
-                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.{name_camel}-{level_str}@{settings.library}</recordname>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}-{level_str}@{settings.library}</recordname>\n')
                 xml_out += ('\t\t\t\t\t\t\t</link>\n')
                 xml_out += (f'\t\t\t\t\t\t</mi{level_str}-{name_camel}>\n')
 
@@ -439,31 +441,35 @@ def create_mi_desc(list_in):
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=mi_list_sorter):
-        level_str = str(entry_dict["level"]).rjust(3, '0')
+        # Don't make item cards if the item is a duplicate of an Alchemy Item
+        if entry_dict["mitype"] == 'other' and entry_dict["alchemy_flag"]:
+            continue
+        
+        level_str = str(entry_dict["level"]).rjust(2, '0')
         name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
 
         # Create all Required Power entries
         power_out += entry_dict["powerdesc"]
 
-        mi_out += (f'\t\t<{name_camel}-{level_str}>\n')
-        mi_out += (f'\t\t\t<name type="string">{entry_dict["name"]} {entry_dict["bonus"]}</name>\n')
-        mi_out += (f'\t\t\t<bonus type="number">{entry_dict["bonus"]}</bonus>\n')
-        mi_out += (f'\t\t\t<class type="string">{entry_dict["class"]}</class>\n')
-        mi_out += (f'\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        mi_out += (f'\t\t\t<{name_camel}-{level_str}>\n')
+        mi_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        mi_out += (f'\t\t\t\t<bonus type="number">{entry_dict["bonus"]}</bonus>\n')
+        mi_out += (f'\t\t\t\t<class type="string">{entry_dict["class"]}</class>\n')
+        mi_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
         if entry_dict["critical"] != '':
-            mi_out += (f'\t\t\t<critical type="string">{entry_dict["critical"]}</critical>\n')
-        mi_out += (f'\t\t\t<enhancement type="string">{entry_dict["enhancement"]}</enhancement>\n')
-        mi_out += (f'\t\t\t<flavor type="string">{entry_dict["flavor"]}</flavor>\n')
-        mi_out += (f'\t\t\t<formatteditemblock type="formattedtext">{entry_dict["flavor"]}</formatteditemblock>\n')
-        mi_out += (f'\t\t\t<level type="number">{entry_dict["level"]}</level>\n')
-        mi_out += (f'\t\t\t<mitype type="string">{entry_dict["mitype"]}</mitype>\n')
-        if entry_dict["mipowers"] != '':
-            mi_out += (f'\t\t\t<powers>\n{entry_dict["mipowers"]}\t\t\t</powers>\n')
-        if entry_dict["props"] != '':
-            mi_out += (f'\t\t\t<props>\n{entry_dict["props"]}\t\t\t</props>\n')
+            mi_out += (f'\t\t\t\t<critical type="string">{entry_dict["critical"]}</critical>\n')
+        mi_out += (f'\t\t\t\t<enhancement type="string">{entry_dict["enhancement"]}</enhancement>\n')
+        mi_out += (f'\t\t\t\t<flavor type="string">{entry_dict["flavor"]}</flavor>\n')
+        mi_out += (f'\t\t\t\t<formatteditemblock type="formattedtext">{entry_dict["flavor"]}</formatteditemblock>\n')
+        mi_out += (f'\t\t\t\t<level type="number">{entry_dict["level"]}</level>\n')
+        mi_out += (f'\t\t\t\t<mitype type="string">{entry_dict["mitype"]}</mitype>\n')
         if entry_dict["subclass"] != '':
-            mi_out += (f'\t\t\t<subclass type="string">{entry_dict["subclass"]}</subclass>\n')
-        mi_out += (f'\t\t</{name_camel}-{level_str}>\n')
+            mi_out += (f'\t\t\t\t<subclass type="string">{entry_dict["subclass"]}</subclass>\n')
+        if entry_dict["mipowers"] != '':
+            mi_out += (f'\t\t\t\t<powers>\n{entry_dict["mipowers"]}\t\t\t\t</powers>\n')
+        if entry_dict["props"] != '':
+            mi_out += (f'\t\t\t\t<props>\n{entry_dict["props"]}\t\t\t\t</props>\n')
+        mi_out += (f'\t\t\t</{name_camel}-{level_str}>\n')
 
     return mi_out, power_out
 
@@ -504,7 +510,7 @@ def power_construct(lines_list):
         # Recharge
         recharge_test = re.search(r'(At-Will Attack|At-Will Utility|At-Will|Consumable|Daily Attack|Daily Utility|Daily|Encounter|Healing Surge)', line, re.IGNORECASE)
         if recharge_test != None:
-            recharge_str = recharge_test.group(1)
+            recharge_str = recharge_test.group(1).title()
 
         # Description
         # Check for keywords that indicate a power description line
@@ -583,19 +589,19 @@ def powers_format(soup_in, name_in):
         powerdesc_out += '\t\t\t<type type="string">Item</type>\n'
         powerdesc_out += f'\t\t</item{name_alpha}Power-{entry_id}>\n'
 
-        magicitemsdesc_out += f'\t\t\t\t<id-{entry_id}>\n'
-        magicitemsdesc_out += f'\t\t\t\t\t<name type="string">Power - {power["recharge"]}</name>\n'
+        magicitemsdesc_out += f'\t\t\t\t\t<id-{entry_id}>\n'
+        magicitemsdesc_out += f'\t\t\t\t\t\t<name type="string">Power - {power["recharge"]}</name>\n'
         if power["action"] != '':
-            magicitemsdesc_out += f'\t\t\t\t\t<action type="string">{power["action"]}</action>\n'
+            magicitemsdesc_out += f'\t\t\t\t\t\t<action type="string">{power["action"]}</action>\n'
         if power["recharge"] != '':
-            magicitemsdesc_out += f'\t\t\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
+            magicitemsdesc_out += f'\t\t\t\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
         if power["shortdescription"] != '':
-            magicitemsdesc_out += f'\t\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
-        magicitemsdesc_out += '\t\t\t\t\t<link type="windowreference">\n'
-        magicitemsdesc_out += '\t\t\t\t\t\t<class>powerdesc</class>\n'
-        magicitemsdesc_out += f'\t\t\t\t\t\t<recordname>powerdesc.item{name_alpha}Power-{entry_id}@{settings.library}</recordname>\n'
-        magicitemsdesc_out += '\t\t\t\t\t</link>\n'
-        magicitemsdesc_out += f'\t\t\t\t</id-{entry_id}>\n'
+            magicitemsdesc_out += f'\t\t\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
+        magicitemsdesc_out += '\t\t\t\t\t\t<link type="windowreference">\n'
+        magicitemsdesc_out += '\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+        magicitemsdesc_out += f'\t\t\t\t\t\t\t<recordname>powerdesc.item{name_alpha}Power-{entry_id}@{settings.library}</recordname>\n'
+        magicitemsdesc_out += '\t\t\t\t\t\t</link>\n'
+        magicitemsdesc_out += f'\t\t\t\t\t</id-{entry_id}>\n'
 
     return powerdesc_out, magicitemsdesc_out
 

@@ -18,7 +18,6 @@ def classes_list():
     cc_db = create_db('sql\ddiClass.sql', "','")
     for i, row in enumerate(cc_db, start=1):
         cc_out.append(row["Name"].replace('\\', ''))
-    cc_out.sort()
     return cc_out
 
 def races_list():
@@ -27,7 +26,6 @@ def races_list():
     race_db = create_db('sql\ddiRace.sql', "','")
     for i, row in enumerate(race_db, start=1):
         race_out.append(row["Name"].replace('\\', ''))
-    race_out.sort()
     return race_out
 
 def paragon_paths_list():
@@ -36,7 +34,6 @@ def paragon_paths_list():
     pp_db = create_db('sql\ddiParagonPath.sql', "','")
     for i, row in enumerate(pp_db, start=1):
         pp_out.append(row["Name"].replace('\\', ''))
-    pp_out.sort()
     return pp_out
 
 def epic_destinies_list():
@@ -45,7 +42,6 @@ def epic_destinies_list():
     ed_db = create_db('sql\ddiEpicDestiny.sql', "','")
     for i, row in enumerate(ed_db, start=1):
         ed_out.append(row["Name"].replace('\\', ''))
-    ed_out.sort()
     return ed_out
 
 def library_list_sorter(entry_in):
@@ -74,7 +70,7 @@ def create_power_library(id_in, list_in, suffix_in):
             class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
 
             id_in += 1
-            lib_id = 'a' + str(id_in).rjust(3, '0')
+            lib_id = 'l' + str(id_in).rjust(3, '0')
 
             xml_out += (f'\t\t\t\t<{lib_id}-powers{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')

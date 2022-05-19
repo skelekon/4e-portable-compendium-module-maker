@@ -81,15 +81,15 @@ def create_monster_library(id_in, tier_list, name_in):
         tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
 
         id_in += 1
-        entry_id = str(id_in).rjust(3, '0')
+        lib_id = 'l' + str(id_in).rjust(3, '0')
 
-        xml_out += (f'\t\t\t\t<a{entry_id}-npcs{class_camel}>\n')
+        xml_out += (f'\t\t\t\t<{lib_id}-npcs{class_camel}>\n')
         xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmonsterlist</class>\n')
         xml_out += (f'\t\t\t\t\t\t<recordname>monsterlists.npcs{class_camel}{tier_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
-        xml_out += (f'\t\t\t\t</a{entry_id}-npcs{class_camel}>\n')
+        xml_out += (f'\t\t\t\t</{lib_id}-npcs{class_camel}>\n')
 
     return xml_out, id_in
 
