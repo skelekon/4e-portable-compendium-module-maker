@@ -4,8 +4,7 @@ import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
 
-from .create_db import create_db
-
+# This returns a dictionary containing the Power details of an Alchemical Item
 def create_power_desc(soup_in, name_in):
     power_out = {}
 
@@ -49,44 +48,45 @@ def create_power_desc(soup_in, name_in):
 
     return power_out
 
-def create_mi_desc(item_in, name_in):
+# This returns the XML for an indivual Alchemical Item and any associated Power
+def create_mi_desc(item_dict, mi_name_in):
     mi_out = ''
     power_out = ''
 
-    name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
-    suffix_str = item_in["level"].rjust(3, '0')
+    name_camel = re.sub('[^a-zA-Z0-9_]', '', mi_name_in)
+    suffix_str = item_dict["level"].rjust(2, '0')
 
     # Fetch the Item Power information as it will be needed to complete the Item Desc block
-    power_dict = create_power_desc(item_in["power"], name_in)
+    power_dict = create_power_desc(item_dict["power"], mi_name_in)
 
-    # This is the Magic Item block that goes in <magicitemdesc>
-    mi_out += f'\t\t<alchemy{name_camel}_{suffix_str}>\n'
-    mi_out += f'\t\t\t<name type="string">{name_in}</name>\n'
-    mi_out += '\t\t\t<class type="string">Alchemical Item</class>\n'
-    mi_out += f'\t\t\t<level type="number">{item_in["level"]}</level>\n'
-    mi_out += f'\t\t\t<cost type="string">{item_in["cost"]}</cost>\n'
-    mi_out += f'\t\t\t<flavor type="string">{item_in["flavor"]}</flavor>\n'
-    mi_out += '\t\t\t<powers>\n'
-    mi_out += '\t\t\t\t<id-001>\n'
-    mi_out += '\t\t\t\t\t<name type="string">Power - Consumable</name>\n'
-    mi_out += '\t\t\t\t\t<recharge type="string">Consumable</recharge>\n'
-    mi_out += f'\t\t\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n'
-    mi_out += f'\t\t\t\t\t<action type="string">{power_dict["action"]}</action>\n'
-    mi_out += f'\t\t\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n'
-    mi_out += f'\t\t\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n'
-    mi_out += '\t\t\t\t\t<link type="windowreference">\n'
-    mi_out += '\t\t\t\t\t\t<class>powerdesc</class>\n'
-    mi_out += f'\t\t\t\t\t\t<recordname>powerdesc.alchemy{name_camel}Power-{suffix_str}@{settings.library}</recordname>\n'
-    mi_out += '\t\t\t\t\t</link>\n'
-    mi_out += '\t\t\t\t</id-001>\n'
-    mi_out += '\t\t\t</powers>\n'
-    mi_out += '\t\t\t<formatteditemblock type="formattedtext"><p></p></formatteditemblock>\n'
-    mi_out += '\t\t\t<mitype type="string">other</mitype>\n'
-    mi_out += f'\t\t</alchemy{name_camel}_{suffix_str}>\n'
+    # This is the Magic Item block that goes in <reference><items>
+    mi_out += f'\t\t\t<{name_camel}-{suffix_str}>\n'
+    mi_out += f'\t\t\t\t<name type="string">{mi_name_in}</name>\n'
+    mi_out += '\t\t\t\t<class type="string">Alchemical Item</class>\n'
+    mi_out += f'\t\t\t\t<level type="number">{item_dict["level"]}</level>\n'
+    mi_out += f'\t\t\t\t<cost type="string">{item_dict["cost"]}</cost>\n'
+    mi_out += f'\t\t\t\t<flavor type="string">{item_dict["flavor"]}</flavor>\n'
+    mi_out += '\t\t\t\t<powers>\n'
+    mi_out += '\t\t\t\t\t<id-001>\n'
+    mi_out += '\t\t\t\t\t\t<name type="string">Power - Consumable</name>\n'
+    mi_out += '\t\t\t\t\t\t<recharge type="string">Consumable</recharge>\n'
+    mi_out += f'\t\t\t\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n'
+    mi_out += f'\t\t\t\t\t\t<action type="string">{power_dict["action"]}</action>\n'
+    mi_out += f'\t\t\t\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n'
+    mi_out += f'\t\t\t\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n'
+    mi_out += '\t\t\t\t\t\t<link type="windowreference">\n'
+    mi_out += '\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+    mi_out += f'\t\t\t\t\t\t\t<recordname>powerdesc.alchemy{name_camel}Power-{suffix_str}@{settings.library}</recordname>\n'
+    mi_out += '\t\t\t\t\t\t</link>\n'
+    mi_out += '\t\t\t\t\t</id-001>\n'
+    mi_out += '\t\t\t\t</powers>\n'
+    mi_out += '\t\t\t\t<formatteditemblock type="formattedtext"><p></p></formatteditemblock>\n'
+    mi_out += '\t\t\t\t<mitype type="string">other</mitype>\n'
+    mi_out += f'\t\t\t</{name_camel}-{suffix_str}>\n'
 
     # This is the Item Power block that goes in <powerdesc>
     power_out += f'\t\t<alchemy{name_camel}Power-{suffix_str}>\n'
-    power_out += f'\t\t\t<name type="string">{name_in} Power - Consumable</name>\n'
+    power_out += f'\t\t\t<name type="string">{mi_name_in} Power - Consumable</name>\n'
     power_out += '\t\t\t<recharge type="string">Consumable</recharge>\n'
     power_out += f'\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n'
     power_out += f'\t\t\t<action type="string">{power_dict["action"]}</action>\n'
@@ -94,7 +94,7 @@ def create_mi_desc(item_in, name_in):
     power_out += f'\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n'
     power_out += f'\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n'
     power_out += '\t\t\t<class type="string">Item</class>\n'
-    power_out += f'\t\t\t<level type="number">0</level>\n'
+    power_out += f'\t\t\t<level type="number">{item_dict["level"]}</level>\n'
     power_out += '\t\t\t<type type="string">Item</type>\n'
     power_out += '\t\t\t<flavor type="formattedtext"><p><i></i></p></flavor>\n'
 ##    power_out += f'\t\t\t<effect type="string">{power_dict["effect"]}</effect>\n'
@@ -102,8 +102,8 @@ def create_mi_desc(item_in, name_in):
 
     return mi_out, power_out
 
+# Extracts details for one Alchemical Item from passed in Magic Item soup
 def extract_mi_details(soup_in, name_in):
-    # Extracts one Alchemical Item details from passed in html soup
 
     cost_str = ''
     flavor_str = ''
@@ -111,6 +111,7 @@ def extract_mi_details(soup_in, name_in):
     power_soup = ''
     item_str = ''
     linklist_out = ''
+    mi_name_str = ''
     mi_table_out = ''
     mi_out = ''
     power_out = ''
@@ -130,43 +131,66 @@ def extract_mi_details(soup_in, name_in):
         level_tag.extract
 
     # Power
-    #get the leftovers
+    # get the leftovers that have not been extracted
     power_soup = soup_in
 
-    name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
-    suffix_str = level_str.rjust(3, '0')
+    mi_name_str = name_in + ' (Level ' + level_str.rjust(2, ' ') + ')'
+    mi_name_camel = re.sub('[^a-zA-Z0-9_]', '', mi_name_str)
+    suffix_str = level_str.rjust(2, '0')
 
     # These are the links to the Alchemy Items that appear on the Alchemy Items table
-    mi_table_out += f'\t\t\t\t\t\t<a{suffix_str}{name_camel}>\n'
+    mi_table_out += f'\t\t\t\t\t\t<a{suffix_str}{mi_name_camel}>\n'
+    mi_table_out += f'\t\t\t\t\t\t\t<name type="string">{name_in}</name>\n'
     mi_table_out += '\t\t\t\t\t\t\t<link type="windowreference">\n'
     mi_table_out += '\t\t\t\t\t\t\t\t<class>referencemagicitem</class>\n'
-    mi_table_out += f'\t\t\t\t\t\t\t\t<recordname>magicitemdesc.alchemy{name_camel}_{suffix_str}@{settings.library}</recordname>\n'
+    mi_table_out += f'\t\t\t\t\t\t\t\t<recordname>reference.items.{mi_name_camel}-{suffix_str}@{settings.library}</recordname>\n'
     mi_table_out += '\t\t\t\t\t\t\t</link>\n'
-    mi_table_out += f'\t\t\t\t\t\t\t<name type="string">{name_in}</name>\n'
     mi_table_out += '\t\t\t\t\t\t\t<cat type="string"></cat>\n'
     mi_table_out += f'\t\t\t\t\t\t\t<level type="number">{level_str}</level>\n'
     mi_table_out += f'\t\t\t\t\t\t\t<cost type="string">{cost_str}</cost>\n'
-    mi_table_out += f'\t\t\t\t\t\t</a{suffix_str}{name_camel}>\n'
+    mi_table_out += f'\t\t\t\t\t\t</a{suffix_str}{mi_name_camel}>\n'
 
     # These are the links to the Alchemy Items that appear on the Alchemy Formula item card
-    linklist_out += f'\n\t\t\t\t\t<link class="referencemagicitem" recordname="magicitemdesc.alchemy{name_camel}_{suffix_str}@{settings.library}">Level {level_str} - {name_in}</link>'
+    linklist_out += f'\n\t\t\t\t\t<link class="referencemagicitem" recordname="reference.items.{mi_name_camel}-{suffix_str}@{settings.library}">Level {level_str} - {name_in}</link>'
 
-
+    # Set up variables needed to create the Item Card & any Power Card
     mi_dict = {}
     mi_dict["cost"] = cost_str
     mi_dict["level"] = level_str
     mi_dict["flavor"] = flavor_str
     mi_dict["power"] = copy.copy(power_soup)
 
-    mi_out, power_out = create_mi_desc(mi_dict, name_in)
+    mi_out, power_out = create_mi_desc(mi_dict, mi_name_str)
 
     return mi_table_out, linklist_out, mi_out, power_out
 
+# Sort by Name
 def alchemy_list_sorter(entry_in):
     name = entry_in["name"]
 
     return (name)
 
+# Returns the XML for the top-level menu that leads to the Alchemical Formulas list
+def create_formula_library(id_in, list_in, name_in):
+    xml_out = ''
+
+    if not list_in:
+        return xml_out, id_in
+
+    id_in += 1
+    lib_id = 'l' + str(id_in).rjust(3, '0')
+
+    xml_out += (f'\t\t\t\t<{lib_id}-alchemyformulas>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
+    xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
+    xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>formulalists@{settings.library}</recordname>\n')
+    xml_out += ('\t\t\t\t\t</librarylink>\n')
+    xml_out += (f'\t\t\t\t</{lib_id}-alchemyformulas>\n')
+
+    return xml_out, id_in
+
+# Returns the XML for the top-level menu that leads to the Alchemical Items list
 def create_alchemy_item_library(id_in, list_in, name_in):
     xml_out = ''
 
@@ -175,62 +199,20 @@ def create_alchemy_item_library(id_in, list_in, name_in):
 
 
     id_in += 1
-    lib_id = 'a' + str(id_in).rjust(3, '0')
+    lib_id = 'l' + str(id_in).rjust(3, '0')
 
     xml_out += (f'\t\t\t\t<{lib_id}-alchemyitems>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.ritualalchemicalitem@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.alchemicalitems@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-alchemyitems>\n')
 
     return xml_out, id_in
 
-def create_alchemy_formula_library(id_in, list_in, name_in):
-    xml_out = ''
-
-    if not list_in:
-        return xml_out, id_in
-
-
-    id_in += 1
-    lib_id = 'a' + str(id_in).rjust(3, '0')
-
-    xml_out += (f'\t\t\t\t<{lib_id}-alchemyformulas>\n')
-    xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
-    xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>alchemylists@{settings.library}</recordname>\n')
-    xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-alchemyformulas>\n')
-
-    return xml_out, id_in
-
-def create_alchemy_item_table(list_in):
-    xml_out = ''
-
-    # Alchemy Item Table
-    # This controls the table that appears when you click on a Library menu
-    xml_out += ('\t\t<ritualalchemicalitem>\n')
-    xml_out += ('\t\t\t<description type="string">Alchemical Items</description>\n')
-    xml_out += ('\t\t\t<groups>\n')
-    xml_out += ('\t\t\t\t<section001>\n')
-    xml_out += ('\t\t\t\t\t<description type="string">Alchemical Items</description>\n')
-    xml_out += ('\t\t\t\t\t<items>\n')
-
-    # Create individual item entries
-    for alchemy_dict in sorted(list_in, key=alchemy_list_sorter):
-        xml_out += (f'{alchemy_dict["mi_table"]}')
-
-    xml_out += ('\t\t\t\t\t</items>\n')
-    xml_out += ('\t\t\t\t</section001>\n')
-    xml_out += ('\t\t\t</groups>\n')
-    xml_out += ('\t\t</ritualalchemicalitem>\n')
-
-    return xml_out
-
-def create_alchemy_formula_table(list_in):
+# Returns the XML for the second-level menu that leads to the individual Alchemical Formulas
+def create_formula_table(list_in):
     xml_out = ''
 
     if not list_in:
@@ -238,10 +220,6 @@ def create_alchemy_formula_table(list_in):
 
     name_camel = ''
 
-    # Alchemy Formula Table
-    # This controls the table that appears when you click on a Library menu
-
-    xml_out += ('\t<alchemylists>\n')
     xml_out += ('\t\t<description type="string">Alchemical Formulas</description>\n')
     xml_out += ('\t\t<groups>\n')
 
@@ -259,11 +237,35 @@ def create_alchemy_formula_table(list_in):
         xml_out += (f'\t\t\t</alchemy{name_camel}>\n')
 
     xml_out += ('\t\t</groups>\n')
-    xml_out += ('\t</alchemylists>\n')
 
     return xml_out
 
-def create_alchemy_formula_desc(list_in):
+# Returns the XML for the second-level menu that leads to the individual Alchemical Items
+def create_alchemy_item_table(list_in):
+    xml_out = ''
+
+    # Alchemy Item Table
+    # This controls the table that appears when you click on a Library menu
+    xml_out += ('\t\t<alchemicalitems>\n')
+    xml_out += ('\t\t\t<description type="string">Alchemical Items</description>\n')
+    xml_out += ('\t\t\t<groups>\n')
+    xml_out += ('\t\t\t\t<section001>\n')
+    xml_out += ('\t\t\t\t\t<description type="string">Alchemical Items</description>\n')
+    xml_out += ('\t\t\t\t\t<items>\n')
+
+    # Create individual item entries
+    for alchemy_dict in sorted(list_in, key=alchemy_list_sorter):
+        xml_out += (f'{alchemy_dict["mi_table"]}')
+
+    xml_out += ('\t\t\t\t\t</items>\n')
+    xml_out += ('\t\t\t\t</section001>\n')
+    xml_out += ('\t\t\t</groups>\n')
+    xml_out += ('\t\t</alchemicalitems>\n')
+
+    return xml_out
+
+# Returns the XML for the Ritual Cards for all Alchemical Formula
+def create_formula_desc(list_in):
     xml_out = ''
     mi_out = ''
     power_out = ''
@@ -279,7 +281,7 @@ def create_alchemy_formula_desc(list_in):
         xml_out += (f'\t\t\t<name type="string">{alchemy_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t<category type="string">{alchemy_dict["category"]}</category>\n')
         xml_out += (f'\t\t\t<component type="string">{alchemy_dict["component"]}</component>\n')
-        xml_out += (f'\t\t\t<details type="formattedtext">\n{alchemy_dict["details"]}\n')
+        xml_out += (f'\t\t\t<details type="formattedtext">{alchemy_dict["details"]}\n')
         xml_out += (f'\t\t\t\t<linklist>{alchemy_dict["linklist"]}</linklist>\n')
         xml_out += (f'\t\t\t</details>\n')
         xml_out += (f'\t\t\t<duration type="string">{alchemy_dict["duration"]}</duration>\n')
@@ -309,7 +311,7 @@ def extract_alchemy_list(db_in, filter_in):
 
         # Retrieve the data with dedicated columns
         name_str =  row["Name"].replace('\\', '')
-        
+
         category_str = ''
         class_str = ''
         component_str = ''
@@ -334,7 +336,7 @@ def extract_alchemy_list(db_in, filter_in):
 
         if re.search(r'(See Alchemical|See below|See the item\'s price)', component_str, re.IGNORECASE)\
            or name_str in ['Grayflower Perfume', 'Keen Oil', 'Panther Tears']:
-            class_str = 'Alchemical Formulas'
+            class_str = 'Formula'
             section_id = 1
 
         if section_id < 100:
@@ -417,6 +419,7 @@ def extract_alchemy_list(db_in, filter_in):
             if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
                 export_dict = {}
                 export_dict["category"] = category_str
+                export_dict["class"] = class_str
                 export_dict["component"] = component_str
                 export_dict["details"] = details_str
                 export_dict["duration"] = duration_str

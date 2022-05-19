@@ -16,10 +16,10 @@ from helpers.mod_helpers import create_mi_table
 
 from helpers.alchemy_helpers import extract_alchemy_list
 from helpers.alchemy_helpers import create_alchemy_item_library
-from helpers.alchemy_helpers import create_alchemy_formula_library
+from helpers.alchemy_helpers import create_formula_library
 from helpers.alchemy_helpers import create_alchemy_item_table
-from helpers.alchemy_helpers import create_alchemy_formula_table
-from helpers.alchemy_helpers import create_alchemy_formula_desc
+from helpers.alchemy_helpers import create_formula_table
+from helpers.alchemy_helpers import create_formula_desc
 
 from helpers.ritual_helpers import extract_ritual_list
 from helpers.ritual_helpers import create_ritual_library
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # Parse the command line arguments to set all needed values
     argv_dict = parse_argv(sys.argv)
 
-##    # temp settings for testing
+##    # override settings for testing
 ##    argv_dict["filename"] = '4E_Items'
 ##    argv_dict["library"] = '4E Items'
 ##    argv_dict["min"] = 0
@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     tier_list = []
     # Create a tier_list depending on whether the 'tiers' option is set or not
-    # only include Tiers that overlap with the selected Min-Max level range
+    # only include Tiers that overlap with the selected Min/Max level range
     if argv_dict["tiers"]:
         if settings.min_lvl <= 10:
             tier_list.append('Heroic')
@@ -227,12 +227,12 @@ if __name__ == '__main__':
     alchemy_power = ''
 
     if argv_dict["alchemy"]:
-        alchemy_list = extract_alchemy_list(ritual_db, 'Alchemical Formulas')
-        alchemy_lib, menu_id = create_alchemy_formula_library(menu_id, alchemy_list, 'Alchemical Formulas' + suffix_str)
+        alchemy_list = extract_alchemy_list(ritual_db, 'Formula')
+        alchemy_lib, menu_id = create_formula_library(menu_id, alchemy_list, 'Alchemical Formulas' + suffix_str)
         alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_list, 'Alchemical Items')
-        alchemy_tbl = create_alchemy_formula_table(alchemy_list)
+        alchemy_tbl = create_formula_table(alchemy_list)
         alchemy_item_tbl = create_alchemy_item_table(alchemy_list)
-        alchemy_desc, alchemy_mi_desc, alchemy_power = create_alchemy_formula_desc(alchemy_list)
+        alchemy_desc, alchemy_mi_desc, alchemy_power = create_formula_desc(alchemy_list)
 
     #===========================
     # RITUALS
@@ -243,7 +243,7 @@ if __name__ == '__main__':
     ritual_desc = ''
 
     if argv_dict["rituals"]:
-        ritual_list = extract_ritual_list(ritual_db, 'Rituals')
+        ritual_list = extract_ritual_list(ritual_db, 'Ritual')
         ritual_lib, menu_id = create_ritual_library(menu_id, ritual_list, 'Rituals' + suffix_str)
         ritual_tbl = create_ritual_table(ritual_list, 'Rituals' + suffix_str)
         ritual_desc = create_ritual_desc(ritual_list)
@@ -257,7 +257,7 @@ if __name__ == '__main__':
     practice_desc = ''
 
     if argv_dict["practices"]:
-        practice_list = extract_ritual_list(ritual_db, 'Martial Practice')
+        practice_list = extract_ritual_list(ritual_db, 'Practice')
         practice_lib, menu_id = create_ritual_library(menu_id, practice_list, 'Martial Practices' + suffix_str)
         practice_tbl = create_ritual_table(practice_list, 'Martial Practices' + suffix_str)
         practice_desc = create_ritual_desc(practice_list)
@@ -393,7 +393,7 @@ if __name__ == '__main__':
         if argv_dict[mi["arg"]]:
 
             # Extract all the Equipment data into a list
-            mi_other_list = extract_mi_other_list(item_db, mi["filter"])
+            mi_other_list = extract_mi_other_list(item_db, mi["filter"], argv_dict["alchemy"])
 
             # Call the three functions to generate the _ref, _lib & _tbl xml
             mi_other_lib, menu_id = create_mi_library(menu_id, empty_tier_list, 'Magic Items - ' + mi["literal"] + suffix_str, mi["literal"])
@@ -512,6 +512,27 @@ if __name__ == '__main__':
     export_xml += weapons_tbl
     export_xml += equipment_tbl
 
+    # ALCCHEMYLISTS
+    # this is the table of Alchemical Formulas
+    if argv_dict["alchemy"]:
+        export_xml += ('\t<formulalists>\n')
+        export_xml += alchemy_tbl
+        export_xml += ('\t</formulalists>\n')
+
+    # RITUALLISTS
+    # this is the table of Rituals
+    if argv_dict["rituals"]:
+        export_xml += ('\t<rituallists>\n')
+        export_xml += ritual_tbl
+        export_xml += ('\t</rituallists>\n')
+
+    # PRACTICELISTS
+    # this is the table of Rituals
+    if argv_dict["practices"]:
+        export_xml += ('\t<practicelists>\n')
+        export_xml += practice_tbl
+        export_xml += ('\t</practicelists>\n')
+
     # MAGICITEMLISTS
     # these are tables of magic items
     if mi_flag or argv_dict["alchemy"]:
@@ -531,37 +552,37 @@ if __name__ == '__main__':
         export_xml += power_tbl
         export_xml += ('\t</powerlists>\n')
 
-    # ALCCHEMYLISTS
-    # this is the table of Alchemical Formulas
-    if argv_dict["alchemy"]:
-        export_xml += alchemy_tbl
-
-    # RITUALLISTS
-    # this is the table of Rituals
-    if argv_dict["rituals"]:
-        export_xml += ('\t<rituallists>\n')
-        export_xml += ritual_tbl
-        export_xml += ('\t</rituallists>\n')
-
-    # PRACTICELISTS
-    # this is the table of Rituals
-    if argv_dict["practices"]:
-        export_xml += ('\t<practicelists>\n')
-        export_xml += practice_tbl
-        export_xml += ('\t</practicelists>\n')
+    # RITUALDESC
+    # these are the individual ritual cards
+    if argv_dict["alchemy"] or argv_dict["rituals"] or argv_dict["practices"]:
+        export_xml += ('\t<ritualdesc>\n')
+        export_xml += alchemy_desc
+        export_xml += ritual_desc
+        export_xml += practice_desc
+        export_xml += ('\t</ritualdesc>\n')
 
     # REFERENCE
     # anything inside the <reference> tags will appear in the sidebar menus for Items, NPCs & Feats
     export_xml += ('\t<reference>\n')
+    export_xml +=('\t\t<items>\n')
 
     # ITEMS
     # These are the individual cards for mundane items that appear when you click on a table entry
     if argv_dict["weapons"] or argv_dict["armor"] or argv_dict["equipment"]:
-        export_xml +=('\t\t<items>\n')
         export_xml += armor_ref
         export_xml += weapons_ref
         export_xml += equipment_ref
-        export_xml +=('\t\t</items>\n')
+
+    # MAGIC ITEMS
+    # These are the individual cards for magic items that appear when you click on an Item table entry
+    if mi_flag or argv_dict["alchemy"]:
+        export_xml += mi_armor_desc
+        export_xml += mi_implements_desc
+        export_xml += mi_weapons_desc
+        export_xml += mi_other_desc_xml
+        export_xml += alchemy_mi_desc
+
+    export_xml +=('\t\t</items>\n')
 
     # NPCS
     # these are the individual monster cards
@@ -578,26 +599,6 @@ if __name__ == '__main__':
         export_xml += ('\t</feats>\n')
 
     export_xml += ('\t</reference>\n')
-
-    # RITUALDESC
-    # these are the individual ritual cards
-    if argv_dict["alchemy"] or argv_dict["rituals"] or argv_dict["practices"]:
-        export_xml += ('\t<ritualdesc>\n')
-        export_xml += alchemy_desc
-        export_xml += ritual_desc
-        export_xml += practice_desc
-        export_xml += ('\t</ritualdesc>\n')
-
-    # MAGICITEMDESC
-    # These are the individual cards for magic items that appear when you click on an Item table entry
-    if mi_flag or argv_dict["alchemy"]:
-        export_xml +=('\t<magicitemdesc>\n')
-        export_xml += mi_armor_desc
-        export_xml += mi_implements_desc
-        export_xml += mi_weapons_desc
-        export_xml += mi_other_desc_xml
-        export_xml += alchemy_mi_desc
-        export_xml +=('\t</magicitemdesc>\n')
 
     # POWERDESC
     # These are the individual cards for character or item Powers

@@ -34,7 +34,7 @@ def create_feat_library(id_in, list_in):
             class_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"])
 
             id_in += 1
-            lib_id = 'a' + str(id_in).rjust(3, '0')
+            lib_id = 'l' + str(id_in).rjust(3, '0')
 
             xml_out += (f'\t\t\t\t<{lib_id}-feats{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')

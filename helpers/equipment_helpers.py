@@ -12,13 +12,13 @@ def equipment_list_sorter(entry_in):
 
 def create_equipment_library(id_in, name_in):
     id_in += 1
-    lib_id = 'a' + str(id_in).rjust(3, '0')
+    lib_id = 'l' + str(id_in).rjust(3, '0')
 
     xml_out = ''
     xml_out += (f'\t\t\t\t<{lib_id}-equipment>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classequipmenttablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>equipmentlists.core@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>equipmentlists@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-equipment>\n')
@@ -36,9 +36,8 @@ def create_equipment_table(list_in):
     # Item List part
     # This controls the table that appears when you click on a Library menu
     xml_out += ('\t<equipmentlists>\n')
-    xml_out += ('\t\t<core>\n')
-    xml_out += ('\t\t\t<description type="string">Equipment Table</description>\n')
-    xml_out += ('\t\t\t<groups>\n')
+    xml_out += ('\t\t<description type="string">Equipment Table</description>\n')
+    xml_out += ('\t\t<groups>\n')
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=equipment_list_sorter):
@@ -51,34 +50,33 @@ def create_equipment_table(list_in):
             # Close previous Section
             if section_id != 1:
                 section_str = str(section_id - 1).rjust(3, '0')
-                xml_out += ('\t\t\t\t\t</equipments>\n')
-                xml_out += (f'\t\t\t\t</section{section_str}>\n')
+                xml_out += ('\t\t\t\t</equipments>\n')
+                xml_out += (f'\t\t\t</section{section_str}>\n')
 
             # Open new Section
             section_str = str(section_id).rjust(3, '0')
-            xml_out += (f'\t\t\t\t<section{section_str}>\n')
-            xml_out += (f'\t\t\t\t\t<description type="string">{entry_dict["type"]}</description>\n')
-            xml_out += (f'\t\t\t\t\t<subdescription type="string">{entry_dict["subtype"]}</subdescription>\n')
-            xml_out += ('\t\t\t\t\t<equipments>\n')
+            xml_out += (f'\t\t\t<section{section_str}>\n')
+            xml_out += (f'\t\t\t\t<description type="string">{entry_dict["type"]}</description>\n')
+            xml_out += (f'\t\t\t\t<subdescription type="string">{entry_dict["subtype"]}</subdescription>\n')
+            xml_out += ('\t\t\t\t<equipments>\n')
 
         # Equipment entry
-        xml_out += (f'\t\t\t\t\t\t<{name_camel}>\n')
-        xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t\t\t\t<class>referenceequipment</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<{name_camel}>\n')
+        xml_out += ('\t\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t\t<class>referenceequipment</class>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t\t</link>\n')
+        xml_out += (f'\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += (f'\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t\t</{name_camel}>\n')
 
     # Close final Section
-    xml_out += ('\t\t\t\t\t</equipments>\n')
-    xml_out += (f'\t\t\t\t</section{section_str}>\n')
+    xml_out += ('\t\t\t\t</equipments>\n')
+    xml_out += (f'\t\t\t</section{section_str}>\n')
 
     # Close list
-    xml_out += ('\t\t\t</groups>\n')
-    xml_out += ('\t\t</core>\n')
+    xml_out += ('\t\t</groups>\n')
     xml_out += ('\t</equipmentlists>\n')
 
     return xml_out
