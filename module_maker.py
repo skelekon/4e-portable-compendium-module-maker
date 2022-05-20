@@ -81,6 +81,7 @@ if __name__ == '__main__':
 ##    argv_dict["npcs"] = True
 ##    argv_dict["feats"] = True
 ##    argv_dict["powers"] = True
+##    argv_dict["basic"] = True
 ##    argv_dict["alchemy"] = True
 ##    argv_dict["rituals"] = True
 ##    argv_dict["practices"] = True
@@ -457,7 +458,7 @@ if __name__ == '__main__':
             input('Press enter to close.')
             sys.exit(0)
 
-        power_list = extract_power_list(power_db)
+        power_list = extract_power_list(power_db, argv_dict["basic"])
         power_lib, menu_id = create_power_library(menu_id, power_list, suffix_str)
         power_tbl = create_power_table(power_list)
         power_desc = create_power_desc(power_list)
@@ -544,11 +545,17 @@ if __name__ == '__main__':
         export_xml += alchemy_item_tbl
         export_xml += ('\t</magicitemlists>\n')
 
-    # POWERLIST
-    # these are tables of character powers
-    if argv_dict["feats"] or argv_dict["powers"]:
-        export_xml += ('\t<powerlists>\n')
+    # FEAT LISTS
+    # these are tables of character feats
+    if argv_dict["feats"]:
+        export_xml += ('\t<featlists>\n')
         export_xml += feat_tbl
+        export_xml += ('\t</featlists>\n')
+
+    # POWER LISTS
+    # these are tables of character powers
+    if argv_dict["powers"]:
+        export_xml += ('\t<powerlists>\n')
         export_xml += power_tbl
         export_xml += ('\t</powerlists>\n')
 
@@ -585,7 +592,7 @@ if __name__ == '__main__':
     export_xml +=('\t\t</items>\n')
 
     # NPCS
-    # these are the individual monster cards
+    # these are the individual cards for NPCs
     if argv_dict["npcs"]:
         export_xml += ('\t\t<npcs>\n')
         export_xml += monster_desc
@@ -594,14 +601,14 @@ if __name__ == '__main__':
     # FEATS
     # These are the individual cards for Feats
     if argv_dict["feats"]:
-        export_xml += ('\t<feats>\n')
+        export_xml += ('\t\t<feats>\n')
         export_xml += feat_desc
-        export_xml += ('\t</feats>\n')
+        export_xml += ('\t\t</feats>\n')
 
     export_xml += ('\t</reference>\n')
 
     # POWERDESC
-    # These are the individual cards for character or item Powers
+    # These are the individual cards for character, feat or item Powers
     if mi_flag or argv_dict["feats"] or argv_dict["powers"] or argv_dict["alchemy"]:
         export_xml += ('\t<powerdesc>\n')
         export_xml += mi_armor_power
@@ -619,7 +626,7 @@ if __name__ == '__main__':
     export_xml = export_xml.replace(u'\xa0', ' ')   # &nbsp;
     export_xml = re.sub('[—−‑–]', '-', export_xml)  # hyphens
     export_xml = re.sub('[‘’]', '\'', export_xml)   # single quotes
-    export_xml = re.sub('[“”]', '"', export_xml)    # double marks
+    export_xml = re.sub('[“”]', '"', export_xml)    # double quotes
     export_xml = re.sub('[×]', 'x', export_xml)     # x's
     export_xml = re.sub('[•✦]', '-', export_xml)   # bullets
     export_xml = re.sub('[ﬂ]', 'fl', export_xml)    # ligature fl

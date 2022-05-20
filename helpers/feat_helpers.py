@@ -39,7 +39,7 @@ def create_feat_library(id_in, list_in):
             xml_out += (f'\t\t\t\t<{lib_id}-feats{class_camel}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
-            xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.feats{class_camel}@{settings.library}</recordname>\n')
+            xml_out += (f'\t\t\t\t\t\t<recordname>featlists.feats{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
             xml_out += (f'\t\t\t\t\t<name type="string">Feats - {feat_dict["class"]}</name>\n')
             xml_out += (f'\t\t\t\t</{lib_id}-feats{class_camel}>\n')
@@ -144,8 +144,8 @@ def create_feat_desc(list_in):
         xml_out += (f'\t\t\t\t<prerequisite type="string">{feat_dict["prerequisite"]}</prerequisite>\n')
         xml_out += (f'\t\t\t\t<shortdescription type="string">{feat_dict["shortdescription"]}</shortdescription>\n')
         if feat_dict["linkedpowers"] != '':
-            xml_out += (f'\t\t\t\t<linkedpowers>\n{feat_dict["linkedpowers"]}\t\t\t</linkedpowers>\n')
-        xml_out += (f'\t\t</{name_lower}>\n')
+            xml_out += (f'\t\t\t\t<linkedpowers>\n{feat_dict["linkedpowers"]}\t\t\t\t</linkedpowers>\n')
+        xml_out += (f'\t\t\t</{name_lower}>\n')
 
     return xml_out
 
@@ -153,12 +153,12 @@ def create_linkedpowers(power_in):
     power_camel = re.sub('[^a-zA-Z0-9_]', '', power_in)
 
     xml_out = ''
-    xml_out += (f'\t\t\t\t<power{power_camel}>\n')
-    xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
-    xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{settings.library}</recordname>\n')
-    xml_out += ('\t\t\t\t\t</link>\n')
-    xml_out += (f'\t\t\t\t</power{power_camel}>\n')
+    xml_out += (f'\t\t\t\t\t<power{power_camel}>\n')
+    xml_out += ('\t\t\t\t\t\t<link type="windowreference">\n')
+    xml_out += ('\t\t\t\t\t\t\t<class>powerdesc</class>\n')
+    xml_out += (f'\t\t\t\t\t\t\t<recordname>powerdesc.power{power_camel}@{settings.library}</recordname>\n')
+    xml_out += ('\t\t\t\t\t\t</link>\n')
+    xml_out += (f'\t\t\t\t\t</power{power_camel}>\n')
     
     return xml_out
                         
