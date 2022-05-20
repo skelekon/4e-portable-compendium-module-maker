@@ -215,8 +215,74 @@ def create_power_desc(list_in):
 
     return xml_out
 
-def extract_power_list(db_in):
+def extract_power_list(db_in, basic_flag):
     power_out = []
+
+    # Add MBA/RBA/Bull Rush/Grab
+    basic_dict = {}
+    if basic_flag:
+
+        basic_dict["Name"] = 'Melee Basic Attack'
+        basic_dict["Class"] = 'Basic Attack'
+        basic_dict["Level"] = '0'
+        basic_dict["Txt"] = '<div id=\"detail\">'
+        basic_dict["Txt"] += '<h1 class=\"atwillpower\"><span class=\"level\">Basic Attack</span>Melee Basic Attack</h1>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><i>You resort to the simple attack you learned when you first picked up a melee weapon.</i></p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>At-Will</b><img src=\"images/bullet.gif\" alt=\"\"/><b>Weapon</b><br/><b>Standard Action</b><b>Melee</b> weapon</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Target</b>: One creature</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Attack</b>: Strength vs. AC</p>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><b>Hit</b>: 1[W] + Strength modifier damage.<br/>Level 21: 2[W] + Strength modifier damage.</p>'
+        basic_dict["Txt"] += '<br/>'
+        basic_dict["Txt"] += '<p class=\"publishedIn\">Published in <a href=\"http://anonym.to/?http://www.wizards.com/default.asp?x=products/dndacc/9780786950164\" target=\"_new\">Rules Compendium</a>, page(s) 239.</p>'
+        basic_dict["Txt"] += '</div>'
+        db_in.append(copy.deepcopy(basic_dict))
+
+        basic_dict["Name"] = 'Ranged Basic Attack'
+        basic_dict["Class"] = 'Basic Attack'
+        basic_dict["Level"] = '0'
+        basic_dict["Txt"] = '<div id=\"detail\">'
+        basic_dict["Txt"] += '<h1 class=\"atwillpower\"><span class=\"level\">Basic Attack</span>Ranged Basic Attack</h1>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><i>You resort to the simple attack you learned when you first picked up a ranged weapon.</i></p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>At-Will</b><img src=\"images/bullet.gif\" alt=\"\"/><b>Weapon</b><br/><b>Standard Action</b><b>Ranged</b> weapon</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Target</b>: One creature</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Attack</b>: Dexterity vs. AC</p>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><b>Hit</b>: 1[W] + Dexterity modifier damage.<br/>Level 21: 2[W] + Dexterity modifier damage.</p>'
+        basic_dict["Txt"] += '<br/>'
+        basic_dict["Txt"] += '<p class=\"publishedIn\">Published in <a href=\"http://anonym.to/?http://www.wizards.com/default.asp?x=products/dndacc/9780786950164\" target=\"_new\">Rules Compendium</a>, page(s) 239.</p>'
+        basic_dict["Txt"] += '</div>'
+        db_in.append(copy.deepcopy(basic_dict))
+
+        basic_dict["Name"] = 'Bull Rush'
+        basic_dict["Class"] = 'Basic Attack'
+        basic_dict["Level"] = '0'
+        basic_dict["Txt"] = '<div id=\"detail\">'
+        basic_dict["Txt"] += '<h1 class=\"atwillpower\"><span class=\"level\">Attack</span>Bull Rush</h1>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><i>You hurl yourself at your foe and push it back.</i></p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>At-Will</b><br/><b>Standard Action</b><b>Melee</b> 1</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Target</b>: One creature</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Attack</b>: Strength vs. Fortitude</p>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><b>Hit</b>: You push the target 1 square and then shift 1 square into the space it left.</p>'
+        basic_dict["Txt"] += '<br/>'
+        basic_dict["Txt"] += '<p class=\"publishedIn\">Published in <a href=\"http://anonym.to/?http://www.wizards.com/default.asp?x=products/dndacc/9780786950164\" target=\"_new\">Rules Compendium</a>, page(s) 239.</p>'
+        basic_dict["Txt"] += '</div>'
+        db_in.append(copy.deepcopy(basic_dict))
+
+        basic_dict["Name"] = 'Grab'
+        basic_dict["Class"] = 'Basic Attack'
+        basic_dict["Level"] = '0'
+        basic_dict["Txt"] = '<div id=\"detail\">'
+        basic_dict["Txt"] += '<h1 class=\"atwillpower\"><span class=\"level\">Attack</span>Grab</h1>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><i>You reach out and grasp your foe, preventing it from moving.</i></p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>At-Will</b><br/><b>Standard Action</b><b>Melee</b> touch</p>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><b>Requirement</b>: You must have a hand free.</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Target</b>: One creature that is no more than one size category larger than youe</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Attack</b>: Strength vs. Reflex</p>'
+        basic_dict["Txt"] += '<p class=\"flavor\"><b>Hit</b>: You grab the target until the end of your next turn. You can end the grab as a free action.</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Sustain Minor</b>: The grab persists until the end of your next turn.</p>'
+        basic_dict["Txt"] += '<br/>'
+        basic_dict["Txt"] += '<p class=\"publishedIn\">Published in <a href=\"http://anonym.to/?http://www.wizards.com/default.asp?x=products/dndacc/9780786950164\" target=\"_new\">Rules Compendium</a>, page(s) 243.</p>'
+        basic_dict["Txt"] += '</div>'
+        db_in.append(copy.deepcopy(basic_dict))
 
     # Lists for checking what type of power it is
     try:

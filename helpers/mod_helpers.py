@@ -33,6 +33,7 @@ def parse_argv(args_in):
     parser.add_option('-m', '--martial', action='store_true', dest='martial', help='exports Martial Practice information')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='exports Feat information')
     parser.add_option('-p', '--powers', action='store_true', dest='powers', help='exports Power information')
+    parser.add_option('-b', '--basic', action='store_true', dest='basic', help='include Basic Attacks in Power export')
     parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons, NPCs into Tiers')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='export all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='export all mundane items')
@@ -76,6 +77,7 @@ def parse_argv(args_in):
     out_dict["practices"] = options.martial if options.martial != None else False
     out_dict["feats"] = options.feats if options.feats != None else False
     out_dict["powers"] = options.powers if options.powers != None else False
+    out_dict["basic"] = options.basic if options.basic != None else False
     out_dict["tiers"] = options.tiers if options.tiers != None else False
     out_dict["items"] = options.items if options.items != None else False
     out_dict["mundane"] = options.mundane if options.mundane != None else False

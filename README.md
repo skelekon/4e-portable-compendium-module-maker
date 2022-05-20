@@ -32,6 +32,7 @@ Options:
   -m, --martial      exports Martial Practice information
   -f, --feats        exports Feat information
   -p, --powers       exports Power information
+  -b, --basic        include Basic Attacks in Power export
   -t, --tiers        divide Magic Armor, Implements and Weapons, NPCs into
                      Tiers
   -i, --items        export all item types (= --mundane & --magic)
