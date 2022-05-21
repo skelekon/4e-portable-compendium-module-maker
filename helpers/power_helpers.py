@@ -319,6 +319,7 @@ def extract_power_list(db_in, basic_flag):
         level_str =  row["Level"].replace('\\', '')
 
 ##        if basename_str not in ['Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
+##        if basename_str not in ['Aggressive Lunge']:
 ##            continue
 ##        print(basename_str)        
 
@@ -450,6 +451,8 @@ def extract_power_list(db_in, basic_flag):
                         # remove p classnames
                         del tag['class']
                     description_str = ''.join(map(str, description_tags))
+                    # power description doesn't honor <br/> tags, so replace with new paragraphs
+                    description_str = re.sub('<br/>', '</p><p>', description_str)
 
                 # Short Description
                 # remove tags

@@ -476,7 +476,6 @@ def create_mi_desc(list_in):
     return mi_out, power_out
 
 def power_construct(lines_list):
-
     # List of keywords to be included
     keywords_list = ['Acid', 'Augmentable', 'Aura', 'Charm', 'Cold', 'Conjuration', 'Fear', 'Fire', 'Healing', 'Illusion', 'Implement',\
         'Lightning', 'Necrotic', 'Poison', 'Polymorph', 'Psychic', 'Radiant', 'Sleep', 'Summoning', 'Teleportation', 'Thunder', 'Varies', 'Weapon', 'Zone']
@@ -490,11 +489,28 @@ def power_construct(lines_list):
 
     # Loop through list of strings that contains all information for a single power
     for line in lines_list:
+        # include line in the description unless it is used for the Action or Recharge
+        desc_flag = True
 
         # Action
+        # take only the first entry
         action_test = re.search(r'(Free Action|Free|Immediate Interrupt|Immediate Reaction|Minor Action|Minor|Move Action|Move|No Action|Standard Action|Standard)', line)
-        if action_test != None:
+        if action_test and action_str == '':
             action_str = action_test.group(1)
+            desc_flag = False
+
+        # Recharge
+        # take only the first entry
+        recharge_test = re.search(r'(At-Will Attack|At-Will Utility|At-Will|Consumable|Daily Attack|Daily Utility|Daily|Encounter|Healing Surge)', line, re.IGNORECASE)
+        if recharge_test and recharge_str == '':
+            recharge_str = recharge_test.group(1).title()
+            desc_flag = False
+
+        # Range
+        # take only the first entry as some multi-level items increase range with level
+        range_test = re.search(r'(Area.*?|Close.*?|Ranged.*?)[;($\.]', line)
+        if range_test and range_str == '':
+           range_str = range_test.group(1).strip()
 
         # Keyword
         # exhaustive check to avoid false positives
@@ -503,22 +519,11 @@ def power_construct(lines_list):
                 keywords_str += ', ' if keywords_str != '' else ''
                 keywords_str += kwd
 
-        # Range
-        # take only the first entry as some multi-level items increase range with level
-        range_test = re.search(r'(Area.*?|Close.*?|Ranged.*?)[;($\.]', line)
-        if range_test != None and range_str == '':
-           range_str = range_test.group(1).strip()
-
-        # Recharge
-        recharge_test = re.search(r'(At-Will Attack|At-Will Utility|At-Will|Consumable|Daily Attack|Daily Utility|Daily|Encounter|Healing Surge)', line, re.IGNORECASE)
-        if recharge_test != None:
-            recharge_str = recharge_test.group(1).title()
-
         # Description
         # Check for keywords that indicate a power description line
         shortdescription_test = re.search(r'(^As|^Attack:|Effect|Hit|Level|Make|Miss|Trigger|You)', line)
-        # also include any line that doesn't find an action or recharge
-        if shortdescription_test != None or (action_test == None and recharge_test == None):
+        # also include any line that isn't used for Action or Recharge
+        if shortdescription_test or desc_flag:
             if shortdescription_str != '':
                 shortdescription_str += '\\n'
             shortdescription_str += re.sub('\s\s', ' ', line)
@@ -535,8 +540,6 @@ def power_construct(lines_list):
     return power_dict
 
 def powers_format(soup_in, name_in):
-    name_alpha = re.sub('[^a-zA-Z0-9_]', '', name_in)
-    id = 0
     powers_list = []
     in_power = False
 
@@ -545,14 +548,16 @@ def powers_format(soup_in, name_in):
     for tag in power_tags:
         # concatenate all the elements within each tag
         tag_str = ' '.join(map(str, tag.stripped_strings))
-        # if we find the beginning of a power and one is already under construction then construct and add it to the power list and start a new item
-        if re.search(r'^(Attack Power|Power|Utility Power)', tag_str) and in_power:
-            power_item = power_construct(new_power)
-            powers_list.append(copy.deepcopy(power_item))
-            new_power = []
-        # else if this is the beginning of the first power then start a new item
-        elif re.search(r'^(Attack Power|Power|Utility Power)', tag_str):
-            in_power = True
+        if re.search(r'^(Attack Power|Power|Utility Power)', tag_str):
+            # trigger that we have started the first power
+            if in_power == False:
+                in_power = True
+            # else if one is already under construction then construct and add it to the power list
+            else:
+                power_item = power_construct(new_power)
+                powers_list.append(copy.deepcopy(power_item))
+
+            # either way we are starting a new power
             new_power = []
         if in_power:
             new_power.append(tag_str)
@@ -562,22 +567,40 @@ def powers_format(soup_in, name_in):
         powers_list.append(copy.deepcopy(power_item))
 
     # Loop though power list to create all the tags
+    name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
     powerdesc_out = ''
-    magicitemsdesc_out = ''
+    mi_powerstag_out = ''
+    id = 0
+
     for power in powers_list:
         id += 1
         recharge_alpha = re.sub('[^a-zA-Z0-9_]', '', power["recharge"])
-        entry_id = str(id).rjust(3, '0')
+        entry_id = str(id).rjust(2, '0')
+        power_name = 'Power' if power["recharge"] == '' else 'Power - ' + power["recharge"]
 
-        powerdesc_out += f'\t\t<item{name_alpha}Power-{entry_id}>\n'
-        powerdesc_out += f'\t\t\t<name type="string">{name_in} Power - {power["recharge"]}</name>\n'
+        mi_powerstag_out += f'\t\t\t\t\t<id-{entry_id}>\n'
+        mi_powerstag_out += f'\t\t\t\t\t\t<name type="string">{power_name}</name>\n'
+        if power["action"] != '':
+            mi_powerstag_out += f'\t\t\t\t\t\t<action type="string">{power["action"]}</action>\n'
+        if power["recharge"] != '':
+            mi_powerstag_out += f'\t\t\t\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
+        if power["shortdescription"] != '':
+            mi_powerstag_out += f'\t\t\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
+        mi_powerstag_out += '\t\t\t\t\t\t<link type="windowreference">\n'
+        mi_powerstag_out += '\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+        mi_powerstag_out += f'\t\t\t\t\t\t\t<recordname>powerdesc.item{name_camel}Power-{entry_id}@{settings.library}</recordname>\n'
+        mi_powerstag_out += '\t\t\t\t\t\t</link>\n'
+        mi_powerstag_out += f'\t\t\t\t\t</id-{entry_id}>\n'
+
+        powerdesc_out += f'\t\t<item{name_camel}Power-{entry_id}>\n'
+        powerdesc_out += f'\t\t\t<name type="string">{name_in} {power_name}</name>\n'
         if power["action"] != '':
             powerdesc_out += f'\t\t\t<action type="string">{power["action"]}</action>\n'
         powerdesc_out += '\t\t\t<class type="string">Item</class>\n'
         if power["shortdescription"] != '':
             powerdesc_out += f'\t\t\t<description type="formattedtext">{power["shortdescription"]}</description>\n'
-        if power["shortdescription"] != '':
-            powerdesc_out += f'\t\t\t<effect type="formattedtext">{power["shortdescription"]}</effect>\n'
+##        if power["shortdescription"] != '':
+##            powerdesc_out += f'\t\t\t<effect type="formattedtext">{power["shortdescription"]}</effect>\n'
 ##        if power["shortdescription"] != '':
 ##            powerdesc_out += f'\t\t\t<flavor type="string">{power["shortdescription"]}</flavor>\n'
         if power["keywords"] != '':
@@ -589,23 +612,9 @@ def powers_format(soup_in, name_in):
             powerdesc_out += f'\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
         powerdesc_out += f'\t\t\t<source type="string">Item</source>\n'
         powerdesc_out += '\t\t\t<type type="string">Item</type>\n'
-        powerdesc_out += f'\t\t</item{name_alpha}Power-{entry_id}>\n'
+        powerdesc_out += f'\t\t</item{name_camel}Power-{entry_id}>\n'
 
-        magicitemsdesc_out += f'\t\t\t\t\t<id-{entry_id}>\n'
-        magicitemsdesc_out += f'\t\t\t\t\t\t<name type="string">Power - {power["recharge"]}</name>\n'
-        if power["action"] != '':
-            magicitemsdesc_out += f'\t\t\t\t\t\t<action type="string">{power["action"]}</action>\n'
-        if power["recharge"] != '':
-            magicitemsdesc_out += f'\t\t\t\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
-        if power["shortdescription"] != '':
-            magicitemsdesc_out += f'\t\t\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
-        magicitemsdesc_out += '\t\t\t\t\t\t<link type="windowreference">\n'
-        magicitemsdesc_out += '\t\t\t\t\t\t\t<class>powerdesc</class>\n'
-        magicitemsdesc_out += f'\t\t\t\t\t\t\t<recordname>powerdesc.item{name_alpha}Power-{entry_id}@{settings.library}</recordname>\n'
-        magicitemsdesc_out += '\t\t\t\t\t\t</link>\n'
-        magicitemsdesc_out += f'\t\t\t\t\t</id-{entry_id}>\n'
-
-    return powerdesc_out, magicitemsdesc_out
+    return powerdesc_out, mi_powerstag_out
 
 def props_format(props_in):
     props_out = ''
