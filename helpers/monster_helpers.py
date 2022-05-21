@@ -101,55 +101,25 @@ def create_monster_table(list_in, tier_list, name_in):
 
     class_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
 
-    # Configure the sort order and sub-headings according to which table is being built
-    if re.search('NPCs By Letter', name_in):
-        for monster_dict in list_in:
+    # Populate the sort order and sub-heading fields according to which table is being built
+    for monster_dict in list_in:
+        # Generate Level values
+        level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
+        if level_str == '':
+            level_str = '0'
+        level_id = level_str.rjust(2, '0')
+
+        if re.search('NPCs By Letter', name_in):
             monster_dict["group_id"] = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])[0:1].upper()
             monster_dict["group_str"] = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])[0:1].upper()
-    elif re.search('NPCs By Level[ $]', name_in):
-        for monster_dict in list_in:
-            level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
-            if level_str == '':
-                level_str = '0'
-            monster_dict["group_id"] = level_str.rjust(3, '0')
+        elif re.search('NPCs By Level[ $]', name_in):
+            monster_dict["group_id"] = level_id
             monster_dict["group_str"] = 'Level ' + level_str
-    elif re.search('NPCs By Level/Role', name_in):
-        for monster_dict in list_in:
-            level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
-            if level_str == '':
-                level_str = '0'
-            level_id = level_str.rjust(3, '0')
-            role_str = ''
-            modifier_str = ''
-            leader_str = ''
-            # Leader in this list is the PC type not the (Leader) NPC subtype
-            if role_match:= re.search(r'(Artillery|Brute|Controller|Lurker|Skirmisher|Soldier|Conjured|Defender|Leader$|Striker)', monster_dict["levelrole"], re.IGNORECASE):
-                role_str = role_match.group(1).title()
-            if modifier_match:= re.search(r'(Minion|Elite|Solo)', monster_dict["levelrole"], re.IGNORECASE):
-                modifier_str = modifier_match.group(1).title()
-            if leader_match:= re.search(r'(\(Leader\))', monster_dict["levelrole"], re.IGNORECASE):
-                leader_str = leader_match.group(1).title()
-
-            role_id = re.sub('[^a-zA-Z0-9_]', '', role_str)[0:3]
-            modifier_id = re.sub('[^a-zA-Z0-9_]', '', modifier_str)[0:2].ljust(2, '-')
-            leader_id = re.sub('[^a-zA-Z0-9_]', '', leader_str)[0:2].ljust(2, '-')
-                
-            monster_dict["group_id"] =  level_id + role_id + modifier_id + leader_id
-            monster_dict["group_str"] = 'Level ' + level_str + ' ' + role_str +  ' ' + modifier_str + ' ' + leader_str
-
-            level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
-            if level_str == '':
-                level_str = '0'
-            level_id = level_str.rjust(3, '0')
-            role_id = re.sub('[^a-zA-Z0-9_]', '', monster_dict["levelrole"])
-            monster_dict["group_id"] =  level_id + role_id
+        elif re.search('NPCs By Level/Role', name_in):
+            monster_dict["group_id"] =  level_id + re.sub('[^a-zA-Z0-9_]', '', monster_dict["levelrole"])
             monster_dict["group_str"] = monster_dict["levelrole"]
-    elif re.search('NPCs By Role/Level', name_in):
-        for monster_dict in list_in:
-            level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
-            if level_str == '':
-                level_str = '0'
-            level_id = level_str.rjust(3, '0')
+        elif re.search('NPCs By Role/Level', name_in):
+            # Generate Role/Modifier/Leader values
             role_str = ''
             modifier_str = ''
             leader_str = ''
@@ -162,9 +132,9 @@ def create_monster_table(list_in, tier_list, name_in):
                 leader_str = leader_match.group(1).title()
 
             role_id = re.sub('[^a-zA-Z0-9_]', '', role_str)[0:3]
-            modifier_id = re.sub('[^a-zA-Z0-9_]', '', modifier_str)[0:2].ljust(2, '-')
-            leader_id = re.sub('[^a-zA-Z0-9_]', '', leader_str)[0:2].ljust(2, '-')
-                
+            modifier_id = re.sub('[^a-zA-Z0-9_]', '', modifier_str)[0:3].ljust(3, '-')
+            leader_id = re.sub('[^a-zA-Z0-9_]', '', leader_str)[0:3].ljust(3, '-')
+
             monster_dict["group_id"] =  role_id + level_id + modifier_id + leader_id
             monster_dict["group_str"] = role_str + ' Level ' + level_str + ' ' + modifier_str + ' ' + leader_str
 
@@ -397,7 +367,6 @@ def format_power(soup_in, id_in):
                 recharge_str += ''.join(rech_tag.text)
     elif action_match := re.search(r'(At-will|Daily|Encounter)', header_tag.text, re.IGNORECASE):
             recharge_str = action_match.group(1).title()
-#            recharge_str = action_match.group(1)[0:1].upper() + action_match.group(1)[1:].lower()
 
     # Either layout can contain die symbols
     if recharge_img := header_tag.find('img', src=re.compile(r'/2a.gif')):
