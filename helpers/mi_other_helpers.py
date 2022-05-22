@@ -24,10 +24,11 @@ def extract_mi_other_list(db_in, filter_in, alchemy_in):
     mi_other_out = []
 
     # List for checking for duplicates if Alchemy Items are also in the same export
-    try:
-        ritual_list = rituals_list()
-    except:
-        ritual_list = []
+    if filter_in == 'Alchemical Item' and alchemy_in:
+        try:
+            ritual_list = rituals_list()
+        except:
+            ritual_list = []
 
     alt_reward_expr = re.compile('(Alternative Reward|Battle Scars|Divine Boon|Echo of Power|Elemental Gift|Fey Magic Gift|Glory Boon|Grandmaster Training|Legendary Boon|Lost Rune|Primal Blessing|Psionic Talent|Secret of the Way|Sorcerer-King\'s Boon|Templar Brand|Veiled Alliance Mystery|Wanderer\'s Secret)', re.IGNORECASE)
 
@@ -44,7 +45,7 @@ def extract_mi_other_list(db_in, filter_in, alchemy_in):
         category_str = row["Category"].replace('\\', '')
         rarity_str =  row["Rarity"].replace('\\', '')
 
-#        if name_str not in ['Bracers of the Perfect Shot']:
+#        if name_str not in ['Alchemical Failsafe', 'xBracers of the Perfect Shot']:
 #            continue
 #        print(name_str)
 
@@ -67,9 +68,8 @@ def extract_mi_other_list(db_in, filter_in, alchemy_in):
         special_str = ''
         subclass_str = ''
 
-        # Class
+        # Check Category
         if (re.search(f'^({filter_in})$', category_str)):
-            class_str = category_str
             mitype_str = 'other'
             section_id = 1
 
@@ -86,6 +86,9 @@ def extract_mi_other_list(db_in, filter_in, alchemy_in):
                 category_str += ' Slot'
             elif category_str == 'Wondrous':
                 category_str = 'Wondrous Item'
+
+            # Class
+            class_str = category_str
 
             # Bonus / Cost / Level
             multi_bonus = True
@@ -176,9 +179,16 @@ def extract_mi_other_list(db_in, filter_in, alchemy_in):
 
             # Properties
             if properties_lbl := parsed_html.find(string=re.compile('^(Property|Properties)')):
-                properties_str = re.sub('\s\s', ' ', properties_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True))
-                properties_str = re.sub(r':\\n', ': ', properties_str)
-                props_str = props_format(properties_str)
+                props_list = []
+                if properties_lbl.parent.next_sibling.name == 'ul':
+                    for li in properties_lbl.parent.next_sibling:
+                        properties_str = li.text.strip()
+                        props_list.append(properties_str)
+                else:
+                    properties_str = re.sub('\s\s', ' ', properties_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True))
+                    properties_str = re.sub(r':\\n', ': ', properties_str)
+                    props_list.append(properties_str)
+                props_str = props_format(props_list)
 
             # Special (Published In)
             if special_lbl := parsed_html.find('p', class_='publishedIn'):

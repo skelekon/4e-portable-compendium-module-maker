@@ -109,7 +109,8 @@ def create_armor_reference(list_in):
         xml_out += (f'\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
         xml_out += (f'\t\t\t\t<mitype type="string">armor</mitype>\n')
         xml_out += (f'\t\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
-        xml_out += (f'\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
+        if entry_dict["special"] != '':
+            xml_out += (f'\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
         xml_out += (f'\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
         xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
         xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')

@@ -76,8 +76,8 @@ def extract_mi_armor_list(db_in):
 
             # Cat/Subclass (Armor)
             if cat_lbl := parsed_html.find(string='Armor: '):
-                cat_str = re.sub('\s\s', ' ', cat_lbl.parent.next_sibling.strip())
-                subclass_str = re.sub('\s\s', ' ', cat_lbl.parent.next_sibling.strip())
+                cat_str = re.sub('\s\s', ' ', cat_lbl.parent.next_sibling.strip()).title()
+                subclass_str = cat_str
 
             # Powers
             powerdesc_str, mipowers_str = powers_format(parsed_html, name_str)
@@ -88,9 +88,16 @@ def extract_mi_armor_list(db_in):
 
             # Properties
             if properties_lbl := parsed_html.find(string=re.compile('^(Property|Properties)')):
-                properties_str = re.sub('\s\s', ' ', properties_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True))
-                properties_str = re.sub(r':\\n', ': ', properties_str)
-                props_str = props_format(properties_str)
+                props_list = []
+                if properties_lbl.parent.next_sibling.name == 'ul':
+                    for li in properties_lbl.parent.next_sibling:
+                        properties_str = li.text.strip()
+                        props_list.append(properties_str)
+                else:
+                    properties_str = re.sub('\s\s', ' ', properties_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True))
+                    properties_str = re.sub(r':\\n', ': ', properties_str)
+                    props_list.append(properties_str)
+                props_str = props_format(props_list)
 
             # Special (Published In)
             if special_lbl := parsed_html.find('p', class_='publishedIn'):
