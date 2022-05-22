@@ -26,6 +26,10 @@ def extract_mi_weaplements_list(db_in, filter_in):
         category_str = row['Category'].replace('\\', '')
         rarity_str =  row['Rarity'].replace('\\', '')
 
+#        if name_str not in ['Anarusi Codex', 'Wand of Wonder']:
+#            continue
+#        print(name_str)
+
         bonus_str = ''
         cat_str = ''
         class_str = ''
@@ -110,7 +114,7 @@ def extract_mi_weaplements_list(db_in, filter_in):
 
             # Enhancement
             if enhancement_lbl := parsed_html.find(string=re.compile('^(Enhancement|Enhancement Bonus):$')):
-                enhancement_str = enhancement_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True)
+                enhancement_str = enhancement_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True).title().replace(' And ', ' and ')
 
             # Flavor
             if flavor_lbl := parsed_html.find('p', class_='miflavor'):
@@ -130,9 +134,16 @@ def extract_mi_weaplements_list(db_in, filter_in):
 
             # Properties
             if properties_lbl := parsed_html.find(string=re.compile('^(Property|Properties)')):
-                properties_str = re.sub('\s\s', ' ', properties_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True))
-                properties_str = re.sub(r':\\n', ': ', properties_str)
-                props_str = props_format(properties_str)
+                props_list = []
+                if properties_lbl.parent.next_sibling.name == 'ul':
+                    for li in properties_lbl.parent.next_sibling:
+                        properties_str = li.text.strip()
+                        props_list.append(properties_str)
+                else:
+                    properties_str = re.sub('\s\s', ' ', properties_lbl.parent.next_sibling.get_text(separator = '\\n', strip = True))
+                    properties_str = re.sub(r':\\n', ': ', properties_str)
+                    props_list.append(properties_str)
+                props_str = props_format(props_list)
 
             # Special (Published In)
             if special_lbl := parsed_html.find('p', class_='publishedIn'):

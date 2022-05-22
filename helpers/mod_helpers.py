@@ -457,14 +457,19 @@ def create_mi_desc(list_in):
         mi_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         mi_out += (f'\t\t\t\t<bonus type="number">{entry_dict["bonus"]}</bonus>\n')
         mi_out += (f'\t\t\t\t<class type="string">{entry_dict["class"]}</class>\n')
-        mi_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        if entry_dict["cost"] != '':
+            mi_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
         if entry_dict["critical"] != '':
             mi_out += (f'\t\t\t\t<critical type="string">{entry_dict["critical"]}</critical>\n')
-        mi_out += (f'\t\t\t\t<enhancement type="string">{entry_dict["enhancement"]}</enhancement>\n')
-        mi_out += (f'\t\t\t\t<flavor type="string">{entry_dict["flavor"]}</flavor>\n')
+        if entry_dict["enhancement"] != '':
+            mi_out += (f'\t\t\t\t<enhancement type="string">{entry_dict["enhancement"]}</enhancement>\n')
+        if entry_dict["flavor"] != '':
+            mi_out += (f'\t\t\t\t<flavor type="string">{entry_dict["flavor"]}</flavor>\n')
         mi_out += (f'\t\t\t\t<formatteditemblock type="formattedtext">{entry_dict["flavor"]}</formatteditemblock>\n')
         mi_out += (f'\t\t\t\t<level type="number">{entry_dict["level"]}</level>\n')
         mi_out += (f'\t\t\t\t<mitype type="string">{entry_dict["mitype"]}</mitype>\n')
+        if entry_dict["prerequisite"] != '':
+            mi_out += (f'\t\t\t\t<prerequisite type="string">{entry_dict["prerequisite"]}</prerequisite>\n')
         if entry_dict["subclass"] != '':
             mi_out += (f'\t\t\t\t<subclass type="string">{entry_dict["subclass"]}</subclass>\n')
         if entry_dict["mipowers"] != '':
@@ -620,11 +625,10 @@ def props_format(props_in):
     props_out = ''
     id = 0
 
-    # Split the input at each \n into a list of properties
-    props_list = re.split(r'\\n', props_in)
-
     # Loop though properties list to create all the tags
-    for p in props_list:
+    for p in props_in:
+        if p.strip() == '':
+            continue
         id += 1
         entrry_id = str(id).rjust(3, '0')
         props_out += f'\t\t\t\t<id-{entrry_id}>\n'

@@ -70,7 +70,8 @@ def create_mi_desc(item_dict, mi_name_in):
     mi_out += '\t\t\t\t\t<id-001>\n'
     mi_out += '\t\t\t\t\t\t<name type="string">Power - Consumable</name>\n'
     mi_out += '\t\t\t\t\t\t<recharge type="string">Consumable</recharge>\n'
-    mi_out += f'\t\t\t\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n'
+    if power_dict["keywords"] != '':
+        mi_out += f'\t\t\t\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n'
     mi_out += f'\t\t\t\t\t\t<action type="string">{power_dict["action"]}</action>\n'
     mi_out += f'\t\t\t\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n'
     mi_out += f'\t\t\t\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n'
@@ -88,7 +89,8 @@ def create_mi_desc(item_dict, mi_name_in):
     power_out += f'\t\t<alchemy{name_camel}Power-{suffix_str}>\n'
     power_out += f'\t\t\t<name type="string">{mi_name_in} Power - Consumable</name>\n'
     power_out += '\t\t\t<recharge type="string">Consumable</recharge>\n'
-    power_out += f'\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n'
+    if power_dict["keywords"] != '':
+        power_out += f'\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n'
     power_out += f'\t\t\t<action type="string">{power_dict["action"]}</action>\n'
     power_out += '\t\t\t<source type="string">Item</source>\n'
     power_out += f'\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n'
@@ -284,12 +286,16 @@ def create_formula_desc(list_in):
         xml_out += (f'\t\t\t<details type="formattedtext">{alchemy_dict["details"]}\n')
         xml_out += (f'\t\t\t\t<linklist>{alchemy_dict["linklist"]}</linklist>\n')
         xml_out += (f'\t\t\t</details>\n')
-        xml_out += (f'\t\t\t<duration type="string">{alchemy_dict["duration"]}</duration>\n')
-        xml_out += (f'\t\t\t<flavor type="string">{alchemy_dict["flavor"]}</flavor>\n')
+        if alchemy_dict["duration"] != '':
+            xml_out += (f'\t\t\t<duration type="string">{alchemy_dict["duration"]}</duration>\n')
+        if alchemy_dict["flavor"] != '':
+            xml_out += (f'\t\t\t<flavor type="string">{alchemy_dict["flavor"]}</flavor>\n')
         xml_out += (f'\t\t\t<level type="string">Level {alchemy_dict["level"]}</level>\n')
-        xml_out += (f'\t\t\t<prerequisite type="string">{alchemy_dict["prerequisite"]}</prerequisite>\n')
+        if alchemy_dict["prerequisite"] != '':
+            xml_out += (f'\t\t\t<prerequisite type="string">{alchemy_dict["prerequisite"]}</prerequisite>\n')
         xml_out += (f'\t\t\t<price type="string">{alchemy_dict["price"]}</price>\n')
-        xml_out += (f'\t\t\t<skill type="string">{alchemy_dict["skill"]}</skill>\n')
+        if alchemy_dict["skill"] != '':
+            xml_out += (f'\t\t\t<skill type="string">{alchemy_dict["skill"]}</skill>\n')
         xml_out += (f'\t\t\t<time type="string">{alchemy_dict["time"]}</time>\n')
         xml_out += (f'\t\t</alchemy{name_camel}>\n')
 
@@ -360,11 +366,11 @@ def extract_alchemy_list(db_in, filter_in):
 
             # Category
             if category_tag := parsed_html.find(string=re.compile('^Category')):
-                category_str = re.sub(':\w*', '', category_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                category_str = re.sub(':\s*', '', category_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Duration
             if duration_tag := parsed_html.find(string=re.compile('^Duration')):
-                duration_str = re.sub(':\w*', '', duration_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                duration_str = re.sub(':\s*', '', duration_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Flavor
             if flavor_tag := parsed_html.select_one('#detail > i'):
@@ -372,24 +378,24 @@ def extract_alchemy_list(db_in, filter_in):
 
             # Level
             if level_tag := parsed_html.find(string=re.compile('^Level')):
-                level_str = re.sub(':\w*', '', level_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                level_str = re.sub(':\s*', '', level_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Prerequisite
             prerequisite_tag = parsed_html.find(string=re.compile('^Prerequisite'))
             if prerequisite_tag:
-                prerequisite_str = re.sub(':\w*', '', prerequisite_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                prerequisite_str = re.sub(':\s*', '', prerequisite_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Price
             if price_tag := parsed_html.find(string=re.compile('^Market Price')):
-                price_str = re.sub(':\w*', '', price_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                price_str = re.sub(':\s*', '', price_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Skill
             if skill_tag := parsed_html.find(string=re.compile('^Key Skill')):
-                skill_str = re.sub(':\w*', '', skill_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                skill_str = re.sub(':\s*', '', skill_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Time
             if time_tag := parsed_html.find(string=re.compile('^Time')):
-                time_str = re.sub(':\w*', '', time_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
+                time_str = re.sub(':\s*', '', time_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
             # Details
             if detail_tag := parsed_html.find('div', id='detail'):

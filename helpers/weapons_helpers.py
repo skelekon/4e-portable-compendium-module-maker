@@ -98,8 +98,10 @@ def create_weapons_reference(list_in):
 
         xml_out += (f'\t\t\t<{name_camel}>\n')
         xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t<damage type="string">{entry_dict["damage"]}</damage>\n')
+        if entry_dict["cost"] != '':
+            xml_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        if entry_dict["damage"] != '':
+            xml_out += (f'\t\t\t\t<damage type="string">{entry_dict["damage"]}</damage>\n')
         xml_out += (f'\t\t\t\t<description type="formattedtext">{entry_dict["description"]}</description>\n')
         xml_out += (f'\t\t\t\t<flavor type="string">{entry_dict["description"]}</flavor>\n')
         xml_out += (f'\t\t\t\t<group type="string">{entry_dict["group"]}</group>\n')
@@ -107,8 +109,10 @@ def create_weapons_reference(list_in):
         xml_out += (f'\t\t\t\t<mitype type="string">weapon</mitype>\n')
         xml_out += (f'\t\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
         xml_out += (f'\t\t\t\t<profbonus type="number">{entry_dict["profbonus"]}</profbonus>\n')
-        xml_out += (f'\t\t\t\t<properties type="string">{entry_dict["properties"]}</properties>\n')
-        xml_out += (f'\t\t\t\t<range type="number">{entry_dict["range"]}</range>\n')
+        if entry_dict["properties"] != '':
+            xml_out += (f'\t\t\t\t<properties type="string">{entry_dict["properties"]}</properties>\n')
+        if entry_dict["range"] != '':
+            xml_out += (f'\t\t\t\t<range type="number">{entry_dict["range"]}</range>\n')
         xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
         xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
         xml_out += (f'\t\t\t</{name_camel}>\n')

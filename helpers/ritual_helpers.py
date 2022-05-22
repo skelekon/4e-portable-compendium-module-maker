@@ -87,12 +87,16 @@ def create_ritual_desc(list_in):
         xml_out += (f'\t\t\t<category type="string">{ritual_dict["category"]}</category>\n')
         xml_out += (f'\t\t\t<component type="string">{ritual_dict["component"]}</component>\n')
         xml_out += (f'\t\t\t<details type="formattedtext">{ritual_dict["details"]}</details>\n')
-        xml_out += (f'\t\t\t<duration type="string">{ritual_dict["duration"]}</duration>\n')
-        xml_out += (f'\t\t\t<flavor type="string">{ritual_dict["flavor"]}</flavor>\n')
+        if ritual_dict["duration"] != '':
+            xml_out += (f'\t\t\t<duration type="string">{ritual_dict["duration"]}</duration>\n')
+        if ritual_dict["flavor"] != '':
+            xml_out += (f'\t\t\t<flavor type="string">{ritual_dict["flavor"]}</flavor>\n')
         xml_out += (f'\t\t\t<level type="string">{ritual_dict["level"]}</level>\n')
-        xml_out += (f'\t\t\t<prerequisite type="string">{ritual_dict["prerequisite"]}</prerequisite>\n')
+        if ritual_dict["prerequisite"] != '':
+            xml_out += (f'\t\t\t<prerequisite type="string">{ritual_dict["prerequisite"]}</prerequisite>\n')
         xml_out += (f'\t\t\t<price type="string">{ritual_dict["price"]}</price>\n')
-        xml_out += (f'\t\t\t<skill type="string">{ritual_dict["skill"]}</skill>\n')
+        if ritual_dict["skill"] != '':
+            xml_out += (f'\t\t\t<skill type="string">{ritual_dict["skill"]}</skill>\n')
         xml_out += (f'\t\t\t<time type="string">{ritual_dict["time"]}</time>\n')
         xml_out += (f'\t\t</{ritual_dict["class"].lower()}{name_camel}>\n')
 
