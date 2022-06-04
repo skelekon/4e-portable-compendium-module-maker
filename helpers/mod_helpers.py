@@ -8,6 +8,32 @@ import shutil
 import sys
 from zipfile import ZipFile, ZIP_DEFLATED
 
+def title_format(text_in):
+    text_out = ''
+    text_out = re.sub(r'[A-Za-z]+(\'[A-Za-z]+)?', lambda word: word.group(0).capitalize(), text_in)
+    return text_out
+
+def clean_formattedtext(text_in):
+    text_out = text_in
+    # assume that colons should be in-line
+    text_out = re.sub('</p>\s*<p>\s*:', ':', text_out)
+    # assume that italics should be in-line
+    text_out = re.sub('</p>\s*<p><i>', '<i>', text_out)
+    text_out = re.sub('</i></p>\s*<p>', '</i>', text_out)
+    # turn <br/> into new <p> as line breaks inside <p> don't render in formattedtext
+    text_out = re.sub(r'(\s*<br/>\s*)', r'</p><p>', text_out)
+    # get rid of empty paragraphs
+    text_out = re.sub('<p>\s*</p>', '', text_out)
+    # get rid of mutliple linebreaks
+    text_out = re.sub('\n+', '\n', text_out)
+    # replace <th> with <td><b> as FG appear to not render <th> correctly
+    text_out = re.sub(r'<th>', r'<td><b>', text_out)
+    text_out = re.sub(r'</th>', r'</b></td>', text_out)
+    # escape &
+    text_out = re.sub(r'&', r'&amp;', text_out)
+
+    return text_out
+
 def check_all_dbs():
     file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiMonster.sql',\
                  'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql']
@@ -27,19 +53,20 @@ def parse_argv(args_in):
     parser.add_option('--library', action='store', dest='library', help='Fantasy Grounds\' internal name for the Library', metavar='LIBRARY')
     parser.add_option('--min', action='store', dest='min', help='export items of this level and above. Applies to NPCs, Alchemical Items, Rituals, Martial Practices and Powers.')
     parser.add_option('--max', action='store', dest='max', help='export items of this level and below. Applies to NPCs, Alchemical Items, Rituals, Martial Practices and Powers.')
+    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons, NPCs into Tiers')
     parser.add_option('-n', '--npcs', action='store_true', dest='npcs', help='export all NPCs (Monsters)')
-    parser.add_option('-a', '--alchemy', action='store_true', dest='alchemy', help='exports Alchemical Item information')
-    parser.add_option('-r', '--rituals', action='store_true', dest='rituals', help='exports Ritual information')
-    parser.add_option('-m', '--martial', action='store_true', dest='martial', help='exports Martial Practice information')
+    parser.add_option('-r', '--races', action='store_true', dest='races', help='export Races information')
+    parser.add_option('-c', '--classes', action='store_true', dest='classes', help='export Classes information')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='exports Feat information')
     parser.add_option('-p', '--powers', action='store_true', dest='powers', help='exports Power information')
     parser.add_option('-b', '--basic', action='store_true', dest='basic', help='include Basic Attacks in Power export')
-    parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons, NPCs into Tiers')
+    parser.add_option('-a', '--alchemy', action='store_true', dest='alchemy', help='exports Alchemical Item information')
+    parser.add_option('-u', '--rituals', action='store_true', dest='rituals', help='exports Ritual information')
+    parser.add_option('-m', '--martial', action='store_true', dest='martial', help='exports Martial Practice information')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='export all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='export all mundane items')
     parser.add_option('--magic', action='store_true', dest='magic', help='export all magic items')
 
-    
 ##    parser.add_option('--armor', action='store_true', dest='armor', help='include mundane Armor items in the Library')
 ##    parser.add_option('--equipment', action='store_true', dest='equipment', help='include mundane Equipment items in the Library')
 ##    parser.add_option('--weapons', action='store_true', dest='weapons', help='include mundane Weapon items in the Library')
@@ -66,109 +93,108 @@ def parse_argv(args_in):
     (options, args) = parser.parse_args()
 
     # Copy all values from options except 'all' and 'mi_other'
-    out_dict = {}
-    out_dict["filename"] = options.filename
-    out_dict["library"] = options.library
-    out_dict["min"] = int(options.min) if int(options.min) >= 0 else 0
-    out_dict["max"] = int(options.max) if int(options.min) <= 99 else 99
-    out_dict["npcs"] = options.npcs if options.npcs != None else False
-    out_dict["alchemy"] = options.alchemy if options.alchemy != None else False
-    out_dict["rituals"] = options.rituals if options.rituals != None else False
-    out_dict["practices"] = options.martial if options.martial != None else False
-    out_dict["feats"] = options.feats if options.feats != None else False
-    out_dict["powers"] = options.powers if options.powers != None else False
-    out_dict["basic"] = options.basic if options.basic != None else False
-    out_dict["tiers"] = options.tiers if options.tiers != None else False
-    out_dict["items"] = options.items if options.items != None else False
-    out_dict["mundane"] = options.mundane if options.mundane != None else False
-    out_dict["magic"] = options.magic if options.magic != None else False
+    settings.filename = options.filename
+    settings.library = options.library
+    settings.min_lvl = int(options.min) if int(options.min) >= 0 else 0
+    settings.max_lvl = int(options.max) if int(options.min) <= 99 else 99
+    settings.tiers = options.tiers if options.tiers != None else False
+    settings.npcs = options.npcs if options.npcs != None else False
+    settings.races = options.races if options.races != None else False
+    settings.classes = options.classes if options.classes != None else False
+    settings.feats = options.feats if options.feats != None else False
+    settings.powers = options.powers if options.powers != None else False
+    settings.basic = options.basic if options.basic != None else False
+    settings.alchemy = options.alchemy if options.alchemy != None else False
+    settings.rituals = options.rituals if options.rituals != None else False
+    settings.practices = options.martial if options.martial != None else False
+    settings.items = options.items if options.items != None else False
+    settings.mundane = options.mundane if options.mundane != None else False
+    settings.magic = options.magic if options.magic != None else False
 
     # Note these are currently internal/debug options that are more granular than is currently offered by the switches
-    out_dict["armor"] = False
-    out_dict["equipment"] = False
-    out_dict["weapons"] = False
-    out_dict["mi_armor"] = False
-    out_dict["mi_implements"] = False
-    out_dict["mi_weapons"] = False
-    out_dict["mi_alchemical"] = False
-    out_dict["mi_alternative"] = False
-    out_dict["mi_ammunition"] = False
-    out_dict["mi_arms"] = False
-    out_dict["mi_companion"] = False
-    out_dict["mi_consumable"] = False
-    out_dict["mi_familiar"] = False
-    out_dict["mi_feet"] = False
-    out_dict["mi_hands"] = False
-    out_dict["mi_head"] = False
-    out_dict["mi_head_neck"] = False
-    out_dict["mi_mount"] = False
-    out_dict["mi_neck"] = False
-    out_dict["mi_ring"] = False
-    out_dict["mi_waist"] = False
-    out_dict["mi_wondrous"] = False
+    settings.armor = False
+    settings.equipment = False
+    settings.weapons = False
+    settings.mi_armor = False
+    settings.mi_implements = False
+    settings.mi_weapons = False
+    settings.mi_alchemical = False
+    settings.mi_alternative = False
+    settings.mi_ammunition = False
+    settings.mi_arms = False
+    settings.mi_companion = False
+    settings.mi_consumable = False
+    settings.mi_familiar = False
+    settings.mi_feet = False
+    settings.mi_hands = False
+    settings.mi_head = False
+    settings.mi_head_neck = False
+    settings.mi_mount = False
+    settings.mi_neck = False
+    settings.mi_ring = False
+    settings.mi_waist = False
+    settings.mi_wondrous = False
 
     # If --mundane is specified then set mundane items to True
     if options.mundane == True:
-        out_dict["armor"] = True
-        out_dict["equipment"] = True
-        out_dict["weapons"] = True
+        settings.armor = True
+        settings.equipment = True
+        settings.weapons = True
 
     # If --magic  is specified then set magic items to True
     if options.magic == True:
-        out_dict["tiers"] = True
-        out_dict["mi_armor"] = True
-        out_dict["mi_implements"] = True
-        out_dict["mi_weapons"] = True
-        out_dict["mi_alchemical"] = True
-        out_dict["mi_alternative"] = True
-        out_dict["mi_ammunition"] = True
-        out_dict["mi_arms"] = True
-        out_dict["mi_companion"] = True
-        out_dict["mi_consumable"] = True
-        out_dict["mi_familiar"] = True
-        out_dict["mi_feet"] = True
-        out_dict["mi_hands"] = True
-        out_dict["mi_head"] = True
-        out_dict["mi_head_neck"] = True
-        out_dict["mi_mount"] = True
-        out_dict["mi_neck"] = True
-        out_dict["mi_ring"] = True
-        out_dict["mi_waist"] = True
-        out_dict["mi_wondrous"] = True
+        settings.tiers = True
+        settings.mi_armor = True
+        settings.mi_implements = True
+        settings.mi_weapons = True
+        settings.mi_alchemical = True
+        settings.mi_alternative = True
+        settings.mi_ammunition = True
+        settings.mi_arms = True
+        settings.mi_companion = True
+        settings.mi_consumable = True
+        settings.mi_familiar = True
+        settings.mi_feet = True
+        settings.mi_hands = True
+        settings.mi_head = True
+        settings.mi_head_neck = True
+        settings.mi_mount = True
+        settings.mi_neck = True
+        settings.mi_ring = True
+        settings.mi_waist = True
+        settings.mi_wondrous = True
 
     # If --items is specified then set all items to True
     if options.items == True:
-        out_dict["tiers"] = True
-        out_dict["armor"] = True
-        out_dict["equipment"] = True
-        out_dict["weapons"] = True
-        out_dict["mi_armor"] = True
-        out_dict["mi_implements"] = True
-        out_dict["mi_weapons"] = True
-        out_dict["mi_alchemical"] = True
-        out_dict["mi_alternative"] = True
-        out_dict["mi_ammunition"] = True
-        out_dict["mi_arms"] = True
-        out_dict["mi_companion"] = True
-        out_dict["mi_consumable"] = True
-        out_dict["mi_familiar"] = True
-        out_dict["mi_feet"] = True
-        out_dict["mi_hands"] = True
-        out_dict["mi_head"] = True
-        out_dict["mi_head_neck"] = True
-        out_dict["mi_mount"] = True
-        out_dict["mi_neck"] = True
-        out_dict["mi_ring"] = True
-        out_dict["mi_waist"] = True
-        out_dict["mi_wondrous"] = True
+        settings.tiers = True
+        settings.armor = True
+        settings.equipment = True
+        settings.weapons = True
+        settings.mi_armor = True
+        settings.mi_implements = True
+        settings.mi_weapons = True
+        settings.mi_alchemical = True
+        settings.mi_alternative = True
+        settings.mi_ammunition = True
+        settings.mi_arms = True
+        settings.mi_companion = True
+        settings.mi_consumable = True
+        settings.mi_familiar = True
+        settings.mi_feet = True
+        settings.mi_hands = True
+        settings.mi_head = True
+        settings.mi_head_neck = True
+        settings.mi_mount = True
+        settings.mi_neck = True
+        settings.mi_ring = True
+        settings.mi_waist = True
+        settings.mi_wondrous = True
+    return
 
-    return out_dict
-
-
-def create_module(xml_in, filename_in, dm_module_in):
+def create_module(xml_in):
 
     # Use db.xml for DM only modules so they are not player readable
-    if dm_module_in:
+    if settings.npcs:
         db_filename = 'db.xml'
     else:
         db_filename = 'client.xml'
@@ -185,13 +211,13 @@ def create_module(xml_in, filename_in, dm_module_in):
     print('\ndefinition.xml written.')
 
     try:
-        with ZipFile(f'{filename_in}.mod', 'w', compression=ZIP_DEFLATED) as modzip:
+        with ZipFile(f'{settings.filename}.mod', 'w', compression=ZIP_DEFLATED) as modzip:
             modzip.write(db_filename)
             modzip.write('definition.xml')
             if os.path.isfile('thumbnail.png'):
                 modzip.write('thumbnail.png')
 
-        print(f'\n{filename_in}.mod generated!')
+        print(f'\n{settings.filename}.mod generated!')
         print('\nMove it to your Fantasy Grounds\modules directory')
     except Exception as e:
         print(f'\nError creating zipped .mod file:\n{e}')

@@ -6,11 +6,11 @@ from bs4 import BeautifulSoup, Tag, NavigableString
 
 from .create_db import create_db
 
-from .mod_helpers import mi_list_sorter
-from .mod_helpers import multi_level
-from .mod_helpers import power_construct
-from .mod_helpers import powers_format
-from .mod_helpers import props_format
+from helpers.mod_helpers import mi_list_sorter
+from helpers.mod_helpers import multi_level
+from helpers.mod_helpers import power_construct
+from helpers.mod_helpers import powers_format
+from helpers.mod_helpers import props_format
 
 def classes_list():
     cc_out = ['Cleric','Fighter','Rogue','Warlord','Wizard']
@@ -73,11 +73,11 @@ def create_power_library(id_in, list_in, suffix_in):
             lib_id = 'l' + str(id_in).rjust(3, '0')
 
             xml_out += (f'\t\t\t\t<{lib_id}-powers{class_camel}>\n')
+            xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}{suffix_in}</name>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
             xml_out += (f'\t\t\t\t\t\t<recordname>powerlists.powers{class_camel}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
-            xml_out += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}{suffix_in}</name>\n')
             xml_out += (f'\t\t\t\t</{lib_id}-powers{class_camel}>\n')
     return xml_out, id_in
 
@@ -215,12 +215,12 @@ def create_power_desc(list_in):
 
     return xml_out
 
-def extract_power_list(db_in, basic_flag):
+def extract_power_list(db_in):
     power_out = []
 
     # Add MBA/RBA/Bull Rush/Grab
     basic_dict = {}
-    if basic_flag:
+    if settings.basic:
 
         basic_dict["Name"] = 'Melee Basic Attack'
         basic_dict["Class"] = 'Basic Attack'
@@ -329,19 +329,36 @@ def extract_power_list(db_in, basic_flag):
 
         if class_str in cc_list:
             prefix_id = 2
-            prefix_str = 'Class'
+            prefix_str = 'Class Powers'
         elif class_str in race_list:
             prefix_id = 3
-            prefix_str = 'Racial'
+            prefix_str = 'Racial Powers'
         elif class_str in pp_list:
             prefix_id = 4
-            prefix_str = 'Paragon Path'
+            prefix_str = 'Paragon Path Powers'
         elif class_str in ed_list:
             prefix_id = 5
-            prefix_str = 'Epic Destiny'
+            prefix_str = 'Epic Destiny Powers'
         else:
             prefix_id = 1
             prefix_str = 'Powers'
+
+        # Work out whether to process this Power
+        process_flag = False
+        # all Powers
+        if settings.powers == True:
+            process_flag = True
+
+        # also export Racial powers if this run has Races
+        if settings.races and prefix_str == 'Racial Powers' and basename_str in settings.races_power_list:
+            process_flag = True
+
+        # also export Classes powers if this run has Classes
+        if settings.classes and prefix_str == 'Class Powers' and basename_str in settings.classes_power_list:
+            process_flag = True
+
+        if not process_flag:
+            continue
 
         # Published In - only one of these required per base power entry
         published_tag = parsed_html.find(class_='publishedIn').extract()

@@ -26,15 +26,17 @@ Options:
                      Alchemical Items, Rituals, Martial Practices and Powers.
   --max=MAX          export items of this level and below. Applies to NPCs,
                      Alchemical Items, Rituals, Martial Practices and Powers.
+  -t, --tiers        divide Magic Armor, Implements and Weapons, NPCs into
+                     Tiers
   -n, --npcs         export all NPCs (Monsters)
-  -a, --alchemy      exports Alchemical Item information
-  -r, --rituals      exports Ritual information
-  -m, --martial      exports Martial Practice information
+  -r, --races        export Races information
+  -c, --classes      export Classes information
   -f, --feats        exports Feat information
   -p, --powers       exports Power information
   -b, --basic        include Basic Attacks in Power export
-  -t, --tiers        divide Magic Armor, Implements and Weapons, NPCs into
-                     Tiers
+  -a, --alchemy      exports Alchemical Item information
+  -u, --rituals      exports Ritual information
+  -m, --martial      exports Martial Practice information
   -i, --items        export all item types (= --mundane & --magic)
   --mundane          export all mundane items
   --magic            export all magic items
@@ -52,8 +54,8 @@ You can use `run_all.bat` to create the following three Libraries, which include
 
 ```
 module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t
-module_maker.exe --filename 4E_Powers --library "4E Powers" -f -p -b
-module_maker.exe --filename 4E_Items --library "4E Items" -a -r -m -i -t
+module_maker.exe --filename 4E_PCs --library "4E PCs" -r -c -f -p -b
+module_maker.exe --filename 4E_Items --library "4E Items" -a -u -m -i -t
 ```
 
 Default filename/library will be `4E_Compendium` / `4E Compendium` if not supplied.

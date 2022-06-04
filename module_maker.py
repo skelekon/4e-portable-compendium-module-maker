@@ -14,6 +14,31 @@ from helpers.mod_helpers import create_mi_desc
 from helpers.mod_helpers import create_mi_library
 from helpers.mod_helpers import create_mi_table
 
+from helpers.monster_helpers import extract_monster_list
+from helpers.monster_helpers import create_monster_library
+from helpers.monster_helpers import create_monster_table
+from helpers.monster_helpers import create_monster_desc
+
+from helpers.races_helpers import extract_races_list
+from helpers.races_helpers import create_races_library
+from helpers.races_helpers import create_races_table
+from helpers.races_helpers import create_races_desc
+
+from helpers.classes_helpers import extract_classes_list
+from helpers.classes_helpers import create_classes_library
+from helpers.classes_helpers import create_classes_table
+from helpers.classes_helpers import create_classes_desc
+
+from helpers.feat_helpers import extract_feat_list
+from helpers.feat_helpers import create_feat_library
+from helpers.feat_helpers import create_feat_table
+from helpers.feat_helpers import create_feat_desc
+
+from helpers.power_helpers import extract_power_list
+from helpers.power_helpers import create_power_library
+from helpers.power_helpers import create_power_table
+from helpers.power_helpers import create_power_desc
+
 from helpers.alchemy_helpers import extract_alchemy_list
 from helpers.alchemy_helpers import create_alchemy_item_library
 from helpers.alchemy_helpers import create_formula_library
@@ -26,27 +51,11 @@ from helpers.ritual_helpers import create_ritual_library
 from helpers.ritual_helpers import create_ritual_table
 from helpers.ritual_helpers import create_ritual_desc
 
-from helpers.feat_helpers import extract_feat_list
-from helpers.feat_helpers import create_feat_library
-from helpers.feat_helpers import create_feat_table
-from helpers.feat_helpers import create_feat_desc
-
-from helpers.power_helpers import extract_power_list
-from helpers.power_helpers import create_power_library
-from helpers.power_helpers import create_power_table
-from helpers.power_helpers import create_power_desc
-
 from helpers.armor_helpers import armor_list_sorter
 from helpers.armor_helpers import create_armor_reference
 from helpers.armor_helpers import create_armor_library
 from helpers.armor_helpers import create_armor_table
 from helpers.armor_helpers import extract_armor_list
-
-from helpers.equipment_helpers import equipment_list_sorter
-from helpers.equipment_helpers import create_equipment_reference
-from helpers.equipment_helpers import create_equipment_library
-from helpers.equipment_helpers import create_equipment_table
-from helpers.equipment_helpers import extract_equipment_list
 
 from helpers.weapons_helpers import weapons_list_sorter
 from helpers.weapons_helpers import create_weapons_reference
@@ -54,16 +63,17 @@ from helpers.weapons_helpers import create_weapons_library
 from helpers.weapons_helpers import create_weapons_table
 from helpers.weapons_helpers import extract_weapons_list
 
+from helpers.equipment_helpers import equipment_list_sorter
+from helpers.equipment_helpers import create_equipment_reference
+from helpers.equipment_helpers import create_equipment_library
+from helpers.equipment_helpers import create_equipment_table
+from helpers.equipment_helpers import extract_equipment_list
+
 from helpers.mi_armor_helpers import extract_mi_armor_list
 
 from helpers.mi_other_helpers import extract_mi_other_list
 
 from helpers.mi_weaplements_helpers import extract_mi_weaplements_list
-
-from helpers.monster_helpers import extract_monster_list
-from helpers.monster_helpers import create_monster_library
-from helpers.monster_helpers import create_monster_table
-from helpers.monster_helpers import create_monster_desc
 
 if __name__ == '__main__':
 
@@ -71,48 +81,45 @@ if __name__ == '__main__':
     check_all_dbs()
 
     # Parse the command line arguments to set all needed values
-    argv_dict = parse_argv(sys.argv)
+    parse_argv(sys.argv)
 
 ##    # override settings for testing
-##    argv_dict["filename"] = '4E_Items'
-##    argv_dict["library"] = '4E Items'
-##    argv_dict["min"] = 0
-##    argv_dict["max"] = 5
-##    argv_dict["npcs"] = True
-##    argv_dict["feats"] = True
-##    argv_dict["powers"] = True
-##    argv_dict["basic"] = True
-##    argv_dict["alchemy"] = True
-##    argv_dict["rituals"] = True
-##    argv_dict["practices"] = True
-##    argv_dict["armor"] = True
-##    argv_dict["equipment"] = True
-##    argv_dict["weapons"] = True
-##    argv_dict["tiers"] = True
-##    argv_dict["mi_armor"] = True
-##    argv_dict["mi_implements"] = True
-##    argv_dict["mi_weapons"] = True
-##    argv_dict["mi_alchemical"] = True
-##    argv_dict["mi_alternative"] = True
-##    argv_dict["mi_ammunition"] = True
-##    argv_dict["mi_arms"] = True
-##    argv_dict["mi_companion"] = True
-##    argv_dict["mi_consumable"] = True
-##    argv_dict["mi_familiar"] = True
-##    argv_dict["mi_feet"] = True
-##    argv_dict["mi_hands"] = True
-##    argv_dict["mi_head"] = True
-##    argv_dict["mi_head_neck"] = True
-##    argv_dict["mi_mount"] = True
-##    argv_dict["mi_neck"] = True
-##    argv_dict["mi_ring"] = True
-##    argv_dict["mi_waist"] = True
-##    argv_dict["mi_wondrous"] = True
-
-    # Set global variables so they don't need to be passed everywhere
-    settings.library = argv_dict["library"]
-    settings.min_lvl = argv_dict["min"]
-    settings.max_lvl = argv_dict["max"]
+##    settings.filename = '4E_Items'
+##    settings.library = '4E Items'
+##    settings.min_lvl = 0
+##    settings.max_lvl = 5
+##    settings.tiers = True
+##    settings.npcs = True
+##    settings.races = True
+##    settings.classes = True
+##    settings.feats = True
+##    settings.powers = True
+##    settings.basic = True
+##    settings.alchemy = True
+##    settings.rituals = True
+##    settings.practices = True
+##    settings.armor = True
+##    settings.weapons = True
+##    settings.equipment = True
+##    settings.mi_armor = True
+##    settings.mi_implements = True
+##    settings.mi_weapons = True
+##    settings.mi_alchemical = True
+##    settings.mi_alternative = True
+##    settings.mi_ammunition = True
+##    settings.mi_arms = True
+##    settings.mi_companion = True
+##    settings.mi_consumable = True
+##    settings.mi_familiar = True
+##    settings.mi_feet = True
+##    settings.mi_hands = True
+##    settings.mi_head = True
+##    settings.mi_head_neck = True
+##    settings.mi_mount = True
+##    settings.mi_neck = True
+##    settings.mi_ring = True
+##    settings.mi_waist = True
+##    settings.mi_wondrous = True
 
     # Counter the determines the order of Library menu items
     menu_id = 0
@@ -120,7 +127,7 @@ if __name__ == '__main__':
     tier_list = []
     # Create a tier_list depending on whether the 'tiers' option is set or not
     # only include Tiers that overlap with the selected Min/Max level range
-    if argv_dict["tiers"]:
+    if settings.tiers:
         if settings.min_lvl <= 10:
             tier_list.append('Heroic')
         if settings.min_lvl <= 20 and settings.max_lvl >= 11:
@@ -133,28 +140,22 @@ if __name__ == '__main__':
     empty_tier_list = ['']
 
     # Set a suffix if a level restriction is in place
-    if argv_dict["min"] <= 1 and argv_dict["max"] == 10:
+    if settings.min_lvl <= 1 and settings.max_lvl == 10:
         suffix_str = ' (Heroic)'
-    elif argv_dict["min"] == 11 and argv_dict["max"] == 20:
+    elif settings.min_lvl == 11 and settings.max_lvl == 20:
         suffix_str = ' (Paragon)'
-    elif argv_dict["min"] == 21 and argv_dict["max"] >= 30:
+    elif settings.min_lvl == 21 and settings.max_lvl >= 30:
         suffix_str = ' (Epic)'
-    elif argv_dict["min"] != 0 or argv_dict["max"] != 99:
-        if argv_dict["min"] == argv_dict["max"]:
-            suffix_str = f' (Level {argv_dict["min"]})'
+    elif settings.min_lvl != 0 or settings.max_lvl != 99:
+        if settings.min_lvl == settings.max_lvl:
+            suffix_str = f' (Level {settings.min_lvl})'
         else:
-            suffix_str = f' (Levels {argv_dict["min"]}-{argv_dict["max"]})'
+            suffix_str = f' (Levels {settings.min_lvl}-{settings.max_lvl})'
     else:
         suffix_str = ''
 
-    # Check if any magic items are being exported as we'll need a <magicitemlist>
-    mi_flag = False
-    for arg in argv_dict:
-        if re.search(r'^mi_', arg) and argv_dict[arg]:
-            mi_flag = True
-
     # Check if any magic or mundane items are being exported as we need to read the item database
-    if mi_flag or argv_dict["armor"] or argv_dict["weapons"] or argv_dict["equipment"]:
+    if settings.magic or settings.items or settings.armor or settings.weapons or settings.equipment:
         # Pull Items data from Portable Compendium
         item_db = []
         try:
@@ -168,7 +169,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
     # Check if any types of rituals are being exported as we need to read the rituals database
-    if argv_dict["alchemy"] or argv_dict["rituals"] or argv_dict["practices"]:
+    if settings.alchemy or settings.rituals or settings.practices:
         # Pull Rituals data from Portable Compendium
         ritual_db = []
         try:
@@ -182,6 +183,60 @@ if __name__ == '__main__':
             sys.exit(0)
 
     #===========================
+    # RACES
+    #===========================
+
+    races_lib = ''
+    races_tbl = ''
+    races_desc = ''
+    racefeatures_desc = ''
+
+    if settings.races:
+        # Pull Races data from Portable Compendium
+        races_db = []
+        try:
+            races_db = create_db('sql\ddiRace.sql', "','")
+        except:
+            print('Error reading Races data source.')
+    
+        if not races_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        races_list = extract_races_list(races_db)
+        races_lib, menu_id = create_races_library(menu_id)
+        races_tbl = create_races_table(races_list)
+        races_desc, racefeatures_desc = create_races_desc(races_list)
+
+    #===========================
+    # CLASSES
+    #===========================
+
+    classes_lib = ''
+    classes_tbl = ''
+    classes_desc = ''
+    classfeatures_desc = ''
+
+    if settings.classes:
+        # Pull Races data from Portable Compendium
+        classes_db = []
+        try:
+            classes_db = create_db('sql\ddiClass.sql', "','")
+        except:
+            print('Error reading Races data source.')
+    
+        if not classes_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        classes_list = extract_classes_list(classes_db)
+        classes_lib, menu_id = create_classes_library(menu_id)
+        classes_tbl = create_classes_table(classes_list)
+        classes_desc, classfeatures_desc = create_classes_desc(classes_list)
+
+    #===========================
     # MONSTERS
     #===========================
 
@@ -190,13 +245,13 @@ if __name__ == '__main__':
     monster_desc = ''
     monster_tbl_list = ['NPCs By Letter', 'NPCs By Level', 'NPCs By Level/Role', 'NPCs By Role/Level']
 
-    if argv_dict["npcs"]:
-        # Pull Powers data from Portable Compendium
+    if settings.npcs:
+        # Pull Monsters data from Portable Compendium
         monster_db = []
         try:
             monster_db = create_db('sql\ddiMonster.sql', "','")
         except:
-            print('Error reading Power data source.')
+            print('Error reading Monster data source.')
     
         if not monster_db:
             print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
@@ -227,7 +282,7 @@ if __name__ == '__main__':
     alchemy_mi_desc = ''
     alchemy_power = ''
 
-    if argv_dict["alchemy"]:
+    if settings.alchemy:
         alchemy_list = extract_alchemy_list(ritual_db, 'Formula')
         alchemy_lib, menu_id = create_formula_library(menu_id, alchemy_list, 'Alchemical Formulas' + suffix_str)
         alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_list, 'Alchemical Items')
@@ -243,7 +298,7 @@ if __name__ == '__main__':
     ritual_tbl = ''
     ritual_desc = ''
 
-    if argv_dict["rituals"]:
+    if settings.rituals:
         ritual_list = extract_ritual_list(ritual_db, 'Ritual')
         ritual_lib, menu_id = create_ritual_library(menu_id, ritual_list, 'Rituals' + suffix_str)
         ritual_tbl = create_ritual_table(ritual_list, 'Rituals' + suffix_str)
@@ -257,7 +312,7 @@ if __name__ == '__main__':
     practice_tbl = ''
     practice_desc = ''
 
-    if argv_dict["practices"]:
+    if settings.practices:
         practice_list = extract_ritual_list(ritual_db, 'Practice')
         practice_lib, menu_id = create_ritual_library(menu_id, practice_list, 'Martial Practices' + suffix_str)
         practice_tbl = create_ritual_table(practice_list, 'Martial Practices' + suffix_str)
@@ -267,7 +322,7 @@ if __name__ == '__main__':
     # ARMOR
     #===========================
 
-    if argv_dict["armor"]:
+    if settings.armor:
 
         # Extract all the Armor data into a list
         armor_list = extract_armor_list(item_db)
@@ -286,7 +341,7 @@ if __name__ == '__main__':
     # WEAPONS
     #===========================
 
-    if argv_dict["weapons"]:
+    if settings.weapons:
 
         # Extract all the Equipment data into a list
         weapons_list = extract_weapons_list(item_db)
@@ -304,7 +359,7 @@ if __name__ == '__main__':
     # EQUIPMENT
     #===========================
 
-    if argv_dict["equipment"]:
+    if settings.equipment:
 
         # Extract all the Equipment data into a list
         equipment_list = extract_equipment_list(item_db)
@@ -322,7 +377,7 @@ if __name__ == '__main__':
     # MAGIC ARMOR
     #===========================
 
-    if argv_dict["mi_armor"]:
+    if settings.mi_armor:
 
         # Extract all the Equipment data into a list
         mi_armor_list = extract_mi_armor_list(item_db)
@@ -341,7 +396,7 @@ if __name__ == '__main__':
     # MAGIC IMPLEMENTS
     #===========================
 
-    if argv_dict["mi_implements"]:
+    if settings.mi_implements:
 
         # Extract all the Equipment data into a list
         mi_implements_list = extract_mi_weaplements_list(item_db, 'Implement')
@@ -360,7 +415,7 @@ if __name__ == '__main__':
     # MAGIC WEAPONS
     #===========================
 
-    if argv_dict["mi_weapons"]:
+    if settings.mi_weapons:
 
         # Extract all the Equipment data into a list
         mi_weapons_list = extract_mi_weaplements_list(item_db, 'Weapon')
@@ -390,11 +445,10 @@ if __name__ == '__main__':
     # Loop through all the different types of 'other' magic items
     # this is so they will each get their own menu item
     for mi in mi_other_list:
-
-        if argv_dict[mi["arg"]]:
-
+        # get the value for this mi variable from settings
+        if process_flag := eval(f'settings.{mi["arg"]}'):
             # Extract all the Equipment data into a list
-            mi_other_list = extract_mi_other_list(item_db, mi["filter"], argv_dict["alchemy"])
+            mi_other_list = extract_mi_other_list(item_db, mi["filter"])
 
             # Call the three functions to generate the _ref, _lib & _tbl xml
             mi_other_lib, menu_id = create_mi_library(menu_id, empty_tier_list, 'Magic Items - ' + mi["literal"] + suffix_str, mi["literal"])
@@ -419,7 +473,7 @@ if __name__ == '__main__':
     feat_tbl = ''
     feat_desc = ''
 
-    if argv_dict["feats"]:
+    if settings.feats:
         # Pull Feats data from Portable Compendium
         feat_db = []
         try:
@@ -445,7 +499,7 @@ if __name__ == '__main__':
     power_tbl = ''
     power_desc = ''
 
-    if argv_dict["powers"]:
+    if settings.powers or settings.races or settings.classes:
         # Pull Powers data from Portable Compendium
         power_db = []
         try:
@@ -458,7 +512,7 @@ if __name__ == '__main__':
             input('Press enter to close.')
             sys.exit(0)
 
-        power_list = extract_power_list(power_db, argv_dict["basic"])
+        power_list = extract_power_list(power_db)
         power_lib, menu_id = create_power_library(menu_id, power_list, suffix_str)
         power_tbl = create_power_table(power_list)
         power_desc = create_power_desc(power_list)
@@ -471,14 +525,17 @@ if __name__ == '__main__':
     export_xml =('<?xml version="1.0" encoding="ISO-8859-1"?>\n')
     export_xml +=('<root version="2.2">\n')
 
-    # LIBRARY
-    # These control the right-hand menu on the Modules screen
+######################### LIBRARY #########################
+# These control the right-hand menu on the Modules screen
+
     export_xml += ('\t<library>\n')
     export_xml += ('\t\t<lib4ecompendium>\n')
-    export_xml += (f'\t\t\t<name type="string">{argv_dict["library"]}</name>\n')
+    export_xml += (f'\t\t\t<name type="string">{settings.library}</name>\n')
     export_xml += ('\t\t\t<categoryname type="string">4E Core</categoryname>\n')
     export_xml += ('\t\t\t<entries>\n')
 
+    export_xml += races_lib
+    export_xml += classes_lib
     export_xml += monster_lib_xml
     export_xml += alchemy_lib
     export_xml += alchemy_item_lib
@@ -498,45 +555,60 @@ if __name__ == '__main__':
     export_xml += ('\t\t</lib4ecompendium>\n')
     export_xml += ('\t</library>\n')
 
-    # TABLES
-    # These control the tables that appears when you click on a Library menu
+######################### TABLES #########################
+# These control the tables that appears when you click on a Library menu
+
+    # RACESLIST
+    # this is the table of Races
+    if settings.races:
+        export_xml += ('\t<raceslist>\n')
+        export_xml += races_tbl
+        export_xml += ('\t</raceslist>\n')
+
+    # CLASSESLIST
+    # this is the table of Classes
+    if settings.classes:
+        export_xml += ('\t<classeslist>\n')
+        export_xml += classes_tbl
+        export_xml += ('\t</classeslist>\n')
 
     # MONSTERLISTS
-    # this is the table of Rituals
-    if argv_dict["npcs"]:
+    # this is the table of NPCs
+    if settings.npcs:
         export_xml += ('\t<monsterlists>\n')
         export_xml += monster_tbl_xml
         export_xml += ('\t</monsterlists>\n')
 
-    # tables for mundane items - the start and end tags are in the data string
+    # MUNDANE ITEMS
+    # the start and end tags are in the data string
     export_xml += armor_tbl
     export_xml += weapons_tbl
     export_xml += equipment_tbl
 
     # ALCCHEMYLISTS
     # this is the table of Alchemical Formulas
-    if argv_dict["alchemy"]:
+    if settings.alchemy:
         export_xml += ('\t<formulalists>\n')
         export_xml += alchemy_tbl
         export_xml += ('\t</formulalists>\n')
 
     # RITUALLISTS
     # this is the table of Rituals
-    if argv_dict["rituals"]:
+    if settings.rituals:
         export_xml += ('\t<rituallists>\n')
         export_xml += ritual_tbl
         export_xml += ('\t</rituallists>\n')
 
     # PRACTICELISTS
     # this is the table of Rituals
-    if argv_dict["practices"]:
+    if settings.practices:
         export_xml += ('\t<practicelists>\n')
         export_xml += practice_tbl
         export_xml += ('\t</practicelists>\n')
 
     # MAGICITEMLISTS
     # these are tables of magic items
-    if mi_flag or argv_dict["alchemy"]:
+    if settings.magic or settings.items or settings.alchemy:
         export_xml += ('\t<magicitemlists>\n')
         export_xml += mi_armor_tbl
         export_xml += mi_implements_tbl
@@ -547,21 +619,24 @@ if __name__ == '__main__':
 
     # FEAT LISTS
     # these are tables of character feats
-    if argv_dict["feats"]:
+    if settings.feats:
         export_xml += ('\t<featlists>\n')
         export_xml += feat_tbl
         export_xml += ('\t</featlists>\n')
 
     # POWER LISTS
     # these are tables of character powers
-    if argv_dict["powers"]:
+    if settings.powers or settings.races or settings.classes:
         export_xml += ('\t<powerlists>\n')
         export_xml += power_tbl
         export_xml += ('\t</powerlists>\n')
 
+
+######################### CARDS #########################
+
     # RITUALDESC
     # these are the individual ritual cards
-    if argv_dict["alchemy"] or argv_dict["rituals"] or argv_dict["practices"]:
+    if settings.alchemy or settings.rituals or settings.practices:
         export_xml += ('\t<ritualdesc>\n')
         export_xml += alchemy_desc
         export_xml += ritual_desc
@@ -571,18 +646,19 @@ if __name__ == '__main__':
     # REFERENCE
     # anything inside the <reference> tags will appear in the sidebar menus for Items, NPCs & Feats
     export_xml += ('\t<reference>\n')
+
     export_xml +=('\t\t<items>\n')
 
     # ITEMS
     # These are the individual cards for mundane items that appear when you click on a table entry
-    if argv_dict["weapons"] or argv_dict["armor"] or argv_dict["equipment"]:
+    if settings.weapons or settings.armor or settings.equipment:
         export_xml += armor_ref
         export_xml += weapons_ref
         export_xml += equipment_ref
 
     # MAGIC ITEMS
     # These are the individual cards for magic items that appear when you click on an Item table entry
-    if mi_flag or argv_dict["alchemy"]:
+    if settings.magic or settings.items or settings.alchemy:
         export_xml += mi_armor_desc
         export_xml += mi_implements_desc
         export_xml += mi_weapons_desc
@@ -593,23 +669,45 @@ if __name__ == '__main__':
 
     # NPCS
     # these are the individual cards for NPCs
-    if argv_dict["npcs"]:
+    if settings.npcs:
         export_xml += ('\t\t<npcs>\n')
         export_xml += monster_desc
         export_xml += ('\t\t</npcs>\n')
 
+    # RACES
+    # these are the individual cards for Races
+    if settings.races:
+        export_xml += ('\t\t<races>\n')
+        export_xml += races_desc
+        export_xml += ('\t\t</races>\n')
+
+    # CLASSES
+    # these are the individual cards for Classes
+    if settings.classes:
+        export_xml += ('\t\t<classes>\n')
+        export_xml += classes_desc
+        export_xml += ('\t\t</classes>\n')
+
     # FEATS
     # These are the individual cards for Feats
-    if argv_dict["feats"]:
+    if settings.feats:
         export_xml += ('\t\t<feats>\n')
         export_xml += feat_desc
         export_xml += ('\t\t</feats>\n')
 
     export_xml += ('\t</reference>\n')
 
+    # FEATUREDESC
+    # These are the individual cards for Racial and Class Features
+    if settings.races or settings.classes:
+        export_xml += ('\t<featuresdesc>\n')
+        export_xml += racefeatures_desc
+        export_xml += classfeatures_desc
+        export_xml += ('\t</featuresdesc>\n')
+
     # POWERDESC
-    # These are the individual cards for character, feat or item Powers
-    if mi_flag or argv_dict["feats"] or argv_dict["powers"] or argv_dict["alchemy"]:
+    # These are the individual cards for Character, Feat or Item Powers
+    if settings.magic or settings.items or settings.feats or settings.powers or settings.alchemy or settings.races or settings.classes:
         export_xml += ('\t<powerdesc>\n')
         export_xml += mi_armor_power
         export_xml += mi_implements_power
@@ -632,4 +730,4 @@ if __name__ == '__main__':
     export_xml = re.sub('[ﬂ]', 'fl', export_xml)    # ligature fl
     export_xml = re.sub('[ﬁ]', 'fi', export_xml)    # ligature fi
 
-    create_module(export_xml, argv_dict["filename"], argv_dict["npcs"])
+    create_module(export_xml)
