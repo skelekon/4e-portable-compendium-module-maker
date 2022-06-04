@@ -4,11 +4,6 @@ import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
 
-from .create_db import create_db
-
-from .mod_helpers import mi_list_sorter
-from .mod_helpers import multi_level
-
 def library_list_sorter(entry_in):
     class_id = entry_in["class_id"]
 

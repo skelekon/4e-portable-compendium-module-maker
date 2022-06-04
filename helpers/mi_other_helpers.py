@@ -20,11 +20,11 @@ def rituals_list():
         rituals_out.append(row["Name"].replace('\\', '').replace('’', '\'')) # Alchemist's Spark uses a different apostrophe
     return rituals_out
 
-def extract_mi_other_list(db_in, filter_in, alchemy_in):
+def extract_mi_other_list(db_in, filter_in):
     mi_other_out = []
 
     # List for checking for duplicates if Alchemy Items are also in the same export
-    if filter_in == 'Alchemical Item' and alchemy_in:
+    if filter_in == 'Alchemical Item' and settings.alchemy:
         try:
             ritual_list = rituals_list()
         except:
@@ -77,7 +77,7 @@ def extract_mi_other_list(db_in, filter_in, alchemy_in):
 
             # If this is for Alchemy Items, and Alchemical Formula rituals are part ofthis export
             # then skip over any items that will be duplicated in Alchemical Items
-            if filter_in == 'Alchemical Item' and alchemy_in:
+            if filter_in == 'Alchemical Item' and settings.alchemy:
                 if name_str in ritual_list:
                     alchemy_flag = True
 

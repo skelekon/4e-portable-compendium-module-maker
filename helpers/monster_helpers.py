@@ -339,7 +339,7 @@ def format_power(soup_in, id_in):
             layout_1 = True
     # may be in parentheses after the power name
     if action_str == '':
-        if action_match := re.search(r'(Free.*?|Immediate.*?|Minor.*?|Move.*?|Opportunity.*?|Standard.*?)[,;)]', header_tag.text, re.IGNORECASE):
+        if action_match := re.search(r'(Free.*?|Immediate.*?|Minor.*?|Move.*?|Opportunity.*?|Standard.*?)(, when|;|\))', header_tag.text, re.IGNORECASE):
             action_str += ', ' if action_str != '' else ''
             action_str += action_match.group(1).title()
             layout_1 = False
@@ -347,7 +347,7 @@ def format_power(soup_in, id_in):
         # also check for Sustain and Trigger conditions as they will be in here
         if action_match := re.search(r'(Sustain.*?)[,)$]', header_tag.text, re.IGNORECASE):
             sustain_str += action_match.group(1).title() + '\\n'
-        if action_match := re.search(r'(When.*?)[,)$]', header_tag.text, re.IGNORECASE):
+        if action_match := re.search(r'(When.*?)[;)$]', header_tag.text, re.IGNORECASE):
             trigger_str += 'Trigger: ' + action_match.group(1)[0:1].upper() + action_match.group(1)[1:] + '\\n'
 
     # Keywords
@@ -393,7 +393,7 @@ def format_power(soup_in, id_in):
     shortdescription_str = re.sub(r'(^;*\s*|\\n$)', '', shortdescription_str)
 
     # Range
-    if ';' in shortdescription_str:
+    if ';' in shortdescription_str and shortdescription_str[0:7] != 'Effect:':
         if 'Melee ' in shortdescription_str:
             sections = shortdescription_str.split("; ", 1)
             if len(sections) == 2:
@@ -475,6 +475,7 @@ def extract_monster_list(db_in):
         role_str = row["Role"].replace('\\', '')
 
 #        if name_str not in ['Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
+#        if name_str not in ['Berbalang']:
 #            continue
 #        print('\n' + name_str)
 
