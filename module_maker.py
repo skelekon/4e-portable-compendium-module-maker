@@ -183,6 +183,40 @@ if __name__ == '__main__':
             sys.exit(0)
 
     #===========================
+    # MONSTERS
+    #===========================
+
+    monster_lib_xml = ''
+    monster_tbl_xml = ''
+    monster_desc = ''
+    monster_tbl_list = ['NPCs By Letter', 'NPCs By Level', 'NPCs By Level/Role', 'NPCs By Role/Level']
+
+    if settings.npcs:
+        # Pull Monsters data from Portable Compendium
+        monster_db = []
+        try:
+            monster_db = create_db('sql\ddiMonster.sql', "','")
+        except:
+            print('Error reading Monster data source.')
+    
+        if not monster_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        # Only need to get the list of monsters once
+        monster_list = extract_monster_list(monster_db)
+
+        # Loop through the different monster table types to build the library menus and tables
+        for tbl_name in monster_tbl_list:
+            monster_lib, menu_id = create_monster_library(menu_id, tier_list, tbl_name + suffix_str)
+            monster_tbl = create_monster_table(monster_list, tier_list, tbl_name + suffix_str)
+            monster_lib_xml += monster_lib
+            monster_tbl_xml += monster_tbl
+
+        monster_desc = create_monster_desc(monster_list)
+
+    #===========================
     # RACES
     #===========================
 
@@ -237,38 +271,56 @@ if __name__ == '__main__':
         classes_desc, classfeatures_desc = create_classes_desc(classes_list)
 
     #===========================
-    # MONSTERS
+    # FEATS
     #===========================
 
-    monster_lib_xml = ''
-    monster_tbl_xml = ''
-    monster_desc = ''
-    monster_tbl_list = ['NPCs By Letter', 'NPCs By Level', 'NPCs By Level/Role', 'NPCs By Role/Level']
+    feat_lib = ''
+    feat_tbl = ''
+    feat_desc = ''
 
-    if settings.npcs:
-        # Pull Monsters data from Portable Compendium
-        monster_db = []
+    if settings.feats:
+        # Pull Feats data from Portable Compendium
+        feat_db = []
         try:
-            monster_db = create_db('sql\ddiMonster.sql', "','")
+            feat_db = create_db('sql\ddiFeat.sql', "','")
         except:
-            print('Error reading Monster data source.')
-    
-        if not monster_db:
+            print('Error reading Feat data source.')
+
+        if not feat_db:
             print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
             input('Press enter to close.')
             sys.exit(0)
 
-        # Only need to get the list of monsters once
-        monster_list = extract_monster_list(monster_db)
+        feat_list = extract_feat_list(feat_db)
+        feat_lib, menu_id = create_feat_library(menu_id, feat_list)
+        feat_tbl = create_feat_table(feat_list)
+        feat_desc = create_feat_desc(feat_list)
 
-        # Loop through the different monster table types to build the library menus and tables
-        for tbl_name in monster_tbl_list:
-            monster_lib, menu_id = create_monster_library(menu_id, tier_list, tbl_name + suffix_str)
-            monster_tbl = create_monster_table(monster_list, tier_list, tbl_name + suffix_str)
-            monster_lib_xml += monster_lib
-            monster_tbl_xml += monster_tbl
+    #===========================
+    # POWERS
+    #===========================
 
-        monster_desc = create_monster_desc(monster_list)
+    power_lib = ''
+    power_tbl = ''
+    power_desc = ''
+
+    if settings.powers or settings.races or settings.classes:
+        # Pull Powers data from Portable Compendium
+        power_db = []
+        try:
+            power_db = create_db('sql\ddiPower.sql', "','")
+        except:
+            print('Error reading Power data source.')
+    
+        if not power_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        power_list = extract_power_list(power_db)
+        power_lib, menu_id = create_power_library(menu_id, power_list, suffix_str)
+        power_tbl = create_power_table(power_list)
+        power_desc = create_power_desc(power_list)
 
     #===========================
     # ALCHEMY
@@ -466,58 +518,6 @@ if __name__ == '__main__':
             mi_other_power_xml += mi_other_power
 
     #===========================
-    # FEATS
-    #===========================
-
-    feat_lib = ''
-    feat_tbl = ''
-    feat_desc = ''
-
-    if settings.feats:
-        # Pull Feats data from Portable Compendium
-        feat_db = []
-        try:
-            feat_db = create_db('sql\ddiFeat.sql', "','")
-        except:
-            print('Error reading Feat data source.')
-
-        if not feat_db:
-            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
-            input('Press enter to close.')
-            sys.exit(0)
-
-        feat_list = extract_feat_list(feat_db)
-        feat_lib, menu_id = create_feat_library(menu_id, feat_list)
-        feat_tbl = create_feat_table(feat_list)
-        feat_desc = create_feat_desc(feat_list)
-
-    #===========================
-    # POWERS
-    #===========================
-
-    power_lib = ''
-    power_tbl = ''
-    power_desc = ''
-
-    if settings.powers or settings.races or settings.classes:
-        # Pull Powers data from Portable Compendium
-        power_db = []
-        try:
-            power_db = create_db('sql\ddiPower.sql', "','")
-        except:
-            print('Error reading Power data source.')
-    
-        if not power_db:
-            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
-            input('Press enter to close.')
-            sys.exit(0)
-
-        power_list = extract_power_list(power_db)
-        power_lib, menu_id = create_power_library(menu_id, power_list, suffix_str)
-        power_tbl = create_power_table(power_list)
-        power_desc = create_power_desc(power_list)
-
-    #===========================
     # XML
     #===========================
 
@@ -534,9 +534,11 @@ if __name__ == '__main__':
     export_xml += ('\t\t\t<categoryname type="string">4E Core</categoryname>\n')
     export_xml += ('\t\t\t<entries>\n')
 
+    export_xml += monster_lib_xml
     export_xml += races_lib
     export_xml += classes_lib
-    export_xml += monster_lib_xml
+    export_xml += feat_lib
+    export_xml += power_lib
     export_xml += alchemy_lib
     export_xml += alchemy_item_lib
     export_xml += ritual_lib
@@ -548,15 +550,20 @@ if __name__ == '__main__':
     export_xml += mi_implements_lib
     export_xml += mi_weapons_lib
     export_xml += mi_other_lib_xml
-    export_xml += feat_lib
-    export_xml += power_lib
 
     export_xml += ('\t\t\t</entries>\n')
     export_xml += ('\t\t</lib4ecompendium>\n')
     export_xml += ('\t</library>\n')
 
 ######################### TABLES #########################
-# These control the tables that appears when you click on a Library menu
+# These are the tables that appears when you click on a Library menu
+
+    # MONSTERLISTS
+    # this is the table of NPCs
+    if settings.npcs:
+        export_xml += ('\t<monsterlists>\n')
+        export_xml += monster_tbl_xml
+        export_xml += ('\t</monsterlists>\n')
 
     # RACESLIST
     # this is the table of Races
@@ -572,18 +579,19 @@ if __name__ == '__main__':
         export_xml += classes_tbl
         export_xml += ('\t</classeslist>\n')
 
-    # MONSTERLISTS
-    # this is the table of NPCs
-    if settings.npcs:
-        export_xml += ('\t<monsterlists>\n')
-        export_xml += monster_tbl_xml
-        export_xml += ('\t</monsterlists>\n')
+    # FEAT LISTS
+    # these are tables of character feats
+    if settings.feats:
+        export_xml += ('\t<featlists>\n')
+        export_xml += feat_tbl
+        export_xml += ('\t</featlists>\n')
 
-    # MUNDANE ITEMS
-    # the start and end tags are in the data string
-    export_xml += armor_tbl
-    export_xml += weapons_tbl
-    export_xml += equipment_tbl
+    # POWER LISTS
+    # these are tables of character powers
+    if settings.powers or settings.races or settings.classes:
+        export_xml += ('\t<powerlists>\n')
+        export_xml += power_tbl
+        export_xml += ('\t</powerlists>\n')
 
     # ALCCHEMYLISTS
     # this is the table of Alchemical Formulas
@@ -606,6 +614,12 @@ if __name__ == '__main__':
         export_xml += practice_tbl
         export_xml += ('\t</practicelists>\n')
 
+    # MUNDANE ITEMS
+    # the start and end tags are in the data string
+    export_xml += armor_tbl
+    export_xml += weapons_tbl
+    export_xml += equipment_tbl
+
     # MAGICITEMLISTS
     # these are tables of magic items
     if settings.magic or settings.items or settings.alchemy:
@@ -617,55 +631,11 @@ if __name__ == '__main__':
         export_xml += alchemy_item_tbl
         export_xml += ('\t</magicitemlists>\n')
 
-    # FEAT LISTS
-    # these are tables of character feats
-    if settings.feats:
-        export_xml += ('\t<featlists>\n')
-        export_xml += feat_tbl
-        export_xml += ('\t</featlists>\n')
-
-    # POWER LISTS
-    # these are tables of character powers
-    if settings.powers or settings.races or settings.classes:
-        export_xml += ('\t<powerlists>\n')
-        export_xml += power_tbl
-        export_xml += ('\t</powerlists>\n')
-
-
 ######################### CARDS #########################
-
-    # RITUALDESC
-    # these are the individual ritual cards
-    if settings.alchemy or settings.rituals or settings.practices:
-        export_xml += ('\t<ritualdesc>\n')
-        export_xml += alchemy_desc
-        export_xml += ritual_desc
-        export_xml += practice_desc
-        export_xml += ('\t</ritualdesc>\n')
 
     # REFERENCE
     # anything inside the <reference> tags will appear in the sidebar menus for Items, NPCs & Feats
-    export_xml += ('\t<reference>\n')
-
-    export_xml +=('\t\t<items>\n')
-
-    # ITEMS
-    # These are the individual cards for mundane items that appear when you click on a table entry
-    if settings.weapons or settings.armor or settings.equipment:
-        export_xml += armor_ref
-        export_xml += weapons_ref
-        export_xml += equipment_ref
-
-    # MAGIC ITEMS
-    # These are the individual cards for magic items that appear when you click on an Item table entry
-    if settings.magic or settings.items or settings.alchemy:
-        export_xml += mi_armor_desc
-        export_xml += mi_implements_desc
-        export_xml += mi_weapons_desc
-        export_xml += mi_other_desc_xml
-        export_xml += alchemy_mi_desc
-
-    export_xml +=('\t\t</items>\n')
+    export_xml += ('\t<reference static="true">\n')
 
     # NPCS
     # these are the individual cards for NPCs
@@ -695,6 +665,26 @@ if __name__ == '__main__':
         export_xml += feat_desc
         export_xml += ('\t\t</feats>\n')
 
+    export_xml +=('\t\t<items>\n')
+
+    # ITEMS
+    # These are the individual cards for mundane items that appear when you click on a table entry
+    if settings.weapons or settings.armor or settings.equipment:
+        export_xml += armor_ref
+        export_xml += weapons_ref
+        export_xml += equipment_ref
+
+    # MAGIC ITEMS
+    # These are the individual cards for magic items that appear when you click on an Item table entry
+    if settings.magic or settings.items or settings.alchemy:
+        export_xml += mi_armor_desc
+        export_xml += mi_implements_desc
+        export_xml += mi_weapons_desc
+        export_xml += mi_other_desc_xml
+        export_xml += alchemy_mi_desc
+
+    export_xml +=('\t\t</items>\n')
+
     export_xml += ('\t</reference>\n')
 
     # FEATUREDESC
@@ -716,6 +706,15 @@ if __name__ == '__main__':
         export_xml += power_desc
         export_xml += alchemy_power
         export_xml += ('\t</powerdesc>\n')
+
+    # RITUALDESC
+    # these are the individual ritual cards
+    if settings.alchemy or settings.rituals or settings.practices:
+        export_xml += ('\t<ritualdesc>\n')
+        export_xml += alchemy_desc
+        export_xml += ritual_desc
+        export_xml += practice_desc
+        export_xml += ('\t</ritualdesc>\n')
 
     # CLOSE
     export_xml += ('</root>\n')

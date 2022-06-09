@@ -4,7 +4,7 @@ import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
 
-from .create_db import create_db
+from helpers.create_db import create_db
 
 # This function return levels for all 25 conjured monsters since it's lacking in their original description/type
 def get_conjured_level(name):
@@ -61,6 +61,7 @@ def get_conjured_level(name):
     else:
         return ''
 
+# this allows for variable sorting by overwriting the GroupID value
 def monster_list_sorter(entry_in):
     group_id = entry_in["group_id"]
     name = entry_in["name"]
@@ -93,6 +94,7 @@ def create_monster_library(id_in, tier_list, name_in):
 
     return xml_out, id_in
 
+# This controls the table that appears when you click on a Library menu
 def create_monster_table(list_in, tier_list, name_in):
     xml_out = ''
 
@@ -102,23 +104,38 @@ def create_monster_table(list_in, tier_list, name_in):
     class_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
 
     # Populate the sort order and sub-heading fields according to which table is being built
-    for monster_dict in list_in:
-        # Generate Level values
-        level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
-        if level_str == '':
-            level_str = '0'
-        level_id = level_str.rjust(2, '0')
-
-        if re.search('NPCs By Letter', name_in):
+    if re.search(r'NPCs By Letter', name_in):
+        for monster_dict in list_in:
             monster_dict["group_id"] = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])[0:1].upper()
             monster_dict["group_str"] = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])[0:1].upper()
-        elif re.search('NPCs By Level[ $]', name_in):
+    elif re.search(r'NPCs By Level( |$)', name_in):
+        for monster_dict in list_in:
+            # Generate Level values
+            level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
+            if level_str == '':
+                level_str = '0'
+            level_id = level_str.rjust(2, '0')
+
             monster_dict["group_id"] = level_id
             monster_dict["group_str"] = 'Level ' + level_str
-        elif re.search('NPCs By Level/Role', name_in):
+    elif re.search(r'NPCs By Level/Role', name_in):
+        for monster_dict in list_in:
+            # Generate Level values
+            level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
+            if level_str == '':
+                level_str = '0'
+            level_id = level_str.rjust(2, '0')
+
             monster_dict["group_id"] =  level_id + re.sub('[^a-zA-Z0-9_]', '', monster_dict["levelrole"])
             monster_dict["group_str"] = monster_dict["levelrole"]
-        elif re.search('NPCs By Role/Level', name_in):
+    elif re.search(r'NPCs By Role/Level', name_in):
+        for monster_dict in list_in:
+            # Generate Level values
+            level_str = re.sub('[^0-9]', '', monster_dict["levelrole"])
+            if level_str == '':
+                level_str = '0'
+            level_id = level_str.rjust(2, '0')
+
             # Generate Role/Modifier/Leader values
             role_str = ''
             modifier_str = ''
@@ -150,11 +167,9 @@ def create_monster_table(list_in, tier_list, name_in):
 
         tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
 
-
         previous_group = ''
 
         # Monster List
-        # This controls the table that appears when you click on a Library menu
 
         # Open new Class (new Table)
         xml_out += (f'\t\t<npcs{class_camel}{tier_camel}>\n')
@@ -189,10 +204,10 @@ def create_monster_table(list_in, tier_list, name_in):
                     # Close previous Group
                     if previous_group != '':
                         xml_out += ('\t\t\t\t\t</monsters>\n')
-                        xml_out += (f'\t\t\t\t</{class_camel}-{previous_group}>\n')
+                        xml_out += (f'\t\t\t\t</npcs{previous_group}>\n')
 
                     # Open new Group
-                    xml_out += (f'\t\t\t\t<{class_camel}-{monster_dict["group_id"]}>\n')
+                    xml_out += (f'\t\t\t\t<npcs{monster_dict["group_id"]}>\n')
                     xml_out += (f'\t\t\t\t<description type="string">{monster_dict["group_str"]}</description>\n')
                     xml_out += ('\t\t\t\t\t<monsters>\n')
 
@@ -209,7 +224,7 @@ def create_monster_table(list_in, tier_list, name_in):
         # Close final Group if there was at least one entry
         if group_flag:
             xml_out += ('\t\t\t\t\t</monsters>\n')
-            xml_out += (f'\t\t\t\t</{class_camel}-{previous_group}>\n')
+            xml_out += (f'\t\t\t\t</npcs{previous_group}>\n')
 
         # Close final Class
         xml_out += ('\t\t\t</groups>\n')
@@ -474,8 +489,7 @@ def extract_monster_list(db_in):
         level_str = row["Level"].replace('\\', '')
         role_str = row["Role"].replace('\\', '')
 
-#        if name_str not in ['Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
-#        if name_str not in ['Berbalang']:
+#        if name_str not in ['Berbalang', 'Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
 #            continue
 #        print('\n' + name_str)
 
