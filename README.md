@@ -54,7 +54,7 @@ You can use `run_all.bat` to create the following three Libraries, which include
 
 ```
 module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t
-module_maker.exe --filename 4E_PCs --library "4E PCs" -r -c -f -p -b
+module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -r -c -f -p -b
 module_maker.exe --filename 4E_Items --library "4E Items" -a -u -m -i -t
 ```
 

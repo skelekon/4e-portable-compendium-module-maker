@@ -189,13 +189,17 @@ def create_power_desc(list_in):
         return xml_out
 
     entry_str = ''
-    linked_powers = ''
     section_str = ''
     name_lower = ''
 
     # Create individual item entries
     for power_dict in sorted(list_in, key=power_list_sorter):
-        linked_powers = create_linkedpowers(power_dict["basename"], power_dict["name"], list_in)
+
+        # Only the first power from an entry gets the linked powers, otherwise it causes an infinite loop when adding to a PC sheet
+        if power_dict["power_id"] == 1:
+            linked_powers = create_linkedpowers(power_dict["basename"], power_dict["name"], list_in)
+        else:
+            linked_powers = ''
 
         name_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
 
@@ -318,8 +322,7 @@ def extract_power_list(db_in):
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
 
-##        if basename_str not in ['Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
-##        if basename_str not in ['Aggressive Lunge']:
+##        if basename_str not in ['Aggressive Lunge', 'Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
 ##            continue
 ##        print(basename_str)        
 
@@ -525,6 +528,7 @@ def extract_power_list(db_in):
                     export_dict["keywords"] = keywords_str
                     ## add a suffix if a secondary power has the same name as the primary - I don't think this ever occurs
                     export_dict["name"] = name_str if name_str != previous_name else name_str + str(power_id)
+                    export_dict["power_id"] = power_id
                     export_dict["prefix"] = prefix_str
                     export_dict["prefix_id"] = prefix_id
                     export_dict["published"] = published_str
