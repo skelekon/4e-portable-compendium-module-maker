@@ -57,6 +57,9 @@ def extract_mi_weaplements_list(db_in, filter_in):
         if section_id < 99:
 ##            print(str(i) + ' ' + name_str)
 
+#            if name_str not in ['Blackshroud Weapon']:
+#                continue
+
             # Bonus / Cost / Level
             multi_bonus = True
             try:
@@ -106,11 +109,19 @@ def extract_mi_weaplements_list(db_in, filter_in):
                 if critical_str != '':
                     if multi_bonus == True:
                         for item in multi_list:
-                            critical_test = re.search(r'(\+)(\d)(d)(\d{1,2})(.*)per plus(.*)', critical_str)
+                            item["critical"] = critical_str
+                            critical_test = re.search(r'(.*)(\d)(d)(\d{1,2})(.*)per plus(.*)', item["critical"])
                             if critical_test != None:
-                                item['critical'] = critical_test.group(1) + str(int(critical_test.group(2)) * int(item["bonus"])) + critical_test.group(3) + critical_test.group(4) + critical_test.group(5) + critical_test.group(6)
-                            else:
-                                item["critical"] = critical_str
+                                item["critical"] = critical_test.group(1) + str(int(critical_test.group(2)) * int(item["bonus"])) + critical_test.group(3) + critical_test.group(4) + critical_test.group(5) + critical_test.group(6)
+                            item["critical"] = re.sub('damage', 'critical damage', item["critical"])
+#                            critical_test = re.search(r'(\+)(\d)(d)(\d{1,2})(.*)per plus(.*)', critical_str)
+#                            critical_test = re.search(r'(\+)(\d)(d)(\d{1,2})(.*)damage(.*)per plus(.*)', critical_str)
+#                            if critical_test != None:
+#                                item['critical'] = critical_test.group(1) + str(int(critical_test.group(2)) * int(item["bonus"])) + critical_test.group(3) + critical_test.group(4) + critical_test.group(5) + critical_test.group(6)
+#                                item['critical'] = (critical_test.group(1) + str(int(critical_test.group(2)) * int(item["bonus"])) + critical_test.group(3)\
+#                                                   + critical_test.group(4) + critical_test.group(5) + 'critical damage' + critical_test.group(6) + critical_test.group(7)).strip()
+#                            else:
+                            
 
             # Enhancement
             if enhancement_lbl := parsed_html.find(string=re.compile('^(Enhancement|Enhancement Bonus):$')):

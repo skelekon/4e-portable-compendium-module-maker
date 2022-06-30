@@ -4,6 +4,8 @@ import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
 
+from .mod_helpers import title_format
+
 def weapons_list_sorter(entry_in):
     section_id = entry_in["section_id"]
     name = entry_in["name"]
@@ -136,7 +138,7 @@ def extract_weapons_list(db_in):
         parsed_html = BeautifulSoup(html, features="html.parser")
 
         # Retrieve the data with dedicated columns
-        name_str =  row['Name'].replace('\\', '').title()
+        name_str =  title_format(row['Name'].replace('\\', ''))
 
         # Initialize the other tag data
         category_str = ''

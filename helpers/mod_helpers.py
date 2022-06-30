@@ -383,7 +383,7 @@ def create_mi_table(list_in, tier_list, item_in):
 
             level_str = str(entry_dict["level"]).rjust(2, '0')
             name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
-            # Remove '(Level nn)' as the table alreasy has a level column
+            # Remove '(Level nn)' as the table already has a level column
             name_display = re.sub(r'\s*\(Level\s*[0-9]*\)', '', entry_dict["name"])
 
             #Check for new section

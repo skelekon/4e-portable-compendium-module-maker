@@ -76,7 +76,7 @@ def extract_mi_armor_list(db_in):
 
             # Cat/Subclass (Armor)
             if cat_lbl := parsed_html.find(string='Armor: '):
-                cat_str = re.sub('\s\s', ' ', cat_lbl.parent.next_sibling.strip()).title()
+                cat_str = re.sub('\s\s', ' ', cat_lbl.parent.next_sibling.strip()).title().replace(' Or ', ' or ')
                 subclass_str = cat_str
 
             # Powers
