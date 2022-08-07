@@ -153,7 +153,7 @@ def create_monster_table(list_in, tier_list, name_in):
             leader_id = re.sub('[^a-zA-Z0-9_]', '', leader_str)[0:3].ljust(3, '-')
 
             monster_dict["group_id"] =  role_id + level_id + modifier_id + leader_id
-            monster_dict["group_str"] = role_str + ' Level ' + level_str + ' ' + modifier_str + ' ' + leader_str
+            monster_dict["group_str"] = (role_str + ' Level ' + level_str + ' ' + modifier_str + ' ' + leader_str).strip()
 
     # Loop through the Tier list that has been built for this export
     for t in tier_list:
@@ -379,7 +379,7 @@ def format_power(soup_in, id_in):
     if layout_1 == True:
         if recharge_img := header_tag.find('img', src=re.compile(r'/x.gif')):
             for rech_tag in recharge_img.find_all_next(text=True):
-                recharge_str += ''.join(rech_tag.text)
+                recharge_str += (''.join(rech_tag.text)).strip()
     elif action_match := re.search(r'(At-will|Daily|Encounter)', header_tag.text, re.IGNORECASE):
             recharge_str = action_match.group(1).title()
 
