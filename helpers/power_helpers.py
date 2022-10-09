@@ -13,7 +13,9 @@ from helpers.mod_helpers import powers_format
 from helpers.mod_helpers import props_format
 
 def classes_list():
+    # These classes only have subclasses listed, so we need a 'base' version for string matching
     cc_out = ['Cleric','Fighter','Rogue','Warlord','Wizard']
+
     cc_db = []
     cc_db = create_db('sql\ddiClass.sql', "','")
     for i, row in enumerate(cc_db, start=1):
@@ -322,9 +324,9 @@ def extract_power_list(db_in):
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
 
-##        if basename_str not in ['Aggressive Lunge', 'Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
-##            continue
-##        print(basename_str)        
+#        if basename_str not in ['Iron Fist', 'Psychic Anomaly', 'Eyes of the Vestige']: #, 'Aggressive Lunge', 'Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
+#            continue
+#        print(basename_str)        
 
         # sort order for the Library list based on the broad class of the power
         prefix_id = 0
@@ -436,7 +438,7 @@ def extract_power_list(db_in):
                 # Recharge
                 if recharge_tag := power_html.select_one('.powerstat > b'):
                     recharge_str = recharge_tag.text
-                # small number of powers have alternate capitlaization
+                # small number of powers have alternate capitalization
                 if recharge_str == 'At-will':
                     recharge_str = 'At-Will'
 
@@ -459,23 +461,33 @@ def extract_power_list(db_in):
                 power_bullet = powerstat_lbl.find('img', attrs={'src': 'images/bullet.gif'})
                 if power_bullet:
                     for tag in power_bullet.next_siblings:
-                        if tag.name == "br":
+                        if tag.name == 'br':
                             break
-                        elif tag.name == "b":
+                        elif tag.name == 'b':
                             keywords.append(tag.text)
                 keywords_str = ", ".join(keywords)
 
                 # Description
-                if description_tags := powerstat_lbl.find_all_next(class_=['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']):
-                    for tag in description_tags:
-                        # remove p classnames
-                        del tag['class']
-                    description_str = ''.join(map(str, description_tags))
-                    # power description doesn't honor <br/> tags, so replace with new paragraphs
-                    description_str = re.sub('<br/>', '</p><p>', description_str)
+                description_tags = []
+                for desc_tag in powerstat_lbl.find_all_next():
+                    if desc_tag.has_attr('class'):
+                        if desc_tag.get('class')[0] in ['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']:
+                            description_tags.append(desc_tag)
+                    # looking for Augment labels as they are not in the usual classes
+                    elif desc_tag.name == 'b':
+                        if re.search(r'^Augment [0-9]', desc_tag.text):
+                            description_tags.append(desc_tag)
+                for tag in description_tags:
+                    # remove p classnames
+                    del tag['class']
+                description_str = ''.join(map(str, description_tags))
+                # wrap any Augment X in <p> tags, because it's easier to do once it's a string instead of messing with tags
+                description_str = re.sub(r'(<b>Augment [0-9]</b>)', r'<p>\1</p>', description_str)
+                # power description doesn't honor <br/> tags, so replace with new paragraphs
+                description_str = re.sub('<br/>', '</p><p>', description_str)
 
                 # Short Description
-                # remove tags
+                # remove tags after replacing new paragraphs with newlines
                 shortdescription_str = re.sub('<.*?>', '', description_str.replace('</p><p>', '\n'))
 
                 # Group - this is the subheading on the Powers table
