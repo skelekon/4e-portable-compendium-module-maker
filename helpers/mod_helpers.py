@@ -36,7 +36,7 @@ def clean_formattedtext(text_in):
 
 def check_all_dbs():
     file_list = ['sql\ddiClass.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql', 'sql\ddiParagonPath.sql', 'sql\ddiMonster.sql',\
-                 'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql']
+                 'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql', 'sql\ddiTrap.sql']
     for f in file_list:
         if not os.path.isfile(f):
             print('Missing File: ' + f)
@@ -55,6 +55,7 @@ def parse_argv(args_in):
     parser.add_option('--max', action='store', dest='max', help='export items of this level and below. Applies to NPCs, Alchemical Items, Rituals, Martial Practices and Powers.')
     parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons, NPCs into Tiers')
     parser.add_option('-n', '--npcs', action='store_true', dest='npcs', help='export all NPCs (Monsters)')
+    parser.add_option('-T', '--traps', action='store_true', dest='traps', help='export all Traps and Hazards')
     parser.add_option('-r', '--races', action='store_true', dest='races', help='export Races information')
     parser.add_option('-c', '--classes', action='store_true', dest='classes', help='export Classes information')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='exports Feat information')
@@ -99,6 +100,7 @@ def parse_argv(args_in):
     settings.max_lvl = int(options.max) if int(options.min) <= 99 else 99
     settings.tiers = options.tiers if options.tiers != None else False
     settings.npcs = options.npcs if options.npcs != None else False
+    settings.traps = options.traps if options.traps != None else False
     settings.races = options.races if options.races != None else False
     settings.classes = options.classes if options.classes != None else False
     settings.feats = options.feats if options.feats != None else False
@@ -194,7 +196,7 @@ def parse_argv(args_in):
 def create_module(xml_in):
 
     # Use db.xml for DM only modules so they are not player readable
-    if settings.npcs:
+    if settings.npcs or settings.traps:
         db_filename = 'db.xml'
     else:
         db_filename = 'client.xml'

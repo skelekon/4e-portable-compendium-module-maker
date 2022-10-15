@@ -19,6 +19,11 @@ from helpers.monster_helpers import create_monster_library
 from helpers.monster_helpers import create_monster_table
 from helpers.monster_helpers import create_monster_desc
 
+from helpers.traps_helpers import extract_trap_list
+from helpers.traps_helpers import create_trap_library
+from helpers.traps_helpers import create_trap_table
+from helpers.traps_helpers import create_trap_desc
+
 from helpers.races_helpers import extract_races_list
 from helpers.races_helpers import create_races_library
 from helpers.races_helpers import create_races_table
@@ -90,6 +95,7 @@ if __name__ == '__main__':
 ##    settings.max_lvl = 5
 ##    settings.tiers = True
 ##    settings.npcs = True
+##    settings.traps = True
 ##    settings.races = True
 ##    settings.classes = True
 ##    settings.feats = True
@@ -215,6 +221,40 @@ if __name__ == '__main__':
             monster_tbl_xml += monster_tbl
 
         monster_desc = create_monster_desc(monster_list)
+
+    #===========================
+    # TRAPS
+    #===========================
+
+    traps_lib_xml = ''
+    traps_tbl_xml = ''
+    traps_desc = ''
+    traps_tbl_list = ['Traps By Letter', 'Traps By Level']#, 'Traps By Level/Role', 'Traps By Role/Level']
+
+    if settings.traps:
+        # Pull Traps data from Portable Compendium
+        traps_db = []
+        try:
+            traps_db = create_db('sql\ddiTrap.sql', "','")
+        except:
+            print('Error reading Trap data source.')
+    
+        if not traps_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        # Only need to get the list of traps once
+        traps_list = extract_trap_list(traps_db)
+
+        # Loop through the different traps table types to build the library menus and tables
+        for tbl_name in traps_tbl_list:
+            traps_lib, menu_id = create_trap_library(menu_id, tier_list, tbl_name + suffix_str)
+            traps_tbl = create_trap_table(traps_list, tier_list, tbl_name + suffix_str)
+            traps_lib_xml += traps_lib
+            traps_tbl_xml += traps_tbl
+
+        traps_desc = create_trap_desc(traps_list)
 
     #===========================
     # RACES
@@ -535,6 +575,7 @@ if __name__ == '__main__':
     export_xml += ('\t\t\t<entries>\n')
 
     export_xml += monster_lib_xml
+    export_xml += traps_lib_xml
     export_xml += races_lib
     export_xml += classes_lib
     export_xml += feat_lib
@@ -564,6 +605,13 @@ if __name__ == '__main__':
         export_xml += ('\t<monsterlists>\n')
         export_xml += monster_tbl_xml
         export_xml += ('\t</monsterlists>\n')
+
+    # TRAPLISTS
+    # this is the table of Traps
+    if settings.traps:
+        export_xml += ('\t<traplists>\n')
+        export_xml += traps_tbl_xml
+        export_xml += ('\t</traplists>\n')
 
     # RACESLIST
     # this is the table of Races
@@ -635,13 +683,15 @@ if __name__ == '__main__':
 
     # REFERENCE
     # anything inside the <reference> tags will appear in the sidebar menus for Items, NPCs & Feats
-    export_xml += ('\t<reference static="true">\n')
+#    export_xml += ('\t<reference static="true">\n')
+    export_xml += ('\t<reference>\n')
 
-    # NPCS
-    # these are the individual cards for NPCs
-    if settings.npcs:
+    # NPCS / TRAPS
+    # these are the individual cards for NPCs & Traps
+    if settings.npcs or settings.traps:
         export_xml += ('\t\t<npcs>\n')
         export_xml += monster_desc
+        export_xml += traps_desc
         export_xml += ('\t\t</npcs>\n')
 
     # RACES
@@ -665,7 +715,8 @@ if __name__ == '__main__':
         export_xml += feat_desc
         export_xml += ('\t\t</feats>\n')
 
-    export_xml +=('\t\t<items>\n')
+    if settings.weapons or settings.armor or settings.equipment or settings.magic or settings.items or settings.alchemy:
+        export_xml +=('\t\t<items>\n')
 
     # ITEMS
     # These are the individual cards for mundane items that appear when you click on a table entry
@@ -683,7 +734,8 @@ if __name__ == '__main__':
         export_xml += mi_other_desc_xml
         export_xml += alchemy_mi_desc
 
-    export_xml +=('\t\t</items>\n')
+    if settings.weapons or settings.armor or settings.equipment or settings.magic or settings.items or settings.alchemy:
+        export_xml +=('\t\t</items>\n')
 
     export_xml += ('\t</reference>\n')
 

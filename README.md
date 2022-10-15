@@ -29,6 +29,7 @@ Options:
   -t, --tiers        divide Magic Armor, Implements and Weapons, NPCs into
                      Tiers
   -n, --npcs         export all NPCs (Monsters)
+  -T, --traps        export all Traps and Hazards
   -r, --races        export Races information
   -c, --classes      export Classes information
   -f, --feats        exports Feat information
@@ -50,10 +51,11 @@ Options:
 
 4. Run `module_maker.exe` with the switches as above to create the modules you want.
 
-You can use `run_all.bat` to create the following three Libraries, which include everything currently available:
+You can use `run_all.bat` to create the following four Libraries, which include everything currently available:
 
 ```
 module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t
+module_maker.exe --filename 4E_Traps --library "4E Traps" -T
 module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -r -c -f -p -b
 module_maker.exe --filename 4E_Items --library "4E Items" -a -u -m -i -t
 ```
