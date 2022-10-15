@@ -5,6 +5,7 @@ max_lvl = 99
 races = False
 classes = False
 npcs = False
+traps = False
 feats = False
 powers = False
 basic = False

@@ -268,7 +268,7 @@ def create_monster_desc(list_in):
             xml_out += (f'\t\t\t\t<ap type="number">{monster_dict["ap"]}</ap>\n')
         if monster_dict["specialdefenses"] != '':
             xml_out += (f'\t\t\t\t<specialdefenses type="string">{monster_dict["specialdefenses"]}</specialdefenses>\n')
-        xml_out += (f'\t\t\t\t<powers>\n{monster_dict["powers"]}\t\t\t</powers>\n')
+        xml_out += (f'\t\t\t\t<powers>\n{monster_dict["powers"]}\t\t\t\t</powers>\n')
         if monster_dict["skills"] != '':
             xml_out += (f'\t\t\t\t<skills type="string">{monster_dict["skills"]}</skills>\n')
         xml_out += (f'\t\t\t\t<strength type="number">{monster_dict["strength"]}</strength>\n')
@@ -380,8 +380,8 @@ def format_power(soup_in, id_in):
         if recharge_img := header_tag.find('img', src=re.compile(r'/x.gif')):
             for rech_tag in recharge_img.find_all_next(text=True):
                 recharge_str += (''.join(rech_tag.text)).strip()
-    elif action_match := re.search(r'(At-will|Daily|Encounter)', header_tag.text, re.IGNORECASE):
-            recharge_str = action_match.group(1).title()
+    elif recharge_match := re.search(r'(At-will|Daily|Encounter)', header_tag.text, re.IGNORECASE):
+            recharge_str = recharge_match.group(1).title()
 
     # Either layout can contain die symbols
     if recharge_img := header_tag.find('img', src=re.compile(r'/2a.gif')):
@@ -451,23 +451,23 @@ def format_power(soup_in, id_in):
     # Format the list of powers into statblocks
     entry_id = str(id_in).rjust(3, '0')
 
-    power_out += f'\t\t\t\t<pwr-{entry_id}>\n'
-    power_out += f'\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
+    power_out += f'\t\t\t\t\t<pwr-{entry_id}>\n'
+    power_out += f'\t\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
     if action_str != '':
-        power_out += f'\t\t\t\t\t<action type="string">{action_str}</action>\n'
+        power_out += f'\t\t\t\t\t\t<action type="string">{action_str}</action>\n'
     if icon_str != '':
-        power_out += f'\t\t\t\t\t<icon type="string">{icon_str}</icon>\n'
+        power_out += f'\t\t\t\t\t\t<icon type="string">{icon_str}</icon>\n'
     if keywords_str != '':
-        power_out += f'\t\t\t\t\t<keywords type="string">{keywords_str}</keywords>\n'
+        power_out += f'\t\t\t\t\t\t<keywords type="string">{keywords_str}</keywords>\n'
     if powertype_str != '':
-        power_out += f'\t\t\t\t\t<powertype type="string">{powertype_str}</powertype>\n'
+        power_out += f'\t\t\t\t\t\t<powertype type="string">{powertype_str}</powertype>\n'
     if range_str != '':
-        power_out += f'\t\t\t\t\t<range type="string">{range_str}</range>\n'
+        power_out += f'\t\t\t\t\t\t<range type="string">{range_str}</range>\n'
     if recharge_str != '':
-        power_out += f'\t\t\t\t\t<recharge type="string">{recharge_str}</recharge>\n'
+        power_out += f'\t\t\t\t\t\t<recharge type="string">{recharge_str}</recharge>\n'
     if shortdescription_str != '':
-        power_out += f'\t\t\t\t\t<shortdescription type="string">{shortdescription_str}</shortdescription>\n'
-    power_out += f'\t\t\t\t</pwr-{entry_id}>\n'
+        power_out += f'\t\t\t\t\t\t<shortdescription type="string">{shortdescription_str}</shortdescription>\n'
+    power_out += f'\t\t\t\t\t</pwr-{entry_id}>\n'
 
     return power_out
 
