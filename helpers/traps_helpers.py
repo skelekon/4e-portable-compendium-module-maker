@@ -128,6 +128,8 @@ def create_trap_table(list_in, tier_list, name_in):
 
             # only process Items for the current Tier
             level_str = re.sub('[^0-9]', '', trap_dict["levelrole"])
+            if level_str == '':
+                level_str = '0'
             if t == '':
                 trap_tier = ''
             elif int(level_str) <= 10:
@@ -795,7 +797,7 @@ def extract_trap_list(db_in):
 
         level_str = re.sub('[^0-9]', '', levelrole_str)
         if level_str.strip() == '':
-            level_str = '1'
+            level_str = '0'
         if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
             export_dict = {}
 
