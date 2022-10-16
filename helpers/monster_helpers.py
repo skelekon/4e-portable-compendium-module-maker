@@ -346,17 +346,18 @@ def format_power(soup_in, id_in):
         if powertype_str == 'mM':
             powertype_str = 'm'
 
-    # Action
+    # Action - should be in the first (action) tag
     # may be in its own tag in Layout 1
     if action_tag:
-        if action_match := re.search(r'(Aura|Free|Immediate|Minor|Move|Opportunity|Standard|Traits|Triggered)', action_tag.text, re.IGNORECASE):
+        if action_match := re.search(r'(Aura|Free|Immediate|Minor Action|Move Action|Opportunity|Standard Action|Trait|Triggered Action)', action_tag.text, re.IGNORECASE):
             action_str = action_match.group(1)
             layout_1 = True
     # may be in parentheses after the power name
     if action_str == '':
-        if action_match := re.search(r'(Free.*?|Immediate.*?|Minor.*?|Move.*?|Opportunity.*?|Standard.*?)(, when|;|\))', header_tag.text, re.IGNORECASE):
-            action_str += ', ' if action_str != '' else ''
+        if action_match := re.search(r'(Free.*?|Immediate.*?|Minor.*?|Move.*?|Opportunity.*?|Standard.*?)(,|when|;|\))', header_tag.text, re.IGNORECASE):
             action_str += action_match.group(1).title()
+            if action_str in ['Standard', 'Minor', 'Move']:
+                action_str += ' Action'
             layout_1 = False
 
         # also check for Sustain and Trigger conditions as they will be in here
@@ -407,43 +408,16 @@ def format_power(soup_in, id_in):
         shortdescription_str += ''.join(bdy_tag.stripped_strings) + '\\n'
     shortdescription_str = re.sub(r'(^;*\s*|\\n$)', '', shortdescription_str)
 
-    # Range
-    if ';' in shortdescription_str and shortdescription_str[0:7] != 'Effect:':
-        if 'Melee ' in shortdescription_str:
-            sections = shortdescription_str.split("; ", 1)
-            if len(sections) == 2:
-                range_str = sections[0]
-                shortdescription_str = sections[1]
-        elif 'Reach ' in shortdescription_str:
-            sections = shortdescription_str.split("; ", 1)
-            if len(sections) == 2:
-                range_str = sections[0]
-                shortdescription_str = sections[1]
-        elif 'Ranged ' in shortdescription_str:
-            sections = shortdescription_str.split("; ", 1)
-            if len(sections) == 2:
-                range_str = sections[0]
-                shortdescription_str = sections[1]
-        elif 'Close burst ' in shortdescription_str:
-            sections = shortdescription_str.split("; ", 1)
-            if len(sections) == 2:
-                range_str = sections[0]
-                shortdescription_str = sections[1]
-        elif 'Close blast ' in shortdescription_str:
-            sections = shortdescription_str.split("; ", 1)
-            if len(sections) == 2:
-                range_str = sections[0]
-                shortdescription_str = sections[1]
-        elif 'Area burst ' in shortdescription_str:
-            sections = shortdescription_str.split("; ", 1)
-            if len(sections) == 2:
-                range_str = sections[0]
-                shortdescription_str = sections[1]
-        elif 'Targets ' in shortdescription_str:
-            sections = shortdescription_str.split("; ", 1)
-            if len(sections) == 2:
-                range_str = sections[0]
-                shortdescription_str = sections[1]
+    # Triggered Action - split out Immediate and Opportunity actions
+    if action_str[0:9] == 'Triggered':
+        if trigger_match := re.search(r'^(.*?)(Immediate Interrupt|Immediate Reaction|Opportunity Action)(.*?)$', shortdescription_str):
+            action_str = trigger_match.group(2)
+            shortdescription_str = re.sub(r'(^\\n|\(\))*', '', trigger_match.group(1).strip() + trigger_match.group(3).strip())
+
+    # Range - split out any Ranges or Sizes
+    if range_match := re.search(r'^(.*?)((Area Burst [0-9] within|Close blast|Close burst|Melee|Range|Ranged|Reach)\s+([0-9]+/[0-9]+|[0-9]+|special))(.*?)$',  shortdescription_str, re.IGNORECASE):
+        range_str = range_match.group(2).strip()
+        shortdescription_str = re.sub(r'(^\\n|^;\s*|\(\))*', '', range_match.group(1).strip() + range_match.group(5).strip())
 
     # Prepend any Sustain or Trigger info
     shortdescription_str = sustain_str + trigger_str + shortdescription_str
