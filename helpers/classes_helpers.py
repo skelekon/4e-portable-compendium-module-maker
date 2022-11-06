@@ -12,6 +12,7 @@ def classes_list_sorter(entry_in):
 
     return (name)
 
+
 def create_classes_library(id_in):
     xml_out = ''
 
@@ -21,12 +22,13 @@ def create_classes_library(id_in):
     xml_out += (f'\t\t\t\t<{lib_id}-classes>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">Classes</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
-    xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>classeslist@{settings.library}</recordname>\n')
+    xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>lists.classes@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-classes>\n')
 
     return xml_out, id_in
+
 
 def create_classes_table(list_in):
     xml_out = ''
@@ -36,28 +38,31 @@ def create_classes_table(list_in):
 
     name_camel = ''
 
-    # Ritual List
+    # Classes List
     # This controls the table that appears when you click on a Library menu
 
-    xml_out += (f'\t\t<description type="string">Classes</description>\n')
-    xml_out += ('\t\t<groups>\n')
+    xml_out += ('\t\t<classes>\n')
+    xml_out += (f'\t\t\t<name type="string">Classes</name>\n')
+    xml_out += ('\t\t\t<index>\n')
 
     # Create individual item entries
     for classes_dict in sorted(list_in, key=classes_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', classes_dict["name"])
 
-        # Rituals list entry
-        xml_out += (f'\t\t\t<class{name_camel}>\n')
-        xml_out += ('\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>reference.classes.{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t<source type="string">{classes_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t</class{name_camel}>\n')
+        # Classes list entry
+        xml_out += (f'\t\t\t\t<class{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{classes_dict["name"]}</name>\n')
+        xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.classes.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t</listlink>\n')
+        xml_out += (f'\t\t\t\t</class{name_camel}>\n')
 
-    xml_out += ('\t\t</groups>\n')
+    xml_out += ('\t\t\t</index>\n')
+    xml_out += ('\t\t</classes>\n')
 
     return xml_out
+
 
 def create_classes_desc(list_in):
     classes_out = ''
@@ -71,6 +76,7 @@ def create_classes_desc(list_in):
     name_lower = ''
 
     # Create individual item entries
+    classes_out += ('\t\t<classes>\n')
     for classes_dict in sorted(list_in, key=classes_list_sorter):
         name_lower = re.sub('[^a-zA-Z0-9_]', '', classes_dict["name"])
 
@@ -95,7 +101,10 @@ def create_classes_desc(list_in):
         # Create all Required Power entries
         featuredesc_out += classes_dict["featuredesc"]
 
+    classes_out += ('\t\t</classes>\n')
+
     return classes_out, featuredesc_out
+
 
 def create_feature(feature_dict, name_in):
     link_out = ''
@@ -105,25 +114,27 @@ def create_feature(feature_dict, name_in):
     feature_camel = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"])
     feature_desc = clean_formattedtext(feature_dict["desc"])
 
-    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="featuresdesc.{name_camel}{feature_camel}@{settings.library}">{feature_dict["name"]}</link>\n')
+    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_camel}{feature_camel}@{settings.library}">{feature_dict["name"]}</link>\n')
 
-    featuredesc_out += f'\t\t<{name_camel}{feature_camel}>\n'
-    featuredesc_out += f'\t\t\t<name type="string">{feature_dict["name"]}</name>\n'
-    featuredesc_out += f'\t\t\t<source type="string">{name_in} Feature</source>\n'
-    featuredesc_out += f'\t\t\t<prerequisite type="string">{name_in} Class</prerequisite>\n'
-    featuredesc_out += f'\t\t\t<description type="formattedtext">{feature_desc}</description>\n'
-    featuredesc_out += f'\t\t</{name_camel}{feature_camel}>\n'
+    featuredesc_out += f'\t\t\t<{name_camel}{feature_camel}>\n'
+    featuredesc_out += f'\t\t\t\t<name type="string">{feature_dict["name"]}</name>\n'
+    featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
+    featuredesc_out += f'\t\t\t\t<prerequisite type="string">{name_in} Class</prerequisite>\n'
+    featuredesc_out += f'\t\t\t\t<description type="formattedtext">{feature_desc}</description>\n'
+    featuredesc_out += f'\t\t\t</{name_camel}{feature_camel}>\n'
     
     return link_out, featuredesc_out
+
 
 def create_power(power_dict, name_in):
     xml_out = ''
     power_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
-    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="powerdesc.power{power_camel}@{settings.library}">{power_dict["name"]}</link>\n')
+    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_camel}@{settings.library}">{power_dict["name"]}</link>\n')
 
     return xml_out
 
-def extract_classes_list(db_in):
+
+def extract_classes_db(db_in):
     classes_out = []
 
     print('\n\n\n=========== CLASSES ===========')
@@ -194,19 +205,15 @@ def extract_classes_list(db_in):
         in_power = False
         if feature_block := parsed_html.find('h3', text=re.compile('CLASS FEATURES')).previous_sibling:
             for tag in feature_block.next_siblings:
-#                print(tag)
                 # skip these if found as they are part of a Power description
                 if isinstance(tag, Tag) and tag.has_attr('class') and tag.attrs.get('class')[0] in ['flavor', 'powerstat']:
-#                        print('SKIP')
                         continue
                 if tag.name == 'h3':
-#                    print('MAJOR HEADING')
                     description_str += '<p><b>' + tag.text + '</b></p>\n'
                 elif tag.name == 'b':
                     # if we are already in a feature then this is the end
                     if in_feature:
-#                        print('PROCESS FEATURE LINK')
-                        feature_dict["desc"] += '</p>\n'
+                        feature_dict["desc"] += '</p>'
                         ftr_link, ftr_desc = create_feature(feature_dict, name_str)
                         description_str += ftr_link
                         featuredesc_str += ftr_desc
@@ -214,11 +221,9 @@ def extract_classes_list(db_in):
                         in_feature = False
                     # work out whether this is just text or the start of a new feature
                     if tag.text.isupper():
-#                        print('MINOR HEADING')
                         description_str += '<p><b>' + title_format(tag.text) + '</b></p>\n'
                     else:
                         # start capturing the feature details
-#                        print('START OF FEATURE')
                         in_feature = True
                         feature_dict = {}
                         feature_dict["name"] = tag.text
@@ -227,30 +232,26 @@ def extract_classes_list(db_in):
                 elif isinstance(tag, Tag) and tag.select_one('.atwillpower, .encounterpower, .dailypower'):
                     h1 = tag.find('h1', class_=re.compile(r'(atwillpower|encounterpower|dailypower)'))
                     in_power = True
-                # some cases like Fighter (Knight) don't wrap the power in a <p>
+                # some classes like Fighter (Knight) don't wrap the power in a <p>
                 elif isinstance(tag, Tag) and tag.has_attr('class') and tag.attrs.get('class')[0] in ['atwillpower', 'encounterpower', 'dailypower']:
                     h1 = tag
                     in_power = True
                 else:
                     if in_feature:
-#                        print('CONTINUE FEATURE')
                         feature_dict["desc"] += str(tag)
                     else:
-#                        print('PLAIN TEXT')
                         # .replace is to fix a one borked <br/> tag in Hybrid Druid (Sentinel)
                         description_str += '<p>' + str(tag).replace(' <<br=""', '') + '</p>\n'
 
                 if in_power:
                     # if we are already in a feature then this is the end
                     if in_feature:
-#                        print('PROCESS FEATURE LINK')
-                        feature_dict["desc"] += '</p>\n'
+                        feature_dict["desc"] += '</p>'
                         ftr_link, ftr_desc = create_feature(feature_dict, name_str)
                         description_str += ftr_link
                         featuredesc_str += ftr_desc
                         feature_list.append(copy.copy(feature_dict))
                         in_feature = False
-#                    print('FOUND POWER')
                     pwr_type = ''
                     pwr_name = ''
                     for item in h1:
@@ -267,7 +268,6 @@ def extract_classes_list(db_in):
                     in_power = False
 
         description_str = clean_formattedtext(description_str)
-#        print(description_str)
 
         export_dict = {}
         export_dict["description"] = description_str

@@ -48,6 +48,7 @@ def create_power_desc(soup_in, name_in):
 
     return power_out
 
+
 # This returns the XML for an indivual Alchemical Item and any associated Power
 def create_mi_desc(item_dict, mi_name_in):
     mi_out = ''
@@ -77,7 +78,7 @@ def create_mi_desc(item_dict, mi_name_in):
     mi_out += f'\t\t\t\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n'
     mi_out += '\t\t\t\t\t\t<link type="windowreference">\n'
     mi_out += '\t\t\t\t\t\t\t<class>powerdesc</class>\n'
-    mi_out += f'\t\t\t\t\t\t\t<recordname>powerdesc.alchemy{name_camel}Power-{suffix_str}@{settings.library}</recordname>\n'
+    mi_out += f'\t\t\t\t\t\t\t<recordname>reference.powers.alchemy{name_camel}Power-{suffix_str}@{settings.library}</recordname>\n'
     mi_out += '\t\t\t\t\t\t</link>\n'
     mi_out += '\t\t\t\t\t</id-001>\n'
     mi_out += '\t\t\t\t</powers>\n'
@@ -103,6 +104,7 @@ def create_mi_desc(item_dict, mi_name_in):
     power_out += f'\t\t</alchemy{name_camel}Power-{suffix_str}>\n'
 
     return mi_out, power_out
+
 
 # Extracts details for one Alchemical Item from passed in Magic Item soup
 def extract_mi_details(soup_in, name_in):
@@ -166,11 +168,13 @@ def extract_mi_details(soup_in, name_in):
 
     return mi_table_out, linklist_out, mi_out, power_out
 
+
 # Sort by Name
 def alchemy_list_sorter(entry_in):
     name = entry_in["name"]
 
     return (name)
+
 
 # Returns the XML for the top-level menu that leads to the Alchemical Formulas list
 def create_formula_library(id_in, list_in, name_in):
@@ -186,11 +190,12 @@ def create_formula_library(id_in, list_in, name_in):
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>formulalists@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>lists.formulas@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-alchemyformulas>\n')
 
     return xml_out, id_in
+
 
 # Returns the XML for the top-level menu that leads to the Alchemical Items list
 def create_alchemy_item_library(id_in, list_in, name_in):
@@ -199,7 +204,6 @@ def create_alchemy_item_library(id_in, list_in, name_in):
     if not list_in:
         return xml_out, id_in
 
-
     id_in += 1
     lib_id = 'l' + str(id_in).rjust(3, '0')
 
@@ -207,11 +211,12 @@ def create_alchemy_item_library(id_in, list_in, name_in):
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>magicitemlists.alchemicalitems@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>lists.alchemicalitems@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-alchemyitems>\n')
 
     return xml_out, id_in
+
 
 # Returns the XML for the second-level menu that leads to the individual Alchemical Formulas
 def create_formula_table(list_in):
@@ -222,25 +227,28 @@ def create_formula_table(list_in):
 
     name_camel = ''
 
-    xml_out += ('\t\t<description type="string">Alchemical Formulas</description>\n')
-    xml_out += ('\t\t<groups>\n')
+    xml_out += ('\t\t<formulas>\n')
+    xml_out += ('\t\t\t<description type="string">Alchemical Formulas</description>\n')
+    xml_out += ('\t\t\t<groups>\n')
 
     # Create individual item entries
     for alchemy_dict in sorted(list_in, key=alchemy_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', alchemy_dict["name"])
 
         # Rituals list entry
-        xml_out += (f'\t\t\t<alchemy{name_camel}>\n')
-        xml_out += ('\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t<class>reference_ritual</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.alchemy{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t<source type="string">{alchemy_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t</alchemy{name_camel}>\n')
+        xml_out += (f'\t\t\t\t<alchemy{name_camel}>\n')
+        xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t<class>reference_ritual</class>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.rituals.alchemy{name_camel}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t</link>\n')
+        xml_out += (f'\t\t\t\t\t<source type="string">{alchemy_dict["name"]}</source>\n')
+        xml_out += (f'\t\t\t\t</alchemy{name_camel}>\n')
 
-    xml_out += ('\t\t</groups>\n')
+    xml_out += ('\t\t\t</groups>\n')
+    xml_out += ('\t\t</formulas>\n')
 
     return xml_out
+
 
 # Returns the XML for the second-level menu that leads to the individual Alchemical Items
 def create_alchemy_item_table(list_in):
@@ -265,6 +273,7 @@ def create_alchemy_item_table(list_in):
     xml_out += ('\t\t</alchemicalitems>\n')
 
     return xml_out
+
 
 # Returns the XML for the Ritual Cards for all Alchemical Formula
 def create_formula_desc(list_in):
@@ -304,7 +313,8 @@ def create_formula_desc(list_in):
 
     return xml_out, mi_out, power_out
 
-def extract_alchemy_list(db_in, filter_in):
+
+def extract_alchemy_db(db_in, filter_in):
     alchemy_out = []
 
     print('\n\n\n=========== ALCHEMY ===========')

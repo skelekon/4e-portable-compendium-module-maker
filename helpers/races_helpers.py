@@ -11,6 +11,7 @@ def races_list_sorter(entry_in):
 
     return (name)
 
+
 def create_races_library(id_in):
     xml_out = ''
 
@@ -20,14 +21,15 @@ def create_races_library(id_in):
     xml_out += (f'\t\t\t\t<{lib_id}-races>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">Races</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
-    xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>raceslist@{settings.library}</recordname>\n')
+    xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>lists.races@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-races>\n')
 
     return xml_out, id_in
 
-def create_races_table(list_in):
+
+def create_races_list(list_in):
     xml_out = ''
 
     if not list_in:
@@ -35,28 +37,31 @@ def create_races_table(list_in):
 
     name_camel = ''
 
-    # Ritual List
+    # Races List
     # This controls the table that appears when you click on a Library menu
 
-    xml_out += (f'\t\t<description type="string">Races</description>\n')
-    xml_out += ('\t\t<groups>\n')
+    xml_out += ('\t\t<races>\n')
+    xml_out += (f'\t\t\t<name type="string">Races</name>\n')
+    xml_out += ('\t\t\t<index>\n')
 
     # Create individual item entries
     for races_dict in sorted(list_in, key=races_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', races_dict["name"])
 
-        # Rituals list entry
-        xml_out += (f'\t\t\t<race{name_camel}>\n')
-        xml_out += ('\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>reference.races.{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t<source type="string">{races_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t</race{name_camel}>\n')
+        # Races list entry
+        xml_out += (f'\t\t\t\t<race{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{races_dict["name"]}</name>\n')
+        xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.races.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t</listlink>\n')
+        xml_out += (f'\t\t\t\t</race{name_camel}>\n')
 
-    xml_out += ('\t\t</groups>\n')
+    xml_out += ('\t\t\t</index>\n')
+    xml_out += ('\t\t</races>\n')
 
     return xml_out
+
 
 def create_races_desc(list_in):
     races_out = ''
@@ -67,13 +72,14 @@ def create_races_desc(list_in):
 
     section_str = ''
     entry_str = ''
-    name_lower = ''
+    name_camel = ''
 
     # Create individual item entries
+    races_out += ('\t\t<races>\n')
     for races_dict in sorted(list_in, key=races_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', races_dict["name"])
+        name_camel = re.sub('[^a-zA-Z0-9_]', '', races_dict["name"])
 
-        races_out += f'\t\t\t<{name_lower}>\n'
+        races_out += f'\t\t\t<{name_camel}>\n'
         races_out += f'\t\t\t\t<name type="string">{races_dict["name"]}</name>\n'
         races_out += '\t\t\t\t<source type="string">Race</source>\n'
         if races_dict["flavor"] != '':
@@ -89,10 +95,12 @@ def create_races_desc(list_in):
             races_out += f'{races_dict["published"]}'
         races_out += f'\n\t\t\t\t</description>\n'
 #        xml_out += (f'\t\t\t\t<shortdescription type="string">{races_dict["shortdescription"]}</shortdescription>\n')
-        races_out += f'\t\t\t</{name_lower}>\n'
+        races_out += f'\t\t\t</{name_camel}>\n'
 
         # Create all Required Power entries
         featuredesc_out += races_dict["featuredesc"]
+
+    races_out += ('\t\t</races>\n')
 
     return races_out, featuredesc_out
 
@@ -110,15 +118,15 @@ def create_features(features_in, name_in):
 
     for ftr in features_in:
         feature_camel = re.sub('[^a-zA-Z0-9_]', '', ftr["name"])
-        listlink_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="featuresdesc.{name_camel}{feature_camel}@{settings.library}">{ftr["name"]}</link>\n')
+        listlink_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_camel}{feature_camel}@{settings.library}">{ftr["name"]}</link>\n')
 
-        featuredesc_out += f'\t\t<{name_camel}{feature_camel}>\n'
-        featuredesc_out += f'\t\t\t<name type="string">{ftr["name"]}</name>\n'
-        featuredesc_out += f'\t\t\t<source type="string">{name_in} Feature</source>\n'
-        featuredesc_out += f'\t\t\t<prerequisite type="string">{name_in} Race</prerequisite>\n'
-#        featuredesc_out += f'\t\t\t<shortdescription type="string">{ftr["shortdesc"]}</shortdescription>\n'
-        featuredesc_out += f'\t\t\t<description type="formattedtext">{ftr["desc"]}</description>\n'
-        featuredesc_out += f'\t\t</{name_camel}{feature_camel}>\n'
+        featuredesc_out += f'\t\t\t<{name_camel}{feature_camel}>\n'
+        featuredesc_out += f'\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
+        featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
+        featuredesc_out += f'\t\t\t\t<prerequisite type="string">{name_in} Race</prerequisite>\n'
+#        featuredesc_out += f'\t\t\t\t<shortdescription type="string">{ftr["shortdesc"]}</shortdescription>\n'
+        featuredesc_out += f'\t\t\t\t<description type="formattedtext">{ftr["desc"]}</description>\n'
+        featuredesc_out += f'\t\t\t</{name_camel}{feature_camel}>\n'
 
     listlink_out += '\t\t\t\t</listlink>\n'
     
@@ -143,13 +151,13 @@ def create_powers(powers_in):
             previous_type = pwr["type"]
             xml_out += '\t\t\t\t<listlink>\n'
 
-        xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="powerdesc.power{power_camel}@{settings.library}">{pwr["name"]}</link>\n')
+        xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_camel}@{settings.library}">{pwr["name"]}</link>\n')
     # Close last Type
     xml_out += '\t\t\t\t</listlink>\n'
     
     return xml_out
 
-def extract_races_list(db_in):
+def extract_races_db(db_in):
     races_out = []
 
     print('\n\n\n=========== RACES ===========')

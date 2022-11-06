@@ -20,7 +20,7 @@ def create_weapons_library(id_in, name_in):
     xml_out += (f'\t\t\t\t<{lib_id}-weapons>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classweapontablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>weaponlists@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>lists.weapons@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-weapons>\n')
@@ -33,9 +33,9 @@ def create_weapons_table(list_in):
 
     # Open the Item List
     # This controls the table that appears when you click on a Library menu
-    xml_out += ('\t<weaponlists>\n')
-    xml_out += ('\t\t<description type="string">Weapons Table</description>\n')
-    xml_out += ('\t\t<groups>\n')
+    xml_out += ('\t\t<weapons>\n')
+    xml_out += ('\t\t\t<description type="string">Weapons Table</description>\n')
+    xml_out += ('\t\t\t<groups>\n')
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=weapons_list_sorter):
@@ -49,38 +49,38 @@ def create_weapons_table(list_in):
             # Close the previous section
             if section_id != 1:
                 section_str = str(section_id - 1).rjust(3, '0')
-                xml_out += ('\t\t\t\t</weapons>\n')
-                xml_out += (f'\t\t\t</section{section_str}>\n')
+                xml_out += ('\t\t\t\t\t</weapons>\n')
+                xml_out += (f'\t\t\t\t</section{section_str}>\n')
 
             # Open the next section
             section_str = str(section_id).rjust(3, '0')
-            xml_out += (f'\t\t\t<section{section_str}>\n')
-            xml_out += (f'\t\t\t\t<description type="string">{entry_dict["prof"]} {entry_dict["type"]}{suffix_str}</description>\n')
-            xml_out += (f'\t\t\t\t<subdescription type="string">{entry_dict["heft"]}</subdescription>\n')
-            xml_out += ('\t\t\t\t<weapons>\n')
+            xml_out += (f'\t\t\t\t<section{section_str}>\n')
+            xml_out += (f'\t\t\t\t\t<description type="string">{entry_dict["prof"]} {entry_dict["type"]}{suffix_str}</description>\n')
+            xml_out += (f'\t\t\t\t\t<subdescription type="string">{entry_dict["heft"]}</subdescription>\n')
+            xml_out += ('\t\t\t\t\t<weapons>\n')
 
-        xml_out += (f'\t\t\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t\t\t<damage type="string">{entry_dict["damage"]}</damage>\n')
-        xml_out += (f'\t\t\t\t\t\t<group type="string">{entry_dict["group"]}</group>\n')
-        xml_out += (f'\t\t\t\t\t\t<profbonus type="number">{entry_dict["profbonus"]}</profbonus>\n')
-        xml_out += (f'\t\t\t\t\t\t<properties type="string">{entry_dict["properties"]}</properties>\n')
-        xml_out += (f'\t\t\t\t\t\t<range type="number">{entry_dict["range"]}</range>\n')
-        xml_out += (f'\t\t\t\t\t\t<weight type="string">{entry_dict["weight"]}</weight>\n')
-        xml_out += ('\t\t\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t\t\t<class>referenceweapon</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t\t<{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<damage type="string">{entry_dict["damage"]}</damage>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<group type="string">{entry_dict["group"]}</group>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<profbonus type="number">{entry_dict["profbonus"]}</profbonus>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<properties type="string">{entry_dict["properties"]}</properties>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<range type="number">{entry_dict["range"]}</range>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<weight type="string">{entry_dict["weight"]}</weight>\n')
+        xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t\t\t<class>referenceweapon</class>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t\t\t</link>\n')
+        xml_out += (f'\t\t\t\t\t\t</{name_camel}>\n')
 
     # Close the final section
-    xml_out += ('\t\t\t\t</weapons>\n')
-    xml_out += (f'\t\t\t</section{section_str}>\n')
+    xml_out += ('\t\t\t\t\t</weapons>\n')
+    xml_out += (f'\t\t\t\t</section{section_str}>\n')
 
     # Close the Item List
-    xml_out += ('\t\t</groups>\n')
-    xml_out += ('\t</weaponlists>\n')
+    xml_out += ('\t\t\t</groups>\n')
+    xml_out += ('\t\t</weapons>\n')
 
     return xml_out
 
@@ -121,7 +121,7 @@ def create_weapons_reference(list_in):
 
     return xml_out
 
-def extract_weapons_list(db_in):
+def extract_weapons_db(db_in):
     weapons_out = []
 
     # List of possible Weapon properties
