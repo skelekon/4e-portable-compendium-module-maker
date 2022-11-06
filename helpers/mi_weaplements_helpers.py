@@ -4,13 +4,13 @@ import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
 
-from .mod_helpers import mi_list_sorter
-from .mod_helpers import multi_level
-from .mod_helpers import power_construct
-from .mod_helpers import powers_format
-from .mod_helpers import props_format
+from helpers.mi_helpers import mi_list_sorter
+from helpers.mi_helpers import multi_level
+from helpers.mi_helpers import power_construct
+from helpers.mi_helpers import powers_format
+from helpers.mi_helpers import props_format
 
-def extract_mi_weaplements_list(db_in, filter_in):
+def extract_mi_weaplements_db(db_in, filter_in):
     mi_weaplements_out = []
 
     print(f'\n\n\n=========== MAGIC {filter_in.upper()}S ===========')

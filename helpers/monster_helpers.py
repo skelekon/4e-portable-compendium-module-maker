@@ -88,11 +88,12 @@ def create_monster_library(id_in, tier_list, name_in):
         xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmonsterlist</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>monsterlists.npcs{class_camel}{tier_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>lists.npcs.{class_camel}{tier_camel}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
         xml_out += (f'\t\t\t\t</{lib_id}-npcs{class_camel}>\n')
 
     return xml_out, id_in
+
 
 # This controls the table that appears when you click on a Library menu
 def create_monster_table(list_in, tier_list, name_in):
@@ -172,9 +173,9 @@ def create_monster_table(list_in, tier_list, name_in):
         # Monster List
 
         # Open new Class (new Table)
-        xml_out += (f'\t\t<npcs{class_camel}{tier_camel}>\n')
-        xml_out += (f'\t\t\t<description type="string">{name_in}{tier_str}</description>\n')
-        xml_out += ('\t\t\t<groups>\n')
+        xml_out += (f'\t\t\t<{class_camel}{tier_camel}>\n')
+        xml_out += (f'\t\t\t\t<description type="string">{name_in}{tier_str}</description>\n')
+        xml_out += ('\t\t\t\t<groups>\n')
         group_flag = False
 
         # Create individual item entries
@@ -203,34 +204,35 @@ def create_monster_table(list_in, tier_list, name_in):
 
                     # Close previous Group
                     if previous_group != '':
-                        xml_out += ('\t\t\t\t\t</monsters>\n')
-                        xml_out += (f'\t\t\t\t</npcs{previous_group}>\n')
+                        xml_out += ('\t\t\t\t\t\t</monsters>\n')
+                        xml_out += (f'\t\t\t\t\t</npcs{previous_group}>\n')
 
                     # Open new Group
-                    xml_out += (f'\t\t\t\t<npcs{monster_dict["group_id"]}>\n')
-                    xml_out += (f'\t\t\t\t<description type="string">{monster_dict["group_str"]}</description>\n')
-                    xml_out += ('\t\t\t\t\t<monsters>\n')
+                    xml_out += (f'\t\t\t\t\t<npcs{monster_dict["group_id"]}>\n')
+                    xml_out += (f'\t\t\t\t\t\t<description type="string">{monster_dict["group_str"]}</description>\n')
+                    xml_out += ('\t\t\t\t\t\t<monsters>\n')
 
                 # Monster list entry
-                xml_out += (f'\t\t\t\t\t\t<npc{name_camel}>\n')
-                xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
-                xml_out += ('\t\t\t\t\t\t\t\t<class>npc</class>\n')
-                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.npcs.{name_camel}@{settings.library}</recordname>\n')
-                xml_out += ('\t\t\t\t\t\t\t</link>\n')
-                xml_out += (f'\t\t\t\t\t\t</npc{name_camel}>\n')
+                xml_out += (f'\t\t\t\t\t\t\t<npc{name_camel}>\n')
+                xml_out += ('\t\t\t\t\t\t\t\t<link type="windowreference">\n')
+                xml_out += ('\t\t\t\t\t\t\t\t\t<class>npc</class>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t\t<recordname>reference.npcs.{name_camel}@{settings.library}</recordname>\n')
+                xml_out += ('\t\t\t\t\t\t\t\t</link>\n')
+                xml_out += (f'\t\t\t\t\t\t\t</npc{name_camel}>\n')
 
                 previous_group = monster_dict["group_id"]
 
         # Close final Group if there was at least one entry
         if group_flag:
-            xml_out += ('\t\t\t\t\t</monsters>\n')
-            xml_out += (f'\t\t\t\t</npcs{previous_group}>\n')
+            xml_out += ('\t\t\t\t\t\t</monsters>\n')
+            xml_out += (f'\t\t\t\t\t</npcs{previous_group}>\n')
 
         # Close final Class
-        xml_out += ('\t\t\t</groups>\n')
-        xml_out += (f'\t\t</npcs{class_camel}{tier_camel}>\n')
+        xml_out += ('\t\t\t\t</groups>\n')
+        xml_out += (f'\t\t\t</{class_camel}{tier_camel}>\n')
 
     return xml_out
+
 
 def create_monster_desc(list_in):
     xml_out = ''
@@ -445,7 +447,8 @@ def format_power(soup_in, id_in):
 
     return power_out
 
-def extract_monster_list(db_in):
+
+def extract_monster_db(db_in):
     monster_out = []
 
     print('\n\n\n=========== MONSTERS ===========')

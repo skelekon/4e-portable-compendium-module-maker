@@ -6,11 +6,13 @@ from bs4 import BeautifulSoup, Tag, NavigableString
 
 from .create_db import create_db
 
-from .mod_helpers import mi_list_sorter
-from .mod_helpers import multi_level
-from .mod_helpers import power_construct
-from .mod_helpers import powers_format
-from .mod_helpers import props_format
+from helpers.mi_helpers import mi_list_sorter
+from helpers.mi_helpers import multi_level
+from helpers.mi_helpers import power_construct
+from helpers.mi_helpers import powers_format
+from helpers.mi_helpers import props_format
+
+from helpers.mod_helpers import title_format
 
 def rituals_list():
     rituals_out = []
@@ -20,7 +22,7 @@ def rituals_list():
         rituals_out.append(row["Name"].replace('\\', '').replace('’', '\'')) # Alchemist's Spark uses a different apostrophe
     return rituals_out
 
-def extract_mi_other_list(db_in, filter_in):
+def extract_mi_other_db(db_in, filter_in):
     mi_other_out = []
 
     # List for checking for duplicates if Alchemy Items are also in the same export
@@ -162,7 +164,7 @@ def extract_mi_other_list(db_in, filter_in):
             cat_str = re.sub('\s\s', ' ', cat_str.strip())
 
             # Remove parentheses and Capitalize
-            cat_str = re.sub('[()]', '', cat_str.title())
+            cat_str = re.sub('[()]', '', title_format(cat_str))
 
             # Append Rarity to get the Item Card Subclass
             if cat_str == '':

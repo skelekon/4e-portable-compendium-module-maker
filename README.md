@@ -26,12 +26,19 @@ Options:
                      Alchemical Items, Rituals, Martial Practices and Powers.
   --max=MAX          export items of this level and below. Applies to NPCs,
                      Alchemical Items, Rituals, Martial Practices and Powers.
+  -s, --static       adds "static="true" clause to make objects locked
   -t, --tiers        divide Magic Armor, Implements and Weapons, NPCs into
                      Tiers
-  -n, --npcs         export all NPCs (Monsters)
-  -T, --traps        export all Traps and Hazards
+  -n, --npcs         export NPCs (Monsters)
+  -T, --traps        export Traps and Hazards
+  -d, --diseases     export Disease tracks
   -r, --races        export Races information
   -c, --classes      export Classes information
+  -B, --backgrounds  export Background information
+  -H, --heroic       export Heroic Themes information
+  -P, --paragon      export Paragon Path information
+  -E, --epic         export Epic Destiny information
+  -F, --familiars    export Familiars
   -f, --feats        exports Feat information
   -p, --powers       exports Power information
   -b, --basic        include Basic Attacks in Power export
@@ -54,10 +61,10 @@ Options:
 You can use `run_all.bat` to create the following four Libraries, which include everything currently available:
 
 ```
-module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t
-module_maker.exe --filename 4E_Traps --library "4E Traps" -T
-module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -r -c -f -p -b
-module_maker.exe --filename 4E_Items --library "4E Items" -a -u -m -i -t
+module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t -s
+module_maker.exe --filename 4E_Traps_Diseases --library "4E Traps and Diseases" -T -d -s
+module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -r -c -B -H -P -E -F -f -p -b -s
+module_maker.exe --filename 4E_Items --library "4E Items" -a -u -m -i -t -s
 ```
 
 Default filename/library will be `4E_Compendium` / `4E Compendium` if not supplied.

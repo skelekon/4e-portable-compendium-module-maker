@@ -20,11 +20,11 @@ def create_armor_library(id_in, name_in):
 
     xml_out = ''
     xml_out += (f'\t\t\t\t<{lib_id}-armor>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classarmortablelist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>armorlists@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>lists.armor@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-armor>\n')
 
     return xml_out, id_in
@@ -36,9 +36,9 @@ def create_armor_table(list_in):
 
     # Item List part
     # This controls the table that appears when you click on a Library menu
-    xml_out += ('\t<armorlists>\n')
-    xml_out += ('\t\t<description type="string">Armor Table</description>\n')
-    xml_out += ('\t\t<groups>\n')
+    xml_out += ('\t\t<armor>\n')
+    xml_out += ('\t\t\t<description type="string">Armor Table</description>\n')
+    xml_out += ('\t\t\t<groups>\n')
 
     # Create individual item entries
     for entry_dict in sorted(list_in, key=armor_list_sorter):
@@ -52,36 +52,36 @@ def create_armor_table(list_in):
             section_id = entry_dict["section_id"]
             if section_id != 1:
                 section_str = str(section_id - 1).rjust(3, '0')
-                xml_out += ('\t\t\t\t</armors>\n')
-                xml_out += (f'\t\t\t</section{section_str}>\n')
+                xml_out += ('\t\t\t\t\t</armors>\n')
+                xml_out += (f'\t\t\t\t</section{section_str}>\n')
             section_str = str(section_id).rjust(3, '0')
-            xml_out += (f'\t\t\t<section{section_str}>\n')
-            xml_out += (f'\t\t\t\t<description type="string">{entry_dict["prof"]}</description>\n')
-            xml_out += (f'\t\t\t\t<subdescription type="string">{entry_dict["type"]}</subdescription>\n')
-            xml_out += ('\t\t\t\t<armors>\n')
+            xml_out += (f'\t\t\t\t<section{section_str}>\n')
+            xml_out += (f'\t\t\t\t\t<description type="string">{entry_dict["prof"]}</description>\n')
+            xml_out += (f'\t\t\t\t\t<subdescription type="string">{entry_dict["type"]}</subdescription>\n')
+            xml_out += ('\t\t\t\t\t<armors>\n')
 
-        xml_out += (f'\t\t\t\t\t<{entry_str}-{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
-        xml_out += (f'\t\t\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
-        xml_out += (f'\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
-        xml_out += (f'\t\t\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
-        xml_out += (f'\t\t\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
-        xml_out += (f'\t\t\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
-        xml_out += (f'\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += ('\t\t\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t\t\t<class>referencearmor</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t</{entry_str}-{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t\t<{entry_str}-{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
+        xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t\t\t<class>referencearmor</class>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t\t\t</link>\n')
+        xml_out += (f'\t\t\t\t\t\t</{entry_str}-{name_camel}>\n')
 
     # Close out the last section
-    xml_out += ('\t\t\t\t</armors>\n')
-    xml_out += (f'\t\t\t</section{section_str}>\n')
+    xml_out += ('\t\t\t\t\t</armors>\n')
+    xml_out += (f'\t\t\t\t</section{section_str}>\n')
 
     # Close out Item List part
-    xml_out += ('\t\t</groups>\n')
-    xml_out += ('\t</armorlists>\n')
+    xml_out += ('\t\t\t</groups>\n')
+    xml_out += ('\t\t</armor>\n')
 
     return xml_out
 
@@ -118,7 +118,7 @@ def create_armor_reference(list_in):
 
     return xml_out
 
-def extract_armor_list(db_in):
+def extract_armor_db(db_in):
     armor_out = []
 
     print('\n\n\n=========== ARMOR ===========')

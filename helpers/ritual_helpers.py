@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup, Tag, NavigableString
 
 from .create_db import create_db
 
-from .mod_helpers import mi_list_sorter
-from .mod_helpers import multi_level
+from helpers.mi_helpers import mi_list_sorter
+from helpers.mi_helpers import multi_level
 
 def ritual_list_sorter(entry_in):
     name = entry_in["name"]
@@ -25,15 +25,15 @@ def create_ritual_library(id_in, list_in, name_in):
 
     # Set the name of the top-level XML tag
     if re.search('(Martial Practices)', name_in):
-        list_str = 'practicelists'
+        list_str = 'practices'
     else:
-        list_str = 'rituallists'
+        list_str = 'rituals'
 
     xml_out += (f'\t\t\t\t<{lib_id}-rituals>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
-    xml_out += (f'\t\t\t\t\t\t<recordname>{list_str}@{settings.library}</recordname>\n')
+    xml_out += (f'\t\t\t\t\t\t<recordname>lists.{list_str}@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
     xml_out += (f'\t\t\t\t</{lib_id}-rituals>\n')
 
@@ -45,28 +45,36 @@ def create_ritual_table(list_in, name_in):
     if not list_in:
         return xml_out
 
+    # Set the name of the top-level XML tag
+    if re.search('(Martial Practices)', name_in):
+        list_str = 'practices'
+    else:
+        list_str = 'rituals'
+
     name_camel = ''
 
     # Ritual List
     # This controls the table that appears when you click on a Library menu
 
-    xml_out += (f'\t\t<description type="string">{name_in}</description>\n')
-    xml_out += ('\t\t<groups>\n')
+    xml_out += (f'\t\t<{list_str}>\n')
+    xml_out += (f'\t\t\t<description type="string">{name_in}</description>\n')
+    xml_out += ('\t\t\t<groups>\n')
 
     # Create individual item entries
     for ritual_dict in sorted(list_in, key=ritual_list_sorter):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', ritual_dict["name"])
 
         # Rituals list entry
-        xml_out += (f'\t\t\t<ritual{name_camel}>\n')
-        xml_out += ('\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t<class>reference_ritual</class>\n')
-        xml_out += (f'\t\t\t\t\t<recordname>ritualdesc.{ritual_dict["class"].lower()}{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t<source type="string">{ritual_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t</ritual{name_camel}>\n')
+        xml_out += (f'\t\t\t\t<ritual{name_camel}>\n')
+        xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t<class>reference_ritual</class>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.rituals.{ritual_dict["class"].lower()}{name_camel}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t</link>\n')
+        xml_out += (f'\t\t\t\t\t<source type="string">{ritual_dict["name"]}</source>\n')
+        xml_out += (f'\t\t\t\t</ritual{name_camel}>\n')
 
-    xml_out += ('\t\t</groups>\n')
+    xml_out += ('\t\t\t</groups>\n')
+    xml_out += (f'\t\t</{list_str}>\n')
 
     return xml_out
 
@@ -102,7 +110,7 @@ def create_ritual_desc(list_in):
 
     return xml_out
 
-def extract_ritual_list(db_in, filter_in):
+def extract_ritual_db(db_in, filter_in):
     ritual_out = []
 
     print('\n\n\n=========== ' + filter_in.upper() + ' ===========')

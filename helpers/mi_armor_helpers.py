@@ -4,13 +4,12 @@ import copy
 import re
 from bs4 import BeautifulSoup, Tag, NavigableString
 
-from .mod_helpers import mi_list_sorter
-from .mod_helpers import multi_level
-from .mod_helpers import power_construct
-from .mod_helpers import powers_format
-from .mod_helpers import props_format
+from helpers.mi_helpers import multi_level
+from helpers.mi_helpers import power_construct
+from helpers.mi_helpers import powers_format
+from helpers.mi_helpers import props_format
 
-def extract_mi_armor_list(db_in):
+def extract_mi_armor_db(db_in):
     mi_armor_out = []
 
     print('\n\n\n=========== MAGIC ARMOR ===========')
@@ -25,6 +24,10 @@ def extract_mi_armor_list(db_in):
         name_str =  row['Name'].replace('\\', '')
         category_str = row['Category'].replace('\\', '')
         rarity_str =  row['Rarity'].replace('\\', '')
+
+#        if name_str not in ['Dilatory Armor']:
+#            continue
+#        print(name_str)
 
         bonus_str = ''
         cat_str = ''
@@ -138,7 +141,7 @@ def extract_mi_armor_list(db_in):
                     export_dict['section_id'] = section_id
                     export_dict['special'] = special_str
                     export_dict['subclass'] = subclass_str
-
+                    print(export_dict['name'])
                     # Append a copy of generated item dictionary
                     mi_armor_out.append(copy.deepcopy(export_dict))
                     previous_name = name_str
