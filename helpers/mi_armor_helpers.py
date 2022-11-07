@@ -141,7 +141,7 @@ def extract_mi_armor_db(db_in):
                     export_dict['section_id'] = section_id
                     export_dict['special'] = special_str
                     export_dict['subclass'] = subclass_str
-                    print(export_dict['name'])
+
                     # Append a copy of generated item dictionary
                     mi_armor_out.append(copy.deepcopy(export_dict))
                     previous_name = name_str

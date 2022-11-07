@@ -5,6 +5,6 @@
 :: 4E Items contains all mundane & magical items, all Rituals and all Alchemical Items
 
 module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t -s
-module_maker.exe --filename 4E_Traps_Diseases --library "4E Traps and Diseases" -T -d -s
-module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -r -c -B -H -P -E -F -f -p -b -s
-module_maker.exe --filename 4E_Items --library "4E Items" -a -u -m -i -t -s
+module_maker.exe --filename 4E_Traps_Terrain_Diseases --library "4E Traps, Terrain and Diseases" -T -e -d -s
+module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -R -C -B -H -P -E -F -D -f -p -b -s
+module_maker.exe --filename 4E_Items --library "4E Items" -a -r -m -o -i -t -s

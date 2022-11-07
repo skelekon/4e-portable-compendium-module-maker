@@ -173,7 +173,7 @@ def extract_background_db(db_in):
         # Copy detail strings to a list of strings
         raw_list = []
         for div in detail_div.strings:
-            if div.replace('\n', '').strip() != '' and not re.search('Tier$', div):
+            if div.replace('\n', '').strip() != '':
                 raw_list.append(re.sub(r'&', r'&amp;', div))
 
         # Combine consecutive items where an item ends with a ':'

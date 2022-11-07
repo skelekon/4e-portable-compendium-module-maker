@@ -10,11 +10,6 @@ from helpers.mod_helpers import check_all_dbs
 from helpers.mod_helpers import parse_argv
 from helpers.mod_helpers import create_module
 
-from helpers.mi_helpers import mi_other_list
-from helpers.mi_helpers import create_mi_desc
-from helpers.mi_helpers import create_mi_library
-from helpers.mi_helpers import create_mi_table
-
 from helpers.monster_helpers import extract_monster_db
 from helpers.monster_helpers import create_monster_library
 from helpers.monster_helpers import create_monster_table
@@ -24,6 +19,11 @@ from helpers.trap_helpers import extract_trap_db
 from helpers.trap_helpers import create_trap_library
 from helpers.trap_helpers import create_trap_list
 from helpers.trap_helpers import create_trap_cards
+
+from helpers.terrain_helpers import extract_terrain_db
+from helpers.terrain_helpers import create_terrain_library
+from helpers.terrain_helpers import create_terrain_list
+from helpers.terrain_helpers import create_terrain_cards
 
 from helpers.disease_helpers import extract_disease_db
 from helpers.disease_helpers import create_disease_library
@@ -60,6 +60,16 @@ from helpers.epic_helpers import create_epic_library
 from helpers.epic_helpers import create_epic_table
 from helpers.epic_helpers import create_epic_desc
 
+from helpers.familiar_helpers import extract_familiar_db
+from helpers.familiar_helpers import create_familiar_library
+from helpers.familiar_helpers import create_familiar_list
+from helpers.familiar_helpers import create_familiar_cards
+
+from helpers.deities_helpers import extract_deities_db
+from helpers.deities_helpers import create_deities_library
+from helpers.deities_helpers import create_deities_list
+from helpers.deities_helpers import create_deities_cards
+
 from helpers.feat_helpers import extract_feat_db
 from helpers.feat_helpers import create_feat_library
 from helpers.feat_helpers import create_feat_table
@@ -82,31 +92,34 @@ from helpers.ritual_helpers import create_ritual_library
 from helpers.ritual_helpers import create_ritual_table
 from helpers.ritual_helpers import create_ritual_desc
 
-from helpers.armor_helpers import create_armor_reference
+from helpers.poison_helpers import extract_poison_db
+from helpers.poison_helpers import create_poison_library
+from helpers.poison_helpers import create_poison_list
+from helpers.poison_helpers import create_poison_cards
+
 from helpers.armor_helpers import extract_armor_db
 from helpers.armor_helpers import create_armor_library
 from helpers.armor_helpers import create_armor_table
+from helpers.armor_helpers import create_armor_reference
 
-from helpers.weapons_helpers import create_weapons_reference
 from helpers.weapons_helpers import extract_weapons_db
 from helpers.weapons_helpers import create_weapons_library
 from helpers.weapons_helpers import create_weapons_table
+from helpers.weapons_helpers import create_weapons_reference
 
-from helpers.equipment_helpers import create_equipment_reference
 from helpers.equipment_helpers import extract_equipment_db
 from helpers.equipment_helpers import create_equipment_library
 from helpers.equipment_helpers import create_equipment_table
-
-from helpers.familiar_helpers import extract_familiar_db
-from helpers.familiar_helpers import create_familiar_library
-from helpers.familiar_helpers import create_familiar_list
-from helpers.familiar_helpers import create_familiar_cards
+from helpers.equipment_helpers import create_equipment_reference
 
 from helpers.mi_armor_helpers import extract_mi_armor_db
-
 from helpers.mi_other_helpers import extract_mi_other_db
-
 from helpers.mi_weaplements_helpers import extract_mi_weaplements_db
+
+from helpers.mi_helpers import mi_other_list
+from helpers.mi_helpers import create_mi_desc
+from helpers.mi_helpers import create_mi_library
+from helpers.mi_helpers import create_mi_table
 
 if __name__ == '__main__':
 
@@ -125,6 +138,7 @@ if __name__ == '__main__':
 ##    settings.tiers = True
 ##    settings.npcs = True
 ##    settings.traps = True
+##    settings.terrain = True
 ##    settings.diseases = True
 ##    settings.races = True
 ##    settings.classes = True
@@ -132,16 +146,19 @@ if __name__ == '__main__':
 ##    settings.heroic = True
 ##    settings.paragon = True
 ##    settings.epic = True
+##    settings.familiars = True
+##    settings.deities = True
 ##    settings.feats = True
 ##    settings.powers = True
 ##    settings.basic = True
 ##    settings.alchemy = True
 ##    settings.rituals = True
 ##    settings.practices = True
+##    settings.poisons = True
+##    settings.mundane = True
 ##    settings.armor = True
 ##    settings.weapons = True
 ##    settings.equipment = True
-##    settings.familiars = True
 ##    settings.magic = True
 ##    settings.mi_armor = True
 ##    settings.mi_implements = True
@@ -197,7 +214,7 @@ if __name__ == '__main__':
         suffix_str = ''
 
     # Check if any magic or mundane items are being exported as we need to read the item database
-    if settings.magic or settings.items or settings.armor or settings.weapons or settings.equipment:
+    if settings.mundane or settings.magic:
         # Pull Items data from Portable Compendium
         item_db = []
         try:
@@ -264,37 +281,63 @@ if __name__ == '__main__':
     # TRAPS
     #===========================
 
-    traps_lib_concat = ''
-    traps_list_concat = ''
-    traps_cards = ''
-    traps_tbl_list = ['Traps By Letter', 'Traps By Level']#, 'Traps By Level/Role', 'Traps By Role/Level']
+    trap_lib_concat = ''
+    trap_list_concat = ''
+    trap_cards = ''
+    trap_tbl_list = ['Traps By Letter', 'Traps By Level']#, 'Traps By Level/Role', 'Traps By Role/Level']
 
     if settings.traps:
         # Pull Traps data from Portable Compendium
-        traps_db = []
+        trap_db = []
         try:
-            traps_db = create_db('sql\ddiTrap.sql', "','")
+            trap_db = create_db('sql\ddiTrap.sql', "','")
         except:
             print('Error reading Trap data source.')
     
-        if not traps_db:
+        if not trap_db:
             print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
             input('Press enter to close.')
             sys.exit(0)
 
         # Only need to get the list of traps once
-        traps_extract = extract_trap_db(traps_db)
+        trap_extract = extract_trap_db(trap_db)
 
         # Loop through the different traps list types to build the library menus and lists
-        traps_list_concat += ('\t\t<traps>\n')
-        for tbl_name in traps_tbl_list:
-            traps_lib, menu_id = create_trap_library(menu_id, tier_list, tbl_name + suffix_str)
-            traps_list = create_trap_list(traps_extract, tier_list, tbl_name + suffix_str)
-            traps_lib_concat += traps_lib
-            traps_list_concat += traps_list
-        traps_list_concat += ('\t\t</traps>\n')
+        trap_list_concat += ('\t\t<traps>\n')
+        for tbl_name in trap_tbl_list:
+            trap_lib, menu_id = create_trap_library(menu_id, tier_list, tbl_name + suffix_str)
+            trap_list = create_trap_list(trap_extract, tier_list, tbl_name + suffix_str)
+            trap_lib_concat += trap_lib
+            trap_list_concat += trap_list
+        trap_list_concat += ('\t\t</traps>\n')
 
-        trap_cards = create_trap_cards(traps_extract)
+        trap_cards = create_trap_cards(trap_extract)
+
+    #===========================
+    # TERRAIN
+    #===========================
+
+    terrain_lib = ''
+    terrain_list = ''
+    terrain_cards = ''
+
+    if settings.terrain:
+        # Pull Terrain data from Portable Compendium
+        terrain_db = []
+        try:
+            terrain_db = create_db('sql\ddiTerrain.sql', "','")
+        except:
+            print('Error reading Terrain data source.')
+    
+        if not terrain_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        terrain_extract = extract_terrain_db(terrain_db)
+        terrain_lib, menu_id = create_terrain_library(menu_id)
+        terrain_list = create_terrain_list(terrain_extract)
+        terrain_cards = create_terrain_cards(terrain_extract)
 
     #===========================
     # DISEASES
@@ -511,6 +554,32 @@ if __name__ == '__main__':
         familiar_cards = create_familiar_cards(familiar_extract)
 
     #===========================
+    # DEITIES
+    #===========================
+
+    deities_lib = ''
+    deities_list = ''
+    deities_cards = ''
+
+    if settings.deities:
+        # Pull Deities data from Portable Compendium
+        deities_db = []
+        try:
+            deities_db = create_db('sql\ddiDeity.sql', "','")
+        except:
+            print('Error reading Deity data source.')
+    
+        if not deities_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        deities_extract = extract_deities_db(deities_db)
+        deities_lib, menu_id = create_deities_library(menu_id)
+        deities_list = create_deities_list(deities_extract)
+        deities_cards = create_deities_cards(deities_extract)
+
+    #===========================
     # FEATS
     #===========================
 
@@ -611,6 +680,32 @@ if __name__ == '__main__':
         practice_cards = create_ritual_desc(practice_extract)
 
     #===========================
+    # POISONS
+    #===========================
+
+    poison_lib = ''
+    poison_list = ''
+    poison_cards = ''
+
+    if settings.poisons:
+        # Pull Poisons data from Portable Compendium
+        poison_db = []
+        try:
+            poison_db = create_db('sql\ddiPoison.sql', "','")
+        except:
+            print('Error reading Poison data source.')
+    
+        if not poison_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        poison_extract = extract_poison_db(poison_db)
+        poison_lib, menu_id = create_poison_library(menu_id)
+        poison_list = create_poison_list(poison_extract)
+        poison_cards = create_poison_cards(poison_extract)
+
+    #===========================
     # ARMOR
     #===========================
 
@@ -619,11 +714,7 @@ if __name__ == '__main__':
     armor_cards = ''
 
     if settings.armor:
-
-        # Extract all the Armor data into a list
         armor_extract = extract_armor_db(item_db)
-
-        # Call the three functions to generate the _lib, _tbl & _ref xml
         armor_lib, menu_id = create_armor_library(menu_id, 'Items - Armor')
         armor_list = create_armor_table(armor_extract)
         armor_cards = create_armor_reference(armor_extract)
@@ -666,10 +757,10 @@ if __name__ == '__main__':
     mi_armor_power = ''
 
     if settings.mi_armor:
-        mi_armor_list = extract_mi_armor_db(item_db)
+        mi_armor_extract = extract_mi_armor_db(item_db)
         mi_armor_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Armor' + suffix_str, 'Armor')
-        mi_armor_list = create_mi_table(mi_armor_list, tier_list, 'Armor')
-        mi_armor_cards, mi_armor_power = create_mi_desc(mi_armor_list)
+        mi_armor_list = create_mi_table(mi_armor_extract, tier_list, 'Armor')
+        mi_armor_cards, mi_armor_power = create_mi_desc(mi_armor_extract)
 
     #===========================
     # MAGIC IMPLEMENTS
@@ -681,10 +772,10 @@ if __name__ == '__main__':
     mi_implements_power = ''
 
     if settings.mi_implements:
-        mi_implements_list = extract_mi_weaplements_db(item_db, 'Implement')
+        mi_implements_extract = extract_mi_weaplements_db(item_db, 'Implement')
         mi_implements_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Implements' + suffix_str, 'Implements')
-        mi_implements_list = create_mi_table(mi_implements_list, tier_list, 'Implements')
-        mi_implements_cards, mi_implements_power = create_mi_desc(mi_implements_list)
+        mi_implements_list = create_mi_table(mi_implements_extract, tier_list, 'Implements')
+        mi_implements_cards, mi_implements_power = create_mi_desc(mi_implements_extract)
 
     #===========================
     # MAGIC WEAPONS
@@ -696,10 +787,10 @@ if __name__ == '__main__':
     mi_weapons_power = ''
 
     if settings.mi_weapons:
-        mi_weapons_list = extract_mi_weaplements_db(item_db, 'Weapon')
+        mi_weapons_extract = extract_mi_weaplements_db(item_db, 'Weapon')
         mi_weapons_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Weapons' + suffix_str, 'Weapons')
-        mi_weapons_list = create_mi_table(mi_weapons_list, tier_list, 'Weapons')
-        mi_weapons_cards, mi_weapons_power = create_mi_desc(mi_weapons_list)
+        mi_weapons_list = create_mi_table(mi_weapons_extract, tier_list, 'Weapons')
+        mi_weapons_cards, mi_weapons_power = create_mi_desc(mi_weapons_extract)
 
     #===========================
     # MAGIC OTHER
@@ -718,10 +809,10 @@ if __name__ == '__main__':
     for mi in mi_other_list:
         # get the value for this mi variable from settings
         if process_flag := eval(f'settings.{mi["arg"]}'):
-            mi_other_list = extract_mi_other_db(item_db, mi["filter"])
+            mi_other_extract = extract_mi_other_db(item_db, mi["filter"])
             mi_other_lib, menu_id = create_mi_library(menu_id, empty_tier_list, 'Magic Items - ' + mi["literal"] + suffix_str, mi["literal"])
-            mi_other_list = create_mi_table(mi_other_list, empty_tier_list, mi["literal"])
-            mi_other_cards, mi_other_power = create_mi_desc(mi_other_list)
+            mi_other_list = create_mi_table(mi_other_extract, empty_tier_list, mi["literal"])
+            mi_other_cards, mi_other_power = create_mi_desc(mi_other_extract)
 
             # Concatenate all the results together
             mi_other_lib_concat += mi_other_lib
@@ -747,11 +838,12 @@ if __name__ == '__main__':
     export_xml += ('\t<library>\n')
     export_xml += ('\t\t<lib4ecompendium>\n')
     export_xml += (f'\t\t\t<name type="string">{settings.library}</name>\n')
-    export_xml += ('\t\t\t<categoryname type="string">4E Core</categoryname>\n')
+    export_xml += ('\t\t\t<categoryname type="string">4E Compendium</categoryname>\n')
     export_xml += ('\t\t\t<entries>\n')
 
     export_xml += monster_lib_concat
-    export_xml += traps_lib_concat
+    export_xml += trap_lib_concat
+    export_xml += terrain_lib
     export_xml += disease_lib
     export_xml += races_lib
     export_xml += classes_lib
@@ -760,12 +852,14 @@ if __name__ == '__main__':
     export_xml += paragon_lib
     export_xml += epic_lib
     export_xml += familiar_lib
+    export_xml += deities_lib
     export_xml += feat_lib
     export_xml += power_lib
     export_xml += alchemy_lib
     export_xml += alchemy_item_lib
     export_xml += ritual_lib
     export_xml += practice_lib
+    export_xml += poison_lib
     export_xml += armor_lib
     export_xml += weapons_lib
     export_xml += equipment_lib
@@ -787,7 +881,8 @@ if __name__ == '__main__':
         export_xml += ('\t<lists>\n')
 
     export_xml += monster_list_concat
-    export_xml += traps_list_concat
+    export_xml += trap_list_concat
+    export_xml += terrain_list
     export_xml += disease_list
     export_xml += races_list
     export_xml += classes_list
@@ -795,16 +890,18 @@ if __name__ == '__main__':
     export_xml += heroic_list
     export_xml += paragon_list
     export_xml += epic_list
+    export_xml += familiar_list
+    export_xml += deities_list
     export_xml += feat_list
     export_xml += power_list
     export_xml += formulas_list
     export_xml += alchemy_item_list
     export_xml += ritual_list
     export_xml += practice_list
+    export_xml += poison_list
     export_xml += armor_list
     export_xml += weapons_list
     export_xml += equipment_list
-    export_xml += familiar_list
     export_xml += mi_armor_list
     export_xml += mi_implements_list
     export_xml += mi_weapons_list
@@ -829,6 +926,9 @@ if __name__ == '__main__':
         export_xml += trap_cards
         export_xml += ('\t\t</npcs>\n')
 
+    #TERRAIN
+    export_xml += terrain_cards
+
     #DISEASES
     export_xml += disease_cards
 
@@ -840,6 +940,7 @@ if __name__ == '__main__':
     export_xml += paragon_cards
     export_xml += epic_cards
     export_xml += familiar_cards
+    export_xml += deities_cards
 
     # FEATURES
     if settings.races or settings.classes or settings.heroic or settings.paragon or settings.epic:
@@ -856,7 +957,7 @@ if __name__ == '__main__':
 
     # POWERDESC
     # These are the individual cards for Character, Feat or Item Powers
-    if settings.magic or settings.items or settings.feats or settings.powers or settings.alchemy or settings.races \
+    if settings.magic or settings.feats or settings.powers or settings.alchemy or settings.races \
        or settings.classes or settings.heroic or settings.paragon or settings.epic:
         export_xml += ('\t\t<powers>\n')
         export_xml += mi_armor_power
@@ -867,8 +968,11 @@ if __name__ == '__main__':
         export_xml += alchemy_power
         export_xml += ('\t\t</powers>\n')
 
+    # POISONS
+    export_xml += poison_cards
+
     # ITEMS
-    if settings.items or settings.armor or settings.weapons or settings.equipment or settings.mundane or settings.magic or settings.alchemy:
+    if settings.mundane or settings.magic or settings.alchemy:
         export_xml +=('\t\t<items>\n')
         export_xml += armor_cards
         export_xml += weapons_cards
