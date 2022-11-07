@@ -31,20 +31,23 @@ Options:
                      Tiers
   -n, --npcs         export NPCs (Monsters)
   -T, --traps        export Traps and Hazards
+  -e, --terrain      export Terrain information
   -d, --diseases     export Disease tracks
-  -r, --races        export Races information
-  -c, --classes      export Classes information
-  -B, --backgrounds  export Background information
-  -H, --heroic       export Heroic Themes information
-  -P, --paragon      export Paragon Path information
-  -E, --epic         export Epic Destiny information
-  -F, --familiars    export Familiars
-  -f, --feats        exports Feat information
-  -p, --powers       exports Power information
+  -R, --races        export Races information
+  -C, --classes      export Classes information
+  -B, --backgrounds  export PC Background information
+  -H, --heroic       export Heroic Themes
+  -P, --paragon      export Paragon Paths
+  -E, --epic         export Epic Destinies
+  -F, --familiars    export Familiars information
+  -D, --deities      export Deity information
+  -f, --feats        export Feats
+  -p, --powers       export PC Powers
   -b, --basic        include Basic Attacks in Power export
-  -a, --alchemy      exports Alchemical Item information
-  -u, --rituals      exports Ritual information
-  -m, --martial      exports Martial Practice information
+  -a, --alchemy      export Alchemical Formulas and Items
+  -r, --rituals      export Rituals
+  -m, --martial      export Martial Practices
+  -o, --poisons      export Poisons
   -i, --items        export all item types (= --mundane & --magic)
   --mundane          export all mundane items
   --magic            export all magic items
@@ -62,9 +65,9 @@ You can use `run_all.bat` to create the following four Libraries, which include 
 
 ```
 module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t -s
-module_maker.exe --filename 4E_Traps_Diseases --library "4E Traps and Diseases" -T -d -s
-module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -r -c -B -H -P -E -F -f -p -b -s
-module_maker.exe --filename 4E_Items --library "4E Items" -a -u -m -i -t -s
+module_maker.exe --filename 4E_Traps_Terrain_Diseases --library "4E Traps, Terrain and Diseases" -T -e -d -s
+module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -R -C -B -H -P -E -F -D -f -p -b -s
+module_maker.exe --filename 4E_Items --library "4E Items" -a -r -m -o -i -t -s
 ```
 
 Default filename/library will be `4E_Compendium` / `4E Compendium` if not supplied.
