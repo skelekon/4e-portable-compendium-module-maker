@@ -36,8 +36,8 @@ def clean_formattedtext(text_in):
 
 
 def check_all_dbs():
-    file_list = ['sql\ddiBackground.sql', 'sql\ddiClass.sql', 'sql\ddiCompanion.sql', 'sql\ddiDisease.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql',\
-                 'sql\ddiMonster.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql', 'sql\ddiTheme.sql', 'sql\ddiTrap.sql']
+    file_list = ['sql\ddiBackground.sql', 'sql\ddiClass.sql', 'sql\ddiCompanion.sql', 'sql\ddiDeity.sql', 'sql\ddiDisease.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql',\
+                 'sql\ddiMonster.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPoison.sql', 'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql', 'sql\ddiTerrain.sql', 'sql\ddiTheme.sql', 'sql\ddiTrap.sql']
     for f in file_list:
         if not os.path.isfile(f):
             print('Missing File: ' + f)
@@ -59,20 +59,23 @@ def parse_argv(args_in):
     parser.add_option('-t', '--tiers', action='store_true', dest='tiers', help='divide Magic Armor, Implements and Weapons, NPCs into Tiers')
     parser.add_option('-n', '--npcs', action='store_true', dest='npcs', help='export NPCs (Monsters)')
     parser.add_option('-T', '--traps', action='store_true', dest='traps', help='export Traps and Hazards')
+    parser.add_option('-e', '--terrain', action='store_true', dest='terrain', help='export Terrain information')
     parser.add_option('-d', '--diseases', action='store_true', dest='diseases', help='export Disease tracks')
-    parser.add_option('-r', '--races', action='store_true', dest='races', help='export Races information')
-    parser.add_option('-c', '--classes', action='store_true', dest='classes', help='export Classes information')
-    parser.add_option('-B', '--backgrounds', action='store_true', dest='backgrounds', help='export Background information')
-    parser.add_option('-H', '--heroic', action='store_true', dest='heroic', help='export Heroic Themes information')
-    parser.add_option('-P', '--paragon', action='store_true', dest='paragon', help='export Paragon Path information')
-    parser.add_option('-E', '--epic', action='store_true', dest='epic', help='export Epic Destiny information')
-    parser.add_option('-F', '--familiars', action='store_true', dest='familiars', help='export Familiars')
-    parser.add_option('-f', '--feats', action='store_true', dest='feats', help='exports Feat information')
-    parser.add_option('-p', '--powers', action='store_true', dest='powers', help='exports Power information')
+    parser.add_option('-R', '--races', action='store_true', dest='races', help='export Races information')
+    parser.add_option('-C', '--classes', action='store_true', dest='classes', help='export Classes information')
+    parser.add_option('-B', '--backgrounds', action='store_true', dest='backgrounds', help='export PC Background information')
+    parser.add_option('-H', '--heroic', action='store_true', dest='heroic', help='export Heroic Themes')
+    parser.add_option('-P', '--paragon', action='store_true', dest='paragon', help='export Paragon Paths')
+    parser.add_option('-E', '--epic', action='store_true', dest='epic', help='export Epic Destinies')
+    parser.add_option('-F', '--familiars', action='store_true', dest='familiars', help='export Familiars information')
+    parser.add_option('-D', '--deities', action='store_true', dest='deities', help='export Deity information')
+    parser.add_option('-f', '--feats', action='store_true', dest='feats', help='export Feats')
+    parser.add_option('-p', '--powers', action='store_true', dest='powers', help='export PC Powers')
     parser.add_option('-b', '--basic', action='store_true', dest='basic', help='include Basic Attacks in Power export')
-    parser.add_option('-a', '--alchemy', action='store_true', dest='alchemy', help='exports Alchemical Item information')
-    parser.add_option('-u', '--rituals', action='store_true', dest='rituals', help='exports Ritual information')
-    parser.add_option('-m', '--martial', action='store_true', dest='martial', help='exports Martial Practice information')
+    parser.add_option('-a', '--alchemy', action='store_true', dest='alchemy', help='export Alchemical Formulas and Items')
+    parser.add_option('-r', '--rituals', action='store_true', dest='rituals', help='export Rituals')
+    parser.add_option('-m', '--martial', action='store_true', dest='martial', help='export Martial Practices')
+    parser.add_option('-o', '--poisons', action='store_true', dest='poisons', help='export Poisons')
     parser.add_option('-i', '--items', action='store_true', dest='items', help='export all item types (= --mundane & --magic)')
     parser.add_option('--mundane', action='store_true', dest='mundane', help='export all mundane items')
     parser.add_option('--magic', action='store_true', dest='magic', help='export all magic items')
@@ -111,6 +114,7 @@ def parse_argv(args_in):
     settings.tiers = options.tiers if options.tiers != None else False
     settings.npcs = options.npcs if options.npcs != None else False
     settings.traps = options.traps if options.traps != None else False
+    settings.terrain = options.terrain if options.terrain != None else False
     settings.diseases = options.diseases if options.diseases != None else False
     settings.races = options.races if options.races != None else False
     settings.classes = options.classes if options.classes != None else False
@@ -118,13 +122,15 @@ def parse_argv(args_in):
     settings.heroic = options.heroic if options.heroic != None else False
     settings.paragon = options.paragon if options.paragon != None else False
     settings.epic = options.epic if options.epic != None else False
+    settings.familiars = options.familiars if options.familiars != None else False
+    settings.deities = options.deities if options.deities != None else False
     settings.feats = options.feats if options.feats != None else False
     settings.powers = options.powers if options.powers != None else False
     settings.basic = options.basic if options.basic != None else False
     settings.alchemy = options.alchemy if options.alchemy != None else False
     settings.rituals = options.rituals if options.rituals != None else False
     settings.practices = options.martial if options.martial != None else False
-    settings.familiars = options.familiars if options.familiars != None else False
+    settings.poisons = options.poisons if options.poisons != None else False
     settings.items = options.items if options.items != None else False
     settings.mundane = options.mundane if options.mundane != None else False
     settings.magic = options.magic if options.magic != None else False
@@ -153,14 +159,19 @@ def parse_argv(args_in):
     settings.mi_waist = False
     settings.mi_wondrous = False
 
+    # If --items is specified then set all items to True
+    if settings.items == True:
+        settings.mundane = True
+        settings.magic = True
+
     # If --mundane is specified then set mundane items to True
-    if options.mundane == True:
+    if settings.mundane == True:
         settings.armor = True
         settings.equipment = True
         settings.weapons = True
 
     # If --magic  is specified then set magic items to True
-    if options.magic == True:
+    if settings.magic == True:
         settings.tiers = True
         settings.mi_armor = True
         settings.mi_implements = True
@@ -182,38 +193,13 @@ def parse_argv(args_in):
         settings.mi_waist = True
         settings.mi_wondrous = True
 
-    # If --items is specified then set all items to True
-    if options.items == True:
-        settings.tiers = True
-        settings.armor = True
-        settings.equipment = True
-        settings.weapons = True
-        settings.mi_armor = True
-        settings.mi_implements = True
-        settings.mi_weapons = True
-        settings.mi_alchemical = True
-        settings.mi_alternative = True
-        settings.mi_ammunition = True
-        settings.mi_arms = True
-        settings.mi_companion = True
-        settings.mi_consumable = True
-        settings.mi_familiar = True
-        settings.mi_feet = True
-        settings.mi_hands = True
-        settings.mi_head = True
-        settings.mi_head_neck = True
-        settings.mi_mount = True
-        settings.mi_neck = True
-        settings.mi_ring = True
-        settings.mi_waist = True
-        settings.mi_wondrous = True
     return
 
 
 def create_module(xml_in):
 
     # Use db.xml for DM only modules so they are not player readable
-    if settings.npcs or settings.traps or settings.diseases:
+    if settings.npcs or settings.traps or settings.terrain or settings.diseases:
         db_filename = 'db.xml'
     else:
         db_filename = 'client.xml'
