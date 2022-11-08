@@ -77,7 +77,7 @@ from helpers.feat_helpers import create_feat_desc
 
 from helpers.power_helpers import extract_power_db
 from helpers.power_helpers import create_power_library
-from helpers.power_helpers import create_power_table
+from helpers.power_helpers import create_power_list
 from helpers.power_helpers import create_power_desc
 
 from helpers.alchemy_helpers import extract_alchemy_db
@@ -628,7 +628,7 @@ if __name__ == '__main__':
 
         power_extract = extract_power_db(power_db)
         power_lib, menu_id = create_power_library(menu_id, power_extract, suffix_str)
-        power_list = create_power_table(power_extract)
+        power_list = create_power_list(power_extract)
         power_cards = create_power_desc(power_extract)
 
     #===========================
