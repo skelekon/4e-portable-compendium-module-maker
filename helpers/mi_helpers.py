@@ -121,6 +121,7 @@ def create_mi_library(id_in, tier_list, name_in, item_in):
 
     return xml_out, id_in
 
+
 def create_mi_table(list_in, tier_list, item_in):
     xml_out = ''
 
@@ -205,6 +206,7 @@ def create_mi_table(list_in, tier_list, item_in):
 
     return xml_out
 
+
 def multi_level(soup_in):
     multi_out = []
 
@@ -234,6 +236,7 @@ def multi_level(soup_in):
         multi_out.append(copy.deepcopy(multi_dict))
 
     return multi_out
+
 
 def create_mi_desc(list_in):
     mi_out = ''
@@ -284,6 +287,7 @@ def create_mi_desc(list_in):
         mi_out += (f'\t\t\t</{name_camel}-{level_str}>\n')
 
     return mi_out, power_out
+
 
 def power_construct(lines_list):
     # List of keywords to be included
@@ -348,6 +352,7 @@ def power_construct(lines_list):
     power_dict['shortdescription'] = shortdescription_str
 
     return power_dict
+
 
 def powers_format(soup_in, name_in):
     powers_list = []
@@ -425,6 +430,7 @@ def powers_format(soup_in, name_in):
         powerdesc_out += f'\t\t</item{name_camel}Power-{entry_id}>\n'
 
     return powerdesc_out, mi_powerstag_out
+
 
 def props_format(props_in):
     props_out = ''
