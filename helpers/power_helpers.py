@@ -135,14 +135,13 @@ def create_power_library(id_in, list_in, suffix_in):
         if class_camel != previous_class:
 
             # Write new Class
-            if previous_prefix != '':
-                lib_xml += (f'\t\t\t\t\t\t<{class_camel}>\n')
-                lib_xml += (f'\t\t\t\t\t\t\t<name type="string">{power_dict["class"]}{suffix_in}</name>\n')
-                lib_xml += ('\t\t\t\t\t\t\t<listlink type="windowreference">\n')
-                lib_xml += ('\t\t\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
-                lib_xml += (f'\t\t\t\t\t\t\t\t<recordname>lists.powers.{class_camel}@{settings.library}</recordname>\n')
-                lib_xml += ('\t\t\t\t\t\t\t</listlink>\n')
-                lib_xml += (f'\t\t\t\t\t\t</{class_camel}>\n')
+            lib_xml += (f'\t\t\t\t\t\t<{class_camel}>\n')
+            lib_xml += (f'\t\t\t\t\t\t\t<name type="string">{power_dict["class"]}{suffix_in}</name>\n')
+            lib_xml += ('\t\t\t\t\t\t\t<listlink type="windowreference">\n')
+            lib_xml += ('\t\t\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
+            lib_xml += (f'\t\t\t\t\t\t\t\t<recordname>lists.powers.{class_camel}@{settings.library}</recordname>\n')
+            lib_xml += ('\t\t\t\t\t\t\t</listlink>\n')
+            lib_xml += (f'\t\t\t\t\t\t</{class_camel}>\n')
 
         previous_class = class_camel
         previous_prefix = prefix_camel
@@ -401,7 +400,7 @@ def extract_power_db(db_in):
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
 
-#        if basename_str not in ['Iron Fist', 'Psychic Anomaly', 'Eyes of the Vestige']: #, 'Aggressive Lunge', 'Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
+#        if basename_str not in ['Your Doom Awaits']:#'Iron Fist', 'Psychic Anomaly', 'Eyes of the Vestige']: #, 'Aggressive Lunge', 'Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
 #            continue
 #        print(basename_str)        
 
@@ -468,7 +467,7 @@ def extract_power_db(db_in):
             while anchor_tag:
                 anchor_tag.replaceWithChildren()
                 anchor_tag = published_tag.find('a')
-            published_str = '\\n' + str(published_tag)
+            published_str = str(published_tag)
 
         # set up variables used for looping mutiple power entries
         power_id = 0
@@ -507,7 +506,6 @@ def extract_power_db(db_in):
                 group_str = ''
                 keywords_str = ''
                 name_str = ''
-                published_str = ''
                 range_str = ''
                 recharge_id = ''
                 recharge_str = ''
@@ -536,10 +534,10 @@ def extract_power_db(db_in):
                     recharge_str = 'At-Will'
 
                 # Powerstat class - this is used to find Action, Range, Keywords
-                powerstat_lbl = power_html.find('p', class_='powerstat')
+                powerstat_p = power_html.find('p', class_='powerstat')
 
                 # Action
-                powerstat_br = powerstat_lbl.find('br')
+                powerstat_br = powerstat_p.find('br')
                 action_tag = powerstat_br.find_next_sibling('b')
                 action_str = action_tag.text
 
@@ -551,7 +549,7 @@ def extract_power_db(db_in):
 
                 # Keywords
                 keywords = []
-                power_bullet = powerstat_lbl.find('img', attrs={'src': 'images/bullet.gif'})
+                power_bullet = powerstat_p.find('img', attrs={'src': 'images/bullet.gif'})
                 if power_bullet:
                     for tag in power_bullet.next_siblings:
                         if tag.name == 'br':
@@ -562,7 +560,7 @@ def extract_power_db(db_in):
 
                 # Description
                 description_tags = []
-                for desc_tag in powerstat_lbl.find_all_next():
+                for desc_tag in powerstat_p.find_all_next():
                     if desc_tag.has_attr('class'):
                         if desc_tag.get('class')[0] in ['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']:
                             description_tags.append(desc_tag)
@@ -574,14 +572,18 @@ def extract_power_db(db_in):
                     # remove p classnames
                     del tag['class']
                 description_str = ''.join(map(str, description_tags))
+                description_str = description_str.replace('\n', '')
+               
                 # wrap any Augment X in <p> tags, because it's easier to do once it's a string instead of messing with tags
                 description_str = re.sub(r'(<b>Augment [0-9]</b>)', r'<p>\1</p>', description_str)
                 # power description doesn't honor <br/> tags, so replace with new paragraphs
                 description_str = re.sub('<br/>', '</p><p>', description_str)
+                description_str += published_str
 
                 # Short Description
                 # remove tags after replacing new paragraphs with newlines
                 shortdescription_str = re.sub('<.*?>', '', description_str.replace('</p><p>', '\n'))
+                shortdescription_str = shortdescription_str.replace('\n', '\\n')
 
                 # Group - this is the subheading on the Powers table
                 if level_str == '0':
@@ -626,7 +628,7 @@ def extract_power_db(db_in):
                     export_dict["action"] = action_str
                     export_dict["basename"] = basename_str
                     export_dict["class"] = class_str
-                    export_dict["description"] = description_str + published_str
+                    export_dict["description"] = description_str
                     export_dict["flavor"] = flavor_str
                     export_dict["group"] = group_str
                     export_dict["group_id"] = group_id
@@ -639,7 +641,7 @@ def extract_power_db(db_in):
                     export_dict["published"] = published_str
                     export_dict["range"] = range_str
                     export_dict["recharge"] = recharge_str
-                    export_dict["shortdescription"] = shortdescription_str.replace('\n', '\\n')
+                    export_dict["shortdescription"] = shortdescription_str
                     export_dict["source"] = source_str
 
                     # Append a copy of generated item dictionary

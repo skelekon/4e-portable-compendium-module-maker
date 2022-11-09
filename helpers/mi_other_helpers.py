@@ -22,6 +22,7 @@ def rituals_list():
         rituals_out.append(row["Name"].replace('\\', '').replace('’', '\'')) # Alchemist's Spark uses a different apostrophe
     return rituals_out
 
+
 def extract_mi_other_db(db_in, filter_in):
     mi_other_out = []
 
