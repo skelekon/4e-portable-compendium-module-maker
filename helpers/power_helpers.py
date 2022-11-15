@@ -556,7 +556,7 @@ def extract_power_db(db_in):
                             break
                         elif tag.name == 'b':
                             keywords.append(tag.text)
-                keywords_str = ", ".join(keywords)
+                keywords_str = ', '.join(keywords)
 
                 # Description
                 description_tags = []

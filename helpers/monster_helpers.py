@@ -96,7 +96,7 @@ def create_monster_library(id_in, tier_list, name_in):
 
 
 # This controls the table that appears when you click on a Library menu
-def create_monster_table(list_in, tier_list, name_in):
+def create_monster_list(list_in, tier_list, name_in):
     xml_out = ''
 
     if not list_in:
@@ -234,7 +234,7 @@ def create_monster_table(list_in, tier_list, name_in):
     return xml_out
 
 
-def create_monster_desc(list_in):
+def create_monster_cards(list_in):
     xml_out = ''
 
     if not list_in:
@@ -284,6 +284,9 @@ def create_monster_desc(list_in):
             xml_out += (f'\t\t\t\t<languages type="string">{monster_dict["languages"]}</languages>\n')
         if monster_dict["equipment"] != '':
             xml_out += (f'\t\t\t\t<equipment type="string">{monster_dict["equipment"]}</equipment>\n')
+        xml_out += (f'\t\t\t\t<npctype type="string">NPC</npctype>\n')
+        if monster_dict["published"] != '':
+            xml_out += (f'\t\t\t\t<text type="formattedtext">{monster_dict["published"]}</text>\n')
         xml_out += (f'\t\t\t</{name_camel}>\n')
 
     return xml_out
@@ -361,12 +364,14 @@ def format_power(soup_in, id_in):
             if action_str in ['Standard', 'Minor', 'Move']:
                 action_str += ' Action'
             layout_1 = False
-
         # also check for Sustain and Trigger conditions as they will be in here
         if action_match := re.search(r'(Sustain.*?)[,)$]', header_tag.text, re.IGNORECASE):
             sustain_str += action_match.group(1).title() + '\\n'
         if action_match := re.search(r'(When.*?)[;)$]', header_tag.text, re.IGNORECASE):
             trigger_str += 'Trigger: ' + action_match.group(1)[0:1].upper() + action_match.group(1)[1:] + '\\n'
+
+    if action_str == 'Trait':
+        action_str = ''
 
     # Keywords
     # may be in parentheses in Layout 1
@@ -379,14 +384,16 @@ def format_power(soup_in, id_in):
             keywords_str += ''.join(kwd_tag.text)
 
     # Recharge
+    # first look for descriptive Recharge
     if layout_1 == True:
         if recharge_img := header_tag.find('img', src=re.compile(r'/x.gif')):
             for rech_tag in recharge_img.find_all_next(text=True):
-                recharge_str += (''.join(rech_tag.text)).strip()
+                recharge_str += rech_tag.text
+            recharge_str = recharge_str.strip()
     elif recharge_match := re.search(r'(At-will|Daily|Encounter)', header_tag.text, re.IGNORECASE):
             recharge_str = recharge_match.group(1).title()
 
-    # Either layout can contain die symbols
+    # then look for die symbols, starting from the lowest
     if recharge_img := header_tag.find('img', src=re.compile(r'/2a.gif')):
         recharge_str = 'Recharge 2-6'
     elif recharge_img := header_tag.find('img', src=re.compile(r'/3a.gif')):
@@ -401,7 +408,7 @@ def format_power(soup_in, id_in):
     # If Recharge is 'Aura', change that to the Action type so that it goes under an 'Auras' heading
     # set the range to be all the text after the Aura keyword, as it's most commonly just the aura size
     if aura_match := re.search('(\s*Aura\s*)(.*)', recharge_str, re.IGNORECASE):
-        action_str = 'Aura'
+        action_str = 'Aura '
         range_str = aura_match.group(2)
         recharge_str = ''
 
@@ -410,16 +417,34 @@ def format_power(soup_in, id_in):
         shortdescription_str += ''.join(bdy_tag.stripped_strings) + '\\n'
     shortdescription_str = re.sub(r'(^;*\s*|\\n$)', '', shortdescription_str)
 
-    # Triggered Action - split out Immediate and Opportunity actions
+    # Triggered Action - replace with specific Immediate and Opportunity action if present
     if action_str[0:9] == 'Triggered':
         if trigger_match := re.search(r'^(.*?)(Immediate Interrupt|Immediate Reaction|Opportunity Action)(.*?)$', shortdescription_str):
             action_str = trigger_match.group(2)
-            shortdescription_str = re.sub(r'(^\\n|\(\))*', '', trigger_match.group(1).strip() + trigger_match.group(3).strip())
 
     # Range - split out any Ranges or Sizes
-    if range_match := re.search(r'^(.*?)((Area Burst [0-9] within|Close blast|Close burst|Melee|Range|Ranged|Reach)\s+([0-9]+/[0-9]+|[0-9]+|special))(.*?)$',  shortdescription_str, re.IGNORECASE):
-        range_str = range_match.group(2).strip()
-        shortdescription_str = re.sub(r'(^\\n|^;\s*|\(\))*', '', range_match.group(1).strip() + range_match.group(5).strip())
+    # regex has become too complicated, so build it up piecewise
+    range_pattern = '(.*?)'
+    range_pattern += '('
+    range_pattern += 'Area burst\s+([0-9]+ within [0-9]+|[0-9]+)'
+    range_pattern += '|Close blast\s+([0-9]+; targets.*?;|[0-9]+)'
+    range_pattern += '|Close burst\s+([0-9]+; targets.*?;|[0-9]+)'
+    range_pattern += '|Melee reach\s+([0-9]+)'
+    range_pattern += '|Melee [0-9]+ or Ranged\s+([0-9]+)'
+    range_pattern += '|Melee or Ranged reach\s+([0-9]+)'
+    range_pattern += '|Melee\s+([0-9]+|touch|)'
+    range_pattern += '|Ranged\s+([0-9]+|sight)'
+    range_pattern += '|Reach\s+([0-9]+)'
+    range_pattern += ')'
+    range_pattern += '(\s+\(.*?\)|)'
+    range_pattern += '(.*?)$'
+    if range_match := re.search(range_pattern,  shortdescription_str):
+#        range_str = range_match.group(2).strip() + range_match.group(12)
+        range_str = re.sub(r';$', '', range_match.group(2)).strip() + range_match.group(12)
+        # remove leading semi-colons or newlines
+        shortdescription_str = re.sub(r'^(;|\\n|)*', '', range_match.group(1).strip() + range_match.group(13).strip())
+        # remove empty clauses caused by extracting Range
+        shortdescription_str = re.sub(r':\s*;', ':', shortdescription_str)
 
     # Prepend any Sustain or Trigger info
     shortdescription_str = sustain_str + trigger_str + shortdescription_str
@@ -482,7 +507,7 @@ def extract_monster_db(db_in):
         levelrole_str = ''
         perceptionval_str = ''
         powers_str = ''
-##        published_str = ''
+        published_str = ''
         save_str = ''
         senses_str = ''
         skills_str = ''
@@ -502,6 +527,18 @@ def extract_monster_db(db_in):
         constitution_str = ''
         intelligence_str = ''
         charisma_str = ''
+
+        # Published In
+        published_tag = parsed_html.find(class_='publishedIn').extract()
+        if published_tag:
+            # remove p classnames
+            del published_tag['class']
+            # remove the a tags
+            anchor_tag = published_tag.find('a')
+            while anchor_tag:
+                anchor_tag.replaceWithChildren()
+                anchor_tag = published_tag.find('a')
+            published_str = published_tag
 
         # Level-Role
         level_tag = parsed_html.find('span', class_='level')
@@ -705,6 +742,7 @@ def extract_monster_db(db_in):
             export_dict["name"] = name_str
             export_dict["perceptionval"] = perceptionval_str
             export_dict["powers"] = powers_str
+            export_dict["published"] = published_str
             export_dict["save"] = save_str
             export_dict["senses"] = senses_str
             export_dict["skills"] = skills_str

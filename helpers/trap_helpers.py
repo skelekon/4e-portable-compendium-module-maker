@@ -13,6 +13,7 @@ def trap_list_sorter(entry_in):
 
     return (group_id, name)
 
+
 # This creates the top-level menus when you select a Module
 def create_trap_library(id_in, tier_list, name_in):
     xml_out = ''
@@ -39,6 +40,7 @@ def create_trap_library(id_in, tier_list, name_in):
         xml_out += (f'\t\t\t\t</{lib_id}-traps{class_camel}>\n')
 
     return xml_out, id_in
+
 
 # This controls the table that appears when you click on a Library menu
 def create_trap_list(list_in, tier_list, name_in):
@@ -180,6 +182,7 @@ def create_trap_list(list_in, tier_list, name_in):
 
     return xml_out
 
+
 def create_trap_cards(list_in):
     xml_out = ''
 
@@ -227,6 +230,8 @@ def create_trap_cards(list_in):
         if trap_dict["counters"] != '':
             xml_out += (f'\t\t\t\t<countermeasures>\n{trap_dict["counters"]}\t\t\t\t</countermeasures>\n')
         xml_out += (f'\t\t\t\t<npctype type="string">Trap</npctype>\n')
+        if trap_dict["published"] != '':
+            xml_out += (f'\t\t\t\t<text type="formattedtext">{trap_dict["published"]}</text>\n')
         xml_out += (f'\t\t\t</{name_camel}-{str(trap_dict["trap_id"]).rjust(3, "0")}>\n')
 
     return xml_out
@@ -277,14 +282,36 @@ def format_old_power(soup_in, id_in):
                 tag.decompose()
 
     # Short Description
-    for bdy_tag in body_tags:
-        shortdescription_str += ' '.join(bdy_tag.stripped_strings) + '\\n'
-    shortdescription_str = re.sub(r'(^;*\s*|\\n$)', '', shortdescription_str)
+    # turn the html into a text string
+    shortdescription_str = '\\n'.join(map(str, body_tags))
+    # replace line breaks with newlines
+    shortdescription_str = re.sub(r'<br/>', r'\\n', shortdescription_str)
+    # remove other tags
+    shortdescription_str = re.sub(r'<.*?>', '', shortdescription_str)
+    shortdescription_str = re.sub(r'(^\s*[\\n]*|[\\n]*$)', '', shortdescription_str)
 
-    # Range
-    if range_match := re.search(r'(.*?)((Area burst|Close blast|Close burst|Melee|Ranged|Melee reach|Melee or Ranged reach)\s+[0-9]+)(.*?)$',  shortdescription_str, re.IGNORECASE):
-        range_str = range_match.group(2).strip()
-        shortdescription_str = re.sub(r'^(\\n)*', '', range_match.group(1).strip() + range_match.group(4).strip())
+    # Range - split out any Ranges or Sizes
+    # regex has become too complicated, so build it up piecewise
+    range_pattern = '(.*?)'
+    range_pattern += '('
+    range_pattern += 'Area burst\s+([0-9]+ within [0-9]+|[0-9]+)'
+    range_pattern += '|Close blast\s+([0-9]+; targets.*?;|[0-9]+)'
+    range_pattern += '|Close burst\s+([0-9]+; targets.*?;|[0-9]+)'
+    range_pattern += '|Melee reach\s+([0-9]+)'
+    range_pattern += '|Melee [0-9]+ or Ranged\s+([0-9]+)'
+    range_pattern += '|Melee or Ranged reach\s+([0-9]+)'
+    range_pattern += '|Melee\s+([0-9]+|touch|)'
+    range_pattern += '|Ranged\s+([0-9]+|sight)'
+    range_pattern += '|Reach\s+([0-9]+)'
+    range_pattern += ')'
+    range_pattern += '(\s+\(.*?\)|)'
+    range_pattern += '(.*?)$'
+    if range_match := re.search(range_pattern,  shortdescription_str):
+        range_str = re.sub(r';', '', range_match.group(2)).strip() + range_match.group(12)
+        # remove leading semi-colons or newlines
+        shortdescription_str = re.sub(r'^(;|\\n|)*', '', range_match.group(1).strip() + range_match.group(13).strip())
+        # remove empty clauses caused by extracting Range
+        shortdescription_str = re.sub(r':\s*;', ':', shortdescription_str)
 
     # Format the list of powers into statblocks
     entry_id = str(id_in).rjust(3, '0')
@@ -306,6 +333,7 @@ def format_old_power(soup_in, id_in):
 
 def format_new_power(soup_in, id_in):
     power_out = ''
+#    print(soup_in)
     
     # Initialize variables that are per-power entry
     action_str = ''
@@ -320,7 +348,7 @@ def format_new_power(soup_in, id_in):
 
     # Copy the components into separate tags so we can interate them without running into the next tag
     action_tag = copy.copy(soup_in.find('h2'))
-    header_tag = copy.copy(soup_in.find('p', class_='th2'))
+    header_tag = copy.copy(soup_in.select_one('p', class_='th2'))
     body_tags = copy.copy(soup_in.find_all('p', class_=['thStat', 'tbod']))
 
     # Power Name - first element in bold tags
@@ -360,11 +388,12 @@ def format_new_power(soup_in, id_in):
         keywords_str = keywords_match.group(1)
 
     # Recharge - any text after the star glyph in the header tag
+    # first look for descriptive Recharge
     if recharge_img := header_tag.find('img', src=re.compile(r'/x.gif')):
         for rech_tag in recharge_img.find_all_next(text=True):
-            recharge_str += (''.join(rech_tag.text)).strip()
+            recharge_str += rech_tag.text
 
-    # Recharge - look for die symbols, starting from the lowest
+    # then look for die symbols, starting from the lowest
     if recharge_img := header_tag.find('img', src=re.compile(r'/2a.gif')):
         recharge_str = 'Recharge 2-6'
     elif recharge_img := header_tag.find('img', src=re.compile(r'/3a.gif')):
@@ -383,7 +412,7 @@ def format_new_power(soup_in, id_in):
         range_str = aura_match.group(2)
         recharge_str = ''
 
-    # Short Description - concatenate everything in the bosy tags
+    # Short Description - concatenate everything in the body tags
     for bdy_tag in body_tags:
         shortdescription_str += ' '.join(bdy_tag.stripped_strings) + '\\n'
     shortdescription_str = re.sub(r'(^;*\s*|\\n$)', '', shortdescription_str)
@@ -395,9 +424,27 @@ def format_new_power(soup_in, id_in):
             shortdescription_str = re.sub(r'(^\\n|\(\))*', '', trigger_match.group(1).strip() + trigger_match.group(3).strip())
 
     # Range - split out any Ranges or Sizes
-    if range_match := re.search(r'^(.*?)((Close blast|Close burst|Melee|Ranged)\s+([0-9]+|special))(.*?)$',  shortdescription_str, re.IGNORECASE):
-        range_str = range_match.group(2).strip()
-        shortdescription_str = re.sub(r'(^\\n|\(\))*', '', range_match.group(1).strip() + range_match.group(5).strip())
+    # regex has become too complicated, so build it up piecewise
+    range_pattern = '(.*?)'
+    range_pattern += '('
+    range_pattern += 'Area burst\s+([0-9]+ within [0-9]+|[0-9]+)'
+    range_pattern += '|Close blast\s+([0-9]+; targets.*?;|[0-9]+)'
+    range_pattern += '|Close burst\s+([0-9]+; targets.*?;|[0-9]+)'
+    range_pattern += '|Melee reach\s+([0-9]+)'
+    range_pattern += '|Melee [0-9]+ or Ranged\s+([0-9]+)'
+    range_pattern += '|Melee or Ranged reach\s+([0-9]+)'
+    range_pattern += '|Melee\s+([0-9]+|touch|)'
+    range_pattern += '|Ranged\s+([0-9]+|sight)'
+    range_pattern += '|Reach\s+([0-9]+)'
+    range_pattern += ')'
+    range_pattern += '(\s+\(.*?\)|)'
+    range_pattern += '(.*?)$'
+    if range_match := re.search(range_pattern,  shortdescription_str):
+        range_str = re.sub(r';', '', range_match.group(2)).strip() + range_match.group(12)
+        # remove leading semi-colons or newlines
+        shortdescription_str = re.sub(r'^(;|\\n|)*', '', range_match.group(1).strip() + range_match.group(13).strip())
+        # remove empty clauses caused by extracting Range
+        shortdescription_str = re.sub(r':\s*;', ':', shortdescription_str)
 
     # Format the list of powers into statblocks
     entry_id = str(id_in).rjust(3, '0')
@@ -442,11 +489,7 @@ def extract_trap_db(db_in):
         role_str = row["Role"].replace('\\', '')
         class_str = row["Class"].replace('\\', '')
 
-#        OLD LAYOUT
-#        if name_str not in ['Phantom Hunter', 'Abyssal Miasma', 'Water Serpent', 'Altar of Zealotry', 'Arcane Generator', 'Blood Tree', 'Bouncing Barrage (Elite)', 'Demon Face Idol', 'Giant Rolling Boulder', 'Abyssal Portal', 'Kissing Maiden', 'Pillars of Chaos']:
-#            continue
-#        NEW LAYOUT
-#        if name_str not in ['Whirling Blades', 'Chaos Shard Delirium II', 'Ash Tree', 'Collapsing Ceiling', 'Corpse Wall', 'Acid Spray Chest', 'Far Realm Anomaly', 'Crypt Thing', 'Evard’s Tentacle Trap', 'Kissing Maiden']:
+#        if name_str not in ['Ash Tree', 'Astral Lodestone']:#'Far Realm Anomaly', 'False-Floor Pit', 'Animated Crossbow', 'Animated Rapier']:
 #            continue
 #        print('\n' + name_str)
 
@@ -459,6 +502,7 @@ def extract_trap_db(db_in):
         init_str = ''
         levelrole_str = ''
         powers_str = ''
+        published_str = ''
         reflex_str = ''
         speed_str = ''
         specialdefenses_str = ''
@@ -467,16 +511,30 @@ def extract_trap_db(db_in):
         type_str = ''
         xp_str = ''
 
+        # Published In
+        published_tag = parsed_html.find(class_='publishedIn').extract()
+        if published_tag:
+            # remove p classnames
+            del published_tag['class']
+            # remove the a tags
+            anchor_tag = published_tag.find('a')
+            while anchor_tag:
+                anchor_tag.replaceWithChildren()
+                anchor_tag = published_tag.find('a')
+            published_str = published_tag
 
+        #####################################################################
         # OLD LAYOUT: Flavor / Perception / Trigger / Attack / Countermeasure
+        #####################################################################
 
         # Level-Role
         level_tag = parsed_html.find('span', class_='level')
         if level_tag:
-            levelrole_str = str(level_tag.next)
+            levelrole_str = str(level_tag.next).strip()
 
-#        if levelrole_str != '':
-#            continue
+        old_layout = False
+        if levelrole_str != '':
+            old_layout = True
 
         # Flavor
         if flavor_lbl := parsed_html.find('p', class_='flavor'):
@@ -506,7 +564,6 @@ def extract_trap_db(db_in):
         counter_id = 0
 
         for trap_tag in trap_html:
-#            print('TRAP_TAG ' + str(trap_tag))
             trap_class = trap_tag.get('class')[0]
             for tag in trap_tag:
                 if tag.name in ['br', 'img'] or tag.text.strip() == '':
@@ -562,7 +619,6 @@ def extract_trap_db(db_in):
 
                         # Look for HP & Defenses in Countermeasures text
                         if defense_match := re.search(r'(\(.*?AC [0-9]+.*(hit points|hp).*?\))', tag.text):
-#                            print('DEFENSES FOUND' + defense_match.group(1))
                             if ac_match := re.search(r'AC ([0-9]*)', defense_match.group(1)):
                                 ac_str = ac_match.group(1)
                             if fortitude_match := re.search(r'Fortitude ([0-9]*)', defense_match.group(1), re.IGNORECASE):
@@ -592,10 +648,6 @@ def extract_trap_db(db_in):
         power_complete = False
         power_id = 0
 
-#        print('\nPWR_TAGS')
-#        for pwr_tag in trap_html:
-#            print(pwr_tag)
-
         for pwr_tag in trap_html:
             # Break if we have reached the end of all Powers
             if pwr_tag.get('class')[0] == 'trapblocktitle' and re.search('^Countermeasures', pwr_tag.text) != None:
@@ -604,7 +656,7 @@ def extract_trap_db(db_in):
             # Found the start of a Power
             if pwr_tag.get('class')[0] == 'trapblocktitle' and re.search('^.*Attack', pwr_tag.text) != None:
                 # trigger on the start of the first power so we can know when a power has ended
-                if in_power == False:
+                if not in_power:
                     in_power = True
                 # second or later encounters with a power start signify previous power is ready to process
                 else:
@@ -634,130 +686,159 @@ def extract_trap_db(db_in):
             power_id += 1
             powers_str += format_old_power(power_html, power_id)
 
-
+        #####################################################################
         # NEW LAYOUT is structured more like an NPC - classes begin with 'th'
+        #####################################################################
 
-        # Level-Role
-        level_tag = parsed_html.find('span', class_='thLevel')
-        if level_tag:
-            levelrole_str = str(level_tag.next)
-        else:
-            if name_str == 'Brazier of Silver Fire':
-                levelrole_str = 'Level 7 Trap'
+        if not old_layout:
 
-        # Initiative
-        init_tag = parsed_html.find('span', class_='thInit')
-        if init_tag:
-            init_str = re.sub('[^0-9]', '', init_tag.contents[1])
+            # Level-Role
+            level_tag = parsed_html.find('span', class_='thLevel')
+            if level_tag:
+                levelrole_str = str(level_tag.next)
+            else:
+                if name_str == 'Brazier of Silver Fire':
+                    levelrole_str = 'Level 7 Trap'
 
-        # Type - Hazard is the only valid value other than Trap
-        type_tag = parsed_html.find('span', class_='thSubHead')
-        if type_tag:
-            type_str = type_tag.text.strip()
-        if type_str == '':
-            type_str = 'Trap'
+            # Initiative
+            init_tag = parsed_html.find('span', class_='thInit')
+            if init_tag:
+                init_str = re.sub('[^0-9]', '', init_tag.contents[1])
 
-        # XP
-        xp_tag = parsed_html.find('span', class_='thXP')
-        if xp_tag:
-            xp_str = str(xp_tag.text[3:])
+            # Type - Hazard is the only valid value other than Trap
+            type_tag = parsed_html.find('span', class_='thSubHead')
+            if type_tag:
+                type_str = type_tag.text.strip()
+            if type_str == '':
+                type_str = 'Trap'
 
-        # Get the main div that contains all the Trap text
-        detail_div = parsed_html.find('div', id='detail')
+            # XP
+            xp_tag = parsed_html.find('span', class_='thXP')
+            if xp_tag:
+                xp_str = str(xp_tag.text[3:])
 
-        # Get all the <h2> & <p> tags for ease of processing
-        trap_html = BeautifulSoup('', features='html.parser')
-        for span_tag in detail_div.find_all(re.compile('^(h2|p)$')):
-            # replace <a> tags with their text
-            anchor_tag = span_tag.find('a')
-            while anchor_tag:
-                anchor_tag.replaceWithChildren()
+            # Get the main div that contains all the Trap text
+            detail_div = parsed_html.find('div', id='detail')
+
+            # Get all the <h2> & <p> tags for ease of processing
+            trap_html = BeautifulSoup('', features='html.parser')
+            for span_tag in detail_div.find_all(re.compile('^(h2|p)$')):
+                # replace <a> tags with their text
                 anchor_tag = span_tag.find('a')
-            trap_html.append(span_tag)
+                while anchor_tag:
+                    anchor_tag.replaceWithChildren()
+                    anchor_tag = span_tag.find('a')
+                trap_html.append(span_tag)
 
-        # Loop through the trap_html and build all the powers entries
-        power_html = BeautifulSoup('', features='html.parser')
-        pwr_action = None
-        in_power = False
-        power_complete = False
-        power_id = 0
-        counter_id = 0
+            # Loop through the trap_html and build all the powers entries
+            power_html = BeautifulSoup('', features='html.parser')
+            pwr_action = None
+            in_power = False
+            power_complete = False
+            power_id = 0
+            counter_id = 0
 
-#        print('\nPWR_TAGS')
-#        for pwr_tag in trap_html:
-#            print(pwr_tag)
+            # Powers / Countermeasures
+            for trap_tag in trap_html:
+                # Grab all the single occurrence fields and then skip
+                tag_skip = False
+                if trap_tag.get('class')[0] == 'thStat':
+                    for tag in trap_tag:
+                        if isinstance(tag, Tag):
+                            if tag.text == 'AC':
+                                ac_str = re.sub('[^0-9]', '', tag.next_sibling.text)
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Detect':
+                                detect_str = tag.next_sibling.text.strip()
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Fortitude':
+                                fortitude_str = re.sub('[^0-9]', '', tag.next_sibling.text)
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'HP':
+                                hp_str = tag.next_sibling.text.strip()
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Initiative':
+                                init_str = re.sub('[^0-9]', '', tag.next_sibling.text)
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Reflex':
+                                reflex_str = re.sub('[^0-9]', '', tag.next_sibling.text)
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Immune':
+                                specialdefenses_str += ';' if specialdefenses_str != '' else ''
+                                specialdefenses_str += 'Immune ' + tag.next_sibling.text.strip()
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Resist':
+                                specialdefenses_str += ';' if specialdefenses_str != '' else ''
+                                specialdefenses_str += 'Resist ' + tag.next_sibling.text.strip()
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Vulnerable':
+                                specialdefenses_str += ';' if specialdefenses_str != '' else ''
+                                specialdefenses_str += 'Vulnerable ' + tag.next_sibling.text.strip()
+                                tag_skip = True
+                                continue
+                            elif tag.text == 'Speed':
+                                speed_str = tag.next_sibling.text.strip()
+                                tag_skip = True
+                                continue
+                if tag_skip:
+                    continue
 
-        # Powers / Countermeasures
-        for trap_tag in trap_html:
-            # Grab all the single occurrence fields and then skip
-            tag_skip = False
-            if trap_tag.get('class')[0] == 'thStat':
-                for tag in trap_tag:
-                    if isinstance(tag, Tag):
-                        if tag.text == 'AC':
-                            ac_str = re.sub('[^0-9]', '', tag.next_sibling.text)
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Detect':
-                            detect_str = tag.next_sibling.text.strip()
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Fortitude':
-                            fortitude_str = re.sub('[^0-9]', '', tag.next_sibling.text)
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'HP':
-                            hp_str = tag.next_sibling.text.strip()
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Initiative':
-                            init_str = re.sub('[^0-9]', '', tag.next_sibling.text)
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Reflex':
-                            reflex_str = re.sub('[^0-9]', '', tag.next_sibling.text)
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Immune':
-                            specialdefenses_str += ';' if specialdefenses_str != '' else ''
-                            specialdefenses_str += 'Immune ' + tag.next_sibling.text.strip()
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Resist':
-                            specialdefenses_str += ';' if specialdefenses_str != '' else ''
-                            specialdefenses_str += 'Resist ' + tag.next_sibling.text.strip()
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Vulnerable':
-                            specialdefenses_str += ';' if specialdefenses_str != '' else ''
-                            specialdefenses_str += 'Vulnerable ' + tag.next_sibling.text.strip()
-                            tag_skip = True
-                            continue
-                        elif tag.text == 'Speed':
-                            speed_str = tag.next_sibling.text.strip()
-                            tag_skip = True
-                            continue
-            if tag_skip:
-                continue
+                # Grab the latest action tag to start every subsequent power until replaced by the next one
+                if trap_tag.name == 'h2':
+                    pwr_action = copy.copy(trap_tag)
 
-            # Grab the latest action tag to start every subsequent power until replaced by the next one
-            if trap_tag.name == 'h2':
-                pwr_action = copy.copy(trap_tag)
+                # Found the start of a power (Action h2 or flavor alt)
+                if trap_tag.get('class')[0] in ['th2', 'thBody', 'publishedIn']:
+                    # trigger on the start of the first power so we can know when a power has ended
+                    if in_power == False:
+                        in_power = True
+                        if pwr_action:
+                            power_html.append(pwr_action)
 
-            # Found the start of a power (Action h2 or flavor alt)
-            if trap_tag.get('class')[0] in ['th2', 'thBody', 'publishedIn']:
-                # trigger on the start of the first power so we can know when a power has ended
-                if in_power == False:
-                    in_power = True
-                    if pwr_action:
+                    # second or later encounters with a power start signify previous power is ready to process
+                    else:
+                        power_complete = True
+
+                # If we have reached the start of a new power, process all the details and add it to the output
+                if power_complete == True:
+                    # Countermeasures have a different parser
+                    if power_html.find('h2', class_='thHead').text != 'Countermeasures':
+                        power_id += 1
+                        powers_str += format_new_power(power_html, power_id)
+                    else:
+                        counter_id += 1
+                        counters_str += format_counter(power_html, counter_id)
+
+                    # Break if we have reached the end of all Powers
+                    if trap_tag.get('class')[0] == 'publishedIn':
+                        break
+
+                    # Start next power with the tag that triggered this power creation
+                    power_complete = False
+                    power_html = BeautifulSoup('', features='html.parser')
+                    if pwr_action is not None:
                         power_html.append(pwr_action)
+                    copy_tag = copy.copy(trap_tag)
+                    power_html.append(copy_tag)
 
-                # second or later encounters with a power start signify previous power is ready to process
+                # keep adding to the power html until it gets processed
                 else:
-                    power_complete = True
+                    # for some reason using .append removes the tag from the original tree and screws up the iteration
+                    # so we make a copy and then append that instead
+                    if trap_tag.name != 'h2':
+                        copy_tag = copy.copy(trap_tag)
+                        power_html.append(copy_tag)
 
-            # If we have reached the start of a new power, process all the details and add it to the output
-            if power_complete == True:
+            # Create the last Power
+            if str(power_html) != '':
                 # Countermeasures have a different parser
                 if power_html.find('h2', class_='thHead').text != 'Countermeasures':
                     power_id += 1
@@ -766,30 +847,10 @@ def extract_trap_db(db_in):
                     counter_id += 1
                     counters_str += format_counter(power_html, counter_id)
 
-                # Break if we have reached the end of all Powers
-                if trap_tag.get('class')[0] == 'publishedIn':
-                    break
-
-                # Start next power with the tag that triggered this power creation
-                power_complete = False
-                power_html = BeautifulSoup('', features='html.parser')
-                if pwr_action is not None:
-                    power_html.append(pwr_action)
-                copy_tag = copy.copy(trap_tag)
-                power_html.append(copy_tag)
-
-            # keep adding to the power html until it gets processed
-            else:
-                # for some reason using .append removes the tag from the original tree and screws up the iteration
-                # so we make a copy and then append that instead
-                if trap_tag.name != 'h2':
-                    copy_tag = copy.copy(trap_tag)
-                    power_html.append(copy_tag)
+        # OUTPUT BOTH LAYOUTS
 
         # Fix up double semi-colons in SpecialDefenses
         specialdefenses_str = re.sub(r';+', r'; ', specialdefenses_str)
-
-        # OUTPUT BOTH LAYOUTS
 
         level_str = re.sub('[^0-9]', '', levelrole_str)
         if level_str.strip() == '':
@@ -814,6 +875,7 @@ def extract_trap_db(db_in):
             export_dict["levelrole"] = levelrole_str
             export_dict["name"] = name_str
             export_dict["powers"] = powers_str
+            export_dict["published"] = published_str
             export_dict["reflex"] = reflex_str
             export_dict["specialdefenses"] = specialdefenses_str
             export_dict["speed"] = speed_str
