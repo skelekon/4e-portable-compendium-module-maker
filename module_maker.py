@@ -12,8 +12,8 @@ from helpers.mod_helpers import create_module
 
 from helpers.monster_helpers import extract_monster_db
 from helpers.monster_helpers import create_monster_library
-from helpers.monster_helpers import create_monster_table
-from helpers.monster_helpers import create_monster_desc
+from helpers.monster_helpers import create_monster_list
+from helpers.monster_helpers import create_monster_cards
 
 from helpers.trap_helpers import extract_trap_db
 from helpers.trap_helpers import create_trap_library
@@ -37,8 +37,8 @@ from helpers.races_helpers import create_races_desc
 
 from helpers.classes_helpers import extract_classes_db
 from helpers.classes_helpers import create_classes_library
-from helpers.classes_helpers import create_classes_table
-from helpers.classes_helpers import create_classes_desc
+from helpers.classes_helpers import create_classes_list
+from helpers.classes_helpers import create_classes_cards
 
 from helpers.background_helpers import extract_background_db
 from helpers.background_helpers import create_background_library
@@ -109,8 +109,8 @@ from helpers.weapons_helpers import create_weapons_reference
 
 from helpers.equipment_helpers import extract_equipment_db
 from helpers.equipment_helpers import create_equipment_library
-from helpers.equipment_helpers import create_equipment_table
-from helpers.equipment_helpers import create_equipment_reference
+from helpers.equipment_helpers import create_equipment_list
+from helpers.equipment_helpers import create_equipment_cards
 
 from helpers.mi_armor_helpers import extract_mi_armor_db
 from helpers.mi_other_helpers import extract_mi_other_db
@@ -270,12 +270,12 @@ if __name__ == '__main__':
         monster_list_concat += ('\t\t<npcs>\n')
         for tbl_name in monster_tbl_list:
             monster_lib, menu_id = create_monster_library(menu_id, tier_list, tbl_name + suffix_str)
-            monster_list = create_monster_table(monster_extract, tier_list, tbl_name + suffix_str)
+            monster_list = create_monster_list(monster_extract, tier_list, tbl_name + suffix_str)
             monster_lib_concat += monster_lib
             monster_list_concat += monster_list
         monster_list_concat += ('\t\t</npcs>\n')
 
-        monster_cards = create_monster_desc(monster_extract)
+        monster_cards = create_monster_cards(monster_extract)
 
     #===========================
     # TRAPS
@@ -416,8 +416,8 @@ if __name__ == '__main__':
 
         classes_extract = extract_classes_db(classes_db)
         classes_lib, menu_id = create_classes_library(menu_id)
-        classes_list = create_classes_table(classes_extract)
-        classes_cards, classfeatures_cards = create_classes_desc(classes_extract)
+        classes_list = create_classes_list(classes_extract)
+        classes_cards, classfeatures_cards = create_classes_cards(classes_extract)
 
     #===========================
     # BACKGROUNDS
@@ -744,8 +744,8 @@ if __name__ == '__main__':
     if settings.equipment:
         equipment_extract = extract_equipment_db(item_db)
         equipment_lib, menu_id = create_equipment_library(menu_id, 'Items - Equipment')
-        equipment_list = create_equipment_table(equipment_extract)
-        equipment_cards = create_equipment_reference(equipment_extract)
+        equipment_list = create_equipment_list(equipment_extract)
+        equipment_cards = create_equipment_cards(equipment_extract)
 
     #===========================
     # MAGIC ARMOR

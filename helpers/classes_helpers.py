@@ -30,7 +30,7 @@ def create_classes_library(id_in):
     return xml_out, id_in
 
 
-def create_classes_table(list_in):
+def create_classes_list(list_in):
     xml_out = ''
 
     if not list_in:
@@ -64,7 +64,7 @@ def create_classes_table(list_in):
     return xml_out
 
 
-def create_classes_desc(list_in):
+def create_classes_cards(list_in):
     classes_out = ''
     featuredesc_out = ''
 

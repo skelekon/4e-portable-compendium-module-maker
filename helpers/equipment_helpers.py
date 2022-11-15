@@ -10,6 +10,7 @@ def equipment_list_sorter(entry_in):
 
     return (section_id, name)
 
+
 def create_equipment_library(id_in, name_in):
     id_in += 1
     lib_id = 'l' + str(id_in).rjust(3, '0')
@@ -25,7 +26,8 @@ def create_equipment_library(id_in, name_in):
 
     return xml_out, id_in
 
-def create_equipment_table(list_in):
+
+def create_equipment_list(list_in):
     xml_out = ''
 
     if not list_in:
@@ -81,7 +83,8 @@ def create_equipment_table(list_in):
 
     return xml_out
 
-def create_equipment_reference(list_in):
+
+def create_equipment_cards(list_in):
     xml_out = ''
 
     if not list_in:
@@ -108,6 +111,7 @@ def create_equipment_reference(list_in):
 
     return xml_out
 
+
 def extract_equipment_db(db_in):
     equipment_out = []
 
@@ -122,17 +126,17 @@ def extract_equipment_db(db_in):
         # Retrieve the data with dedicated columns
         name_str =  row['Name'].replace('\\', '')
 
-#        if name_str not in ['Typical Room (per day)']:
+#        if name_str not in ['Alchemical Reagents (Arcana)', 'Typical Room (per day)']:
 #            continue
         
         cost_str = ''
         description_str = ''
+        published_str = ''
         section_id = 100
         special_str = ''
         subtype_str = ''
         type_str = ''
         weight_str = ''
-
 
         # Type & Subtype
         if subtype_lbl := parsed_html.find(string='Category'):
@@ -180,65 +184,70 @@ def extract_equipment_db(db_in):
         elif subtype_str == 'Implement':
             section_id = 13
 
-        if section_id < 99:
+        if section_id >= 99:
+            continue
 ##            print(str(i) + ' ' + name_str)
 
-            # Cost
-            if cost_lbl := parsed_html.find(string='Price'):
-                cost_str = cost_lbl.parent.next_sibling
-            elif cost_lbl := parsed_html.find(string='Cost'):
-                cost_str = cost_lbl.parent.next_sibling
-            elif cost_lbl := parsed_html.find(string=re.compile('^Cost:.*')):
-                cost_str = cost_lbl.string
+        # Published In
+        published_tag = parsed_html.find(class_='publishedIn').extract()
+        if published_tag:
+            # remove p classnames
+            del published_tag['class']
+            # remove the a tags
+            anchor_tag = published_tag.find('a')
+            while anchor_tag:
+                anchor_tag.replaceWithChildren()
+                anchor_tag = published_tag.find('a')
+            published_str = published_tag.text
 
-            if cost_str != '':
-                cost_str = re.sub(r'(^:\s*|\.$)', '', cost_str)
-##                # Divide by 100 if cost is in cp
-##                if re.search(r'cp', cost_str):
-##                    cost_str = '0.0' + re.sub('[^\.\d]', '', cost_str)
-##                # Divide by 10 if cost is in sp
-##                elif re.search(r'sp', cost_str):
-##                    cost_str = '0.' + re.sub('[^\.\d]', '', cost_str)
-##                else:
-##                    cost_str = re.sub('[^\.\d]', '', cost_str)
+        # Cost
+        if cost_lbl := parsed_html.find(string='Price'):
+            cost_str = cost_lbl.parent.next_sibling
+        elif cost_lbl := parsed_html.find(string='Cost'):
+            cost_str = cost_lbl.parent.next_sibling
+        elif cost_lbl := parsed_html.find(string=re.compile('^Cost:.*')):
+            cost_str = cost_lbl.string
 
-            # Description
-            if description_lbl := parsed_html.find(string='Description'):
-                for el_str in description_lbl.parent.next_siblings:
-                    if el_str.string:
-                        # if we hit this we have gone too far
-                        if re.search('vs AC', el_str.string):
-                            break
-                        # otherwise append non-empty values to the Flavor
-                        if re.sub('\s', '', el_str.string) != '':
-                            description_str += '\\n' if description_str != '' else ''
-                            description_str += re.sub('^[:\s]*', '', el_str.string)
+        if cost_str != '':
+            cost_str = re.sub(r'(^:\s*|\.$)', '', cost_str).strip()
 
-            # Description (Published In)
-            if description_lbl := parsed_html.find('p', class_='publishedIn'):
-                descrption_str = description_str if description_str == '' else description_str + '\\n'
-                description_str += re.sub('\s\s', ' ', description_lbl.text)
+        # Description
+        if description_lbl := parsed_html.find(string='Description'):
+            for el_str in description_lbl.parent.next_siblings:
+                if el_str.string:
+                    # if we hit this we have gone too far
+                    if re.search('vs AC', el_str.string):
+                        break
+                    # otherwise append non-empty values to the Flavor
+                    if re.sub('\s', '', el_str.string) != '':
+                        description_str += '\\n' if description_str != '' else ''
+                        description_str += re.sub('^[:\s]*', '', el_str.string)
 
-            # clean up extraneous spaces
-            description_str = re.sub('\s\s', ' ', description_str.strip())
+        if published_str != '':
+            if description_str != '':
+                description_str += '\\n'
+            description_str += published_str
 
-            # Weight
-            if weight_lbl := parsed_html.find(string='Weight'):
-                weight_str = '{:g}'.format(float(weight_lbl.parent.next_sibling.replace(': ', '').replace('1/10', '0.1').replace('1/2', '0.5').replace(' lb.', '').replace(' lb', '')))
+        # clean up extraneous spaces
+        description_str = re.sub('\s\s', ' ', description_str.strip())
 
-            # Build the item entry
-            export_dict = {}
-            export_dict['cost'] = cost_str#float(cost_str) if cost_str != '' else 0
-            export_dict['description'] = description_str
-            export_dict['name'] = name_str
-            export_dict['section_id'] = section_id
-            export_dict['special'] = special_str
-            export_dict['type'] = type_str
-            export_dict['subtype'] = subtype_str
-            export_dict['weight'] = float(weight_str) if weight_str != '' else 0
+        # Weight
+        if weight_lbl := parsed_html.find(string='Weight'):
+            weight_str = '{:g}'.format(float(weight_lbl.parent.next_sibling.replace(': ', '').replace('1/10', '0.1').replace('1/2', '0.5').replace(' lb.', '').replace(' lb', '')))
 
-            # Append a copy of generated entry
-            equipment_out.append(copy.deepcopy(export_dict))
+        # Build the item entry
+        export_dict = {}
+        export_dict['cost'] = cost_str
+        export_dict['description'] = description_str
+        export_dict['name'] = name_str
+        export_dict['section_id'] = section_id
+        export_dict['special'] = special_str
+        export_dict['type'] = type_str
+        export_dict['subtype'] = subtype_str
+        export_dict['weight'] = float(weight_str) if weight_str != '' else 0
+
+        # Append a copy of generated entry
+        equipment_out.append(copy.deepcopy(export_dict))
 
     print(str(len(db_in)) + " entries parsed.")
     print(str(len(equipment_out)) + " entries exported.")
