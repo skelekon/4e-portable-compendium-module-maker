@@ -83,8 +83,6 @@ def create_classes_cards(list_in):
         classes_out += f'\t\t\t<{name_lower}>\n'
         classes_out += f'\t\t\t\t<name type="string">{classes_dict["name"]}</name>\n'
         classes_out += '\t\t\t\t<source type="string">Class</source>\n'
-        if classes_dict["flavor"] != '':
-            classes_out += f'\t\t\t\t<flavor type="string">{classes_dict["flavor"]}</flavor>\n'
         classes_out += f'\t\t\t\t<description type="formattedtext">\n'
         if classes_dict["description"] != '':
             classes_out += f'{classes_dict["description"]}'
@@ -148,14 +146,13 @@ def extract_classes_db(db_in):
         # Retrieve the data with dedicated columns
         name_str =  row["Name"].replace('\\', '')
 
-#        if name_str not in ['Fighter (Knight)', 'xCleric (Templar)', 'xWizard (Arcanist)', 'xHybrid Druid (Sentinel)', 'xWarlock (Binder)', 'xArdent', 'xAvenger']:
+#        if name_str not in ['Ardent']:#'Fighter (Knight)', 'Cleric (Templar)', 'Wizard (Arcanist)', 'Hybrid Druid (Sentinel)', 'Warlock (Binder)', 'Ardent', 'Avenger']:
 #            continue
 #        print(name_str)
 
         description_str = ''
         features_str = ''
         featuredesc_str = ''
-        flavor_str = ''
         powers_str = ''
         published_str = ''
         shortdescription_str = ''
@@ -171,10 +168,6 @@ def extract_classes_db(db_in):
                 anchor_tag.replaceWithChildren()
                 anchor_tag = published_tag.find('a')
             published_str += str(published_tag)
-
-        # Flavor
-#        if flavor_tag := parsed_html.select_one('#detail > i'):
-#            flavor_str = flavor_tag.text
 
         # Traits
         # these are the elements common to all Classes
@@ -197,6 +190,19 @@ def extract_classes_db(db_in):
                     description_str = re.sub(r'(^\s*<br/>|<br/>\s*$)', r'', description_str)
                     # get rid of empty paragraphs
                     description_str = description_str.replace('<p></p>', '')
+
+        # Description
+        if desc_block := parsed_html.find('p', class_='flavor'):
+            for tag in desc_block.next_siblings:
+                if tag.name == 'h3' and re.search(r'CLASS FEATURES', tag.text) != None:
+                    break
+                if tag.name in ['b', 'h3']:
+                    description_str += '<p><b>' + tag.text + '</b></p>\n'
+                elif tag.name  == 'i':
+                    description_str += '<p><i>' + re.sub(r'<br/>', r'\\n', str(tag).strip()) + '</i></p>\n'
+                else:
+                    description_str += '<p>' + str(tag).strip() + '</p>\n'
+
 
         # Features
         # these are the unique features for each Class (excluding powers)
@@ -273,7 +279,6 @@ def extract_classes_db(db_in):
         export_dict["description"] = description_str
         export_dict["features"] = features_str
         export_dict["featuredesc"] = featuredesc_str
-        export_dict["flavor"] = flavor_str
         export_dict["name"] = name_str
         export_dict["powers"] = powers_str
         export_dict["published"] = published_str

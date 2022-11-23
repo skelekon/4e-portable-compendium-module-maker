@@ -301,7 +301,7 @@ def format_old_power(soup_in, id_in):
     range_pattern += '|Melee [0-9]+ or Ranged\s+([0-9]+)'
     range_pattern += '|Melee or Ranged reach\s+([0-9]+)'
     range_pattern += '|Melee\s+([0-9]+|touch|)'
-    range_pattern += '|Ranged\s+([0-9]+|sight)'
+    range_pattern += '|Ranged\s+([0-9]+/[0-9]+|[0-9]+|sight)'
     range_pattern += '|Reach\s+([0-9]+)'
     range_pattern += ')'
     range_pattern += '(\s+\(.*?\)|)'

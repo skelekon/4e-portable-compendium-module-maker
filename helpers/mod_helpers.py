@@ -15,9 +15,9 @@ def title_format(text_in):
 
 def clean_formattedtext(text_in):
     text_out = text_in
-    # assume that colons should be in-line
+    # assume that colons at the start of a paragraph should be one continuous paragraph
     text_out = re.sub('</p>\s*<p>\s*:', ':', text_out)
-    # assume that italics should be in-line
+    # assume that italics at the start or end of a paragraph should be one continuous paragraph
     text_out = re.sub('</p>\s*<p><i>', '<i>', text_out)
     text_out = re.sub('</i></p>\s*<p>', '</i>', text_out)
     # turn <br/> into new <p> as line breaks inside <p> don't render in formattedtext
