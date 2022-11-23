@@ -433,7 +433,7 @@ def format_power(soup_in, id_in):
     range_pattern += '|Melee [0-9]+ or Ranged\s+([0-9]+)'
     range_pattern += '|Melee or Ranged reach\s+([0-9]+)'
     range_pattern += '|Melee\s+([0-9]+|touch|)'
-    range_pattern += '|Ranged\s+([0-9]+|sight)'
+    range_pattern += '|Ranged\s+([0-9]+/[0-9]+|[0-9]+|sight)'
     range_pattern += '|Reach\s+([0-9]+)'
     range_pattern += ')'
     range_pattern += '(\s+\(.*?\)|)'
@@ -491,7 +491,7 @@ def extract_monster_db(db_in):
         level_str = row["Level"].replace('\\', '')
         role_str = row["Role"].replace('\\', '')
 
-#        if name_str not in ['Berbalang', 'Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
+#        if name_str not in ['Bullywug Leaper', 'Berbalang', 'Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
 #            continue
 #        print('\n' + name_str)
 
@@ -591,7 +591,7 @@ def extract_monster_db(db_in):
                         if tag.next_sibling:
                             perceptionval_str = re.sub('[^0-9]', '', tag.next_sibling.text)
                     if tag.text == 'Senses':
-                        senses_str = tag.next_sibling.text.strip().title()
+                        senses_str = tag.next_sibling.text.strip()
                     if tag.text == 'Initiative':
                         init_str = re.sub('[^0-9]', '', tag.next_sibling.text)
                     if tag.text == 'Reflex':
@@ -612,10 +612,10 @@ def extract_monster_db(db_in):
                     if tag.text == 'Will':
                         will_str = re.sub('[^0-9]', '', tag.next_sibling)
                     if tag.text == 'Alignment':
-                        alignment_str = tag.next_sibling.text.strip().title()
+                        alignment_str = tag.next_sibling.text.strip().lower()
                     if tag.text == 'Equipment':
                         equipment_str = ''.join(tag.find_next_siblings(string=True))
-                        equipment_str = re.sub(r'(^\s*:\s*|\s*$)', '', equipment_str)
+                        equipment_str = re.sub(r'(^\s*:\s*|[\.\s]*$)', '', equipment_str)
                     if tag.text.strip() == 'Languages':
                         languages_str = tag.next_sibling.text.strip()
                     if tag.text == 'Skills':
@@ -634,13 +634,16 @@ def extract_monster_db(db_in):
                         charisma_str = re.sub(r'(^\s|\s\(.*$)', '', tag.next_sibling)
                     if tag.text == 'Description':
                         description_str = tag.next_sibling.text.strip()
-                if senses_str == '' and re.search(r'(All-around|Blindsight|Darkvision|Low-light vision|Truesight|Tremorsense)', tag.text, re.IGNORECASE):
-                    senses_str = tag.text.title()
+                # if we haven't hit a 'Senses' label yet, grab senses that are just by themself without any label
+                if senses_str == '' and re.search(r'(All-around|Blindsight|Darkvision|Low-light vision|Truesight|Tremorsense)', tag.text, flags=re.IGNORECASE):
+                    senses_str = tag.text
 
         # Split out PerceptionVal if it is in with Senses
         if perception_match := re.search(r'(Perception\s*\+*)([0-9]*)\s*[,;]*\s*(.*)', senses_str):
             perceptionval_str = perception_match.group(2)
             senses_str = perception_match.group(3)
+        # capitalize only the first letter of each special sense
+        senses_str = re.sub(r'(All-around|Blindsight|Darkvision|Low-light vision|Truesight|Tremorsense)', lambda match: match.group(0).capitalize(), senses_str, flags=re.IGNORECASE)
 
         # Fix up double semi-colons in SpecialDefenses
         specialdefenses_str = re.sub(r';+', r';', specialdefenses_str)

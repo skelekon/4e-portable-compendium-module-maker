@@ -1007,5 +1007,6 @@ if __name__ == '__main__':
     export_xml = re.sub('[ﬂ]', 'fl', export_xml)    # ligature fl
     export_xml = re.sub('[ﬁ]', 'fi', export_xml)    # ligature fi
     export_xml = re.sub('[…]', '...', export_xml)   # horizontal ellipsis
+    export_xml = re.sub('[™]', '', export_xml)      # Trademark
 
     create_module(export_xml)
