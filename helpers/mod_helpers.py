@@ -9,7 +9,8 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 def title_format(text_in):
     text_out = ''
-    text_out = re.sub(r'[A-Za-z]+(\'[A-Za-z]+)?', lambda word: word.group(0).capitalize(), text_in)
+    text_out = re.sub(r'[A-Za-z]+([\'’A-Za-z]+)?', lambda word: word.group(0).capitalize(), text_in)
+
     return text_out
 
 

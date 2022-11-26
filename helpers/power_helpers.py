@@ -100,10 +100,10 @@ def create_power_library(id_in, list_in, suffix_in):
     previous_class = ''
     for power_dict in sorted(list_in, key=library_list_sorter):
 
-        # only do 2 levels of menu for these Power classes
+        # do 2 levels of menu if not one of these Power classes
         if not(power_dict["prefix"] in ['Class Powers', 'Racial Powers', 'Paragon Path Powers', 'Epic Destiny Powers']):
             continue
-
+        
         prefix_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["prefix"])
         class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
 
@@ -146,9 +146,10 @@ def create_power_library(id_in, list_in, suffix_in):
         previous_class = class_camel
         previous_prefix = prefix_camel
 
-    # Close final Library
-    lib_xml += ('\t\t\t\t\t</index>\n')
-    lib_xml += (f'\t\t\t\t</{lib_id}-powers{previous_prefix}>\n')
+    # Close final Library if there were any nested menus
+    if previous_prefix != '':
+        lib_xml += ('\t\t\t\t\t</index>\n')
+        lib_xml += (f'\t\t\t\t</{lib_id}-powers{previous_prefix}>\n')
 
     return lib_xml, id_in
 

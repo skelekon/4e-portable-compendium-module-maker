@@ -193,8 +193,37 @@ def extract_feat_db(db_in):
         published_str = ''
         shortdescription_str = ''
 
+        # Name
+        name_tag = parsed_html.find('h1', class_='player').extract()
+        if name_tag:
+            name_str = name_tag.text
+
         # Class ID (top level sort order)
-        if class_str == 'Heroic':
+        if re.search(r'\[Arena Fighting\]', name_str) != None:
+            class_str = 'Arena Fighting'
+            class_id = 4
+        elif re.search(r'\[.*?Style\]', name_str) != None:
+            class_str = 'Combat Style'
+            class_id = 5
+        elif re.search(r'\[.*?Bloodline\]', name_str) != None:
+            class_str = 'Bloodline'
+            class_id = 6
+        elif re.search(r'\[Divinity\]', name_str) != None:
+            class_str = 'Divinity'
+            class_id = 7
+        elif re.search(r'\[Domain\]', name_str) != None:
+            class_str = 'Domain'
+            class_id = 8
+##        elif re.search(r'\[Dragonmark\]', name_str) != None:
+##            class_str = 'Dragonmark'
+##            class_id = 8
+        elif re.search(r'\[Familiar\]', name_str) != None:
+            class_str = 'Familiar'
+            class_id = 9
+        elif re.search(r'\[Multiclass.*?\]', name_str) != None:
+            class_str = 'Multiclass'
+            class_id = 10
+        elif class_str == 'Heroic':
             class_id = 1
         elif class_str == 'Paragon':
             class_id = 2
@@ -202,7 +231,7 @@ def extract_feat_db(db_in):
             class_id = 3
         else:
             class_str = 'Other'
-            class_id = 4
+            class_id = 11
 
         # Published In
         published_tag = parsed_html.find(class_='publishedIn').extract()
@@ -215,11 +244,6 @@ def extract_feat_db(db_in):
                 anchor_tag.replaceWithChildren()
                 anchor_tag = published_tag.find('a')
             published_str = str(published_tag)
-
-        # Name
-        name_tag = parsed_html.find('h1', class_='player').extract()
-        if name_tag:
-            name_str = name_tag.text
 
         # Build list of strings for Prerequisite / Short Description (Benefit) / Description
         detail_div = parsed_html.find('div', id='detail')
