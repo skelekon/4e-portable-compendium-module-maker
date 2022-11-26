@@ -146,7 +146,7 @@ def extract_classes_db(db_in):
         # Retrieve the data with dedicated columns
         name_str =  row["Name"].replace('\\', '')
 
-#        if name_str not in ['Ardent']:#'Fighter (Knight)', 'Cleric (Templar)', 'Wizard (Arcanist)', 'Hybrid Druid (Sentinel)', 'Warlock (Binder)', 'Ardent', 'Avenger']:
+#        if name_str not in ['Bard (Skald)']:#'Fighter (Knight)', 'Cleric (Templar)', 'Wizard (Arcanist)', 'Hybrid Druid (Sentinel)', 'Warlock (Binder)', 'Ardent', 'Avenger']:
 #            continue
 #        print(name_str)
 
@@ -194,6 +194,7 @@ def extract_classes_db(db_in):
         # Description
         if desc_block := parsed_html.find('p', class_='flavor'):
             for tag in desc_block.next_siblings:
+                # stop at Class Features, as they are processed separately
                 if tag.name == 'h3' and re.search(r'CLASS FEATURES', tag.text) != None:
                     break
                 if tag.name in ['b', 'h3']:
