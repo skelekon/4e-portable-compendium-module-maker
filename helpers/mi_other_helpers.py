@@ -78,10 +78,11 @@ def extract_mi_other_db(db_in, filter_in):
 
         if section_id < 100:
 
-            # If this is for Alchemy Items, and Alchemical Formula rituals are part ofthis export
+            # If this is for Alchemy Items, and Alchemical Formula rituals are part of this export
             # then skip over any items that will be duplicated in Alchemical Items
             if filter_in == 'Alchemical Item' and settings.alchemy:
-                if name_str in ritual_list:
+                # Salve of Slipperyness doesn't have higher level versions listed under the Alchemical Formula
+                if name_str in ritual_list and name_str != 'Salve of Slipperiness':
                     alchemy_flag = True
 
             # Ensure the category_str matches the bold label to avoid false matches e.g. 'Ring'

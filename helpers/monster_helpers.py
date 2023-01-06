@@ -250,43 +250,43 @@ def create_monster_cards(list_in):
         name_camel = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])
 
         xml_out += (f'\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t<name type="string">{monster_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t<levelrole type="string">{monster_dict["levelrole"]}</levelrole>\n')
-        xml_out += (f'\t\t\t\t<type type="string">{monster_dict["type"]}</type>\n')
-        xml_out += (f'\t\t\t\t<xp type="number">{monster_dict["xp"]}</xp>\n')
-        xml_out += (f'\t\t\t\t<hp type="string">{monster_dict["hp"]}</hp>\n')
-        xml_out += (f'\t\t\t\t<init type="number">{monster_dict["init"]}</init>\n')
         xml_out += (f'\t\t\t\t<ac type="number">{monster_dict["ac"]}</ac>\n')
-        xml_out += (f'\t\t\t\t<fortitude type="number">{monster_dict["fortitude"]}</fortitude>\n')
-        xml_out += (f'\t\t\t\t<reflex type="number">{monster_dict["reflex"]}</reflex>\n')
-        xml_out += (f'\t\t\t\t<will type="number">{monster_dict["will"]}</will>\n')
-        if monster_dict["perceptionval"] != '':
-            xml_out += (f'\t\t\t\t<perceptionval type="number">{monster_dict["perceptionval"]}</perceptionval>\n')
-        if monster_dict["senses"] != '':
-            xml_out += (f'\t\t\t\t<senses type="string">{monster_dict["senses"]}</senses>\n')
-        xml_out += (f'\t\t\t\t<speed type="string">{monster_dict["speed"]}</speed>\n')
-        xml_out += (f'\t\t\t\t<save type="number">{monster_dict["save"]}</save>\n')
+        xml_out += (f'\t\t\t\t<alignment type="string">{monster_dict["alignment"]}</alignment>\n')
         if monster_dict["ap"] != '':
             xml_out += (f'\t\t\t\t<ap type="number">{monster_dict["ap"]}</ap>\n')
+        xml_out += (f'\t\t\t\t<charisma type="number">{monster_dict["charisma"]}</charisma>\n')
+        xml_out += (f'\t\t\t\t<constitution type="number">{monster_dict["constitution"]}</constitution>\n')
+        xml_out += (f'\t\t\t\t<dexterity type="number">{monster_dict["dexterity"]}</dexterity>\n')
+        if monster_dict["equipment"] != '':
+            xml_out += (f'\t\t\t\t<equipment type="string">{monster_dict["equipment"]}</equipment>\n')
+        xml_out += (f'\t\t\t\t<fortitude type="number">{monster_dict["fortitude"]}</fortitude>\n')
+        xml_out += (f'\t\t\t\t<hp type="string">{monster_dict["hp"]}</hp>\n')
+        xml_out += (f'\t\t\t\t<init type="number">{monster_dict["init"]}</init>\n')
+        xml_out += (f'\t\t\t\t<intelligence type="number">{monster_dict["intelligence"]}</intelligence>\n')
+        if monster_dict["languages"] != '':
+            xml_out += (f'\t\t\t\t<languages type="string">{monster_dict["languages"]}</languages>\n')
+        xml_out += (f'\t\t\t\t<levelrole type="string">{monster_dict["levelrole"]}</levelrole>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{monster_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<npctype type="string">NPC</npctype>\n')
+        if monster_dict["perceptionval"] != '':
+            xml_out += (f'\t\t\t\t<perceptionval type="number">{monster_dict["perceptionval"]}</perceptionval>\n')
+        xml_out += (f'\t\t\t\t<powers>\n{monster_dict["powers"]}\t\t\t\t</powers>\n')
+        xml_out += (f'\t\t\t\t<reflex type="number">{monster_dict["reflex"]}</reflex>\n')
+        xml_out += (f'\t\t\t\t<save type="number">{monster_dict["save"]}</save>\n')
+        if monster_dict["senses"] != '':
+            xml_out += (f'\t\t\t\t<senses type="string">{monster_dict["senses"]}</senses>\n')
         if monster_dict["specialdefenses"] != '':
             xml_out += (f'\t\t\t\t<specialdefenses type="string">{monster_dict["specialdefenses"]}</specialdefenses>\n')
-        xml_out += (f'\t\t\t\t<powers>\n{monster_dict["powers"]}\t\t\t\t</powers>\n')
+        xml_out += (f'\t\t\t\t<speed type="string">{monster_dict["speed"]}</speed>\n')
         if monster_dict["skills"] != '':
             xml_out += (f'\t\t\t\t<skills type="string">{monster_dict["skills"]}</skills>\n')
         xml_out += (f'\t\t\t\t<strength type="number">{monster_dict["strength"]}</strength>\n')
-        xml_out += (f'\t\t\t\t<constitution type="number">{monster_dict["constitution"]}</constitution>\n')
-        xml_out += (f'\t\t\t\t<dexterity type="number">{monster_dict["dexterity"]}</dexterity>\n')
-        xml_out += (f'\t\t\t\t<intelligence type="number">{monster_dict["intelligence"]}</intelligence>\n')
-        xml_out += (f'\t\t\t\t<wisdom type="number">{monster_dict["wisdom"]}</wisdom>\n')
-        xml_out += (f'\t\t\t\t<charisma type="number">{monster_dict["charisma"]}</charisma>\n')
-        xml_out += (f'\t\t\t\t<alignment type="string">{monster_dict["alignment"]}</alignment>\n')
-        if monster_dict["languages"] != '':
-            xml_out += (f'\t\t\t\t<languages type="string">{monster_dict["languages"]}</languages>\n')
-        if monster_dict["equipment"] != '':
-            xml_out += (f'\t\t\t\t<equipment type="string">{monster_dict["equipment"]}</equipment>\n')
-        xml_out += (f'\t\t\t\t<npctype type="string">NPC</npctype>\n')
         if monster_dict["published"] != '':
             xml_out += (f'\t\t\t\t<text type="formattedtext">{monster_dict["published"]}</text>\n')
+        xml_out += (f'\t\t\t\t<type type="string">{monster_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t\t<will type="number">{monster_dict["will"]}</will>\n')
+        xml_out += (f'\t\t\t\t<wisdom type="number">{monster_dict["wisdom"]}</wisdom>\n')
+        xml_out += (f'\t\t\t\t<xp type="number">{monster_dict["xp"]}</xp>\n')
         xml_out += (f'\t\t\t</{name_camel}>\n')
 
     return xml_out
@@ -327,6 +327,7 @@ def format_power(soup_in, id_in):
     # Power Name
     if pwrname_tag := soup_in.find('b'):
         pwrname_str = pwrname_tag.text.replace('&', '&amp;')
+#        print(pwrname_str)
 
     # Powertype
     if powertype_img := soup_in.find_all('img'):
@@ -354,43 +355,41 @@ def format_power(soup_in, id_in):
     # Action - should be in the first (action) tag
     # may be in its own tag in Layout 1
     if action_tag:
-        if action_match := re.search(r'(Aura|Free|Immediate|Minor Action|Move Action|Opportunity|Standard Action|Trait|Triggered Action)', action_tag.text, re.IGNORECASE):
+        if action_match := re.search(r'(Trait|Standard|Move|Minor|Free|Triggered)', action_tag.text, re.IGNORECASE):
             action_str = action_match.group(1)
             layout_1 = True
     # may be in parentheses after the power name
     if action_str == '':
         if action_match := re.search(r'(Free.*?|Immediate.*?|Minor.*?|Move.*?|Opportunity.*?|Standard.*?)(,|when|;|\))', header_tag.text, re.IGNORECASE):
             action_str += action_match.group(1).title()
-            if action_str in ['Standard', 'Minor', 'Move']:
-                action_str += ' Action'
             layout_1 = False
-        # also check for Sustain and Trigger conditions as they will be in here
-        if action_match := re.search(r'(Sustain.*?)[,)$]', header_tag.text, re.IGNORECASE):
-            sustain_str += action_match.group(1).title() + '\\n'
-        if action_match := re.search(r'(When.*?)[;)$]', header_tag.text, re.IGNORECASE):
-            trigger_str += 'Trigger: ' + action_match.group(1)[0:1].upper() + action_match.group(1)[1:] + '\\n'
 
+    # Trait is default if no Action defined
     if action_str == 'Trait':
         action_str = ''
 
     # Keywords
     # may be in parentheses in Layout 1
-    if layout_1 == True:
+    if layout_1:
         if keywords_match := re.search(r'\((.*)\)', header_tag.text):
             keywords_str = keywords_match.group(1)
     # may be after star symbol in Layout 2
     elif keyword_img := header_tag.find('img', src=re.compile(r'/x.gif')):
         for kwd_tag in keyword_img.find_next_siblings():
-            keywords_str += ''.join(kwd_tag.text)
+            keywords_str += ''.join(kwd_tag.text.lower())
 
     # Recharge
     # first look for descriptive Recharge
-    if layout_1 == True:
+    if layout_1:
         if recharge_img := header_tag.find('img', src=re.compile(r'/x.gif')):
             for rech_tag in recharge_img.find_all_next(text=True):
                 recharge_str += rech_tag.text
             recharge_str = recharge_str.strip()
-    elif recharge_match := re.search(r'(At-will|Daily|Encounter)', header_tag.text, re.IGNORECASE):
+    else:
+        # Layout 2
+        if recharge_match := re.search(r'(Recharge.*?)[,)$]', header_tag.text, re.IGNORECASE):
+            recharge_str += recharge_match.group(1).capitalize()
+        elif recharge_match := re.search(r'(At-will|Daily|Encounter)', header_tag.text, re.IGNORECASE):
             recharge_str = recharge_match.group(1).title()
 
     # then look for die symbols, starting from the lowest
@@ -405,10 +404,20 @@ def format_power(soup_in, id_in):
     elif recharge_img := header_tag.find('img', src=re.compile(r'/6a.gif')):
         recharge_str = 'Recharge 6'
 
+    # Sustain
+    if sustain_match := re.search(r'(Sustain.*?)[,)$]', header_tag.text, re.IGNORECASE):
+        sustain_str += sustain_match.group(1).title() + '\\n'
+
+    # Trigger
+    # if recharge_str doesn't contain when (otherwise we will recapture the when clause)
+    if re.search(r'When', recharge_str, re.IGNORECASE) is None:
+        if trigger_match := re.search(r'(When.*?)[,;)$]', header_tag.text, re.IGNORECASE):
+            trigger_str += 'Trigger: ' + trigger_match.group(1)[0:1].upper() + trigger_match.group(1)[1:] + '\\n'
+
     # If Recharge is 'Aura', change that to the Action type so that it goes under an 'Auras' heading
     # set the range to be all the text after the Aura keyword, as it's most commonly just the aura size
-    if aura_match := re.search('(\s*Aura\s*)(.*)', recharge_str, re.IGNORECASE):
-        action_str = 'Aura '
+    if aura_match := re.search('(^Aura\s*)(.*)', recharge_str, re.IGNORECASE):
+        action_str = 'Aura'
         range_str = aura_match.group(2)
         recharge_str = ''
 
@@ -416,17 +425,14 @@ def format_power(soup_in, id_in):
     for bdy_tag in body_tag:
         shortdescription_str += ''.join(bdy_tag.stripped_strings) + '\\n'
     shortdescription_str = re.sub(r'(^;*\s*|\\n$)', '', shortdescription_str)
-
-    # Triggered Action - replace with specific Immediate and Opportunity action if present
-    if action_str[0:9] == 'Triggered':
-        if trigger_match := re.search(r'^(.*?)(Immediate Interrupt|Immediate Reaction|Opportunity Action)(.*?)$', shortdescription_str):
-            action_str = trigger_match.group(2)
+    # Capitalize the first letter to fix Layout 2 Auras
+    shortdescription_str = shortdescription_str[0:1].upper() + shortdescription_str[1:]
 
     # Range - split out any Ranges or Sizes
     # regex has become too complicated, so build it up piecewise
     range_pattern = '(.*?)'
     range_pattern += '('
-    range_pattern += 'Area burst\s+([0-9]+ within [0-9]+|[0-9]+)'
+    range_pattern += 'Area burst\s+([0-9]+ within [0-9]+,? centered.*?;|[0-9]+,? centered.*?;|[0-9]+ within [0-9]+|[0-9]+)'
     range_pattern += '|Close blast\s+([0-9]+; targets.*?;|[0-9]+)'
     range_pattern += '|Close burst\s+([0-9]+; targets.*?;|[0-9]+)'
     range_pattern += '|Melee reach\s+([0-9]+)'
@@ -434,20 +440,32 @@ def format_power(soup_in, id_in):
     range_pattern += '|Melee or Ranged reach\s+([0-9]+)'
     range_pattern += '|Melee\s+([0-9]+|touch|)'
     range_pattern += '|Ranged\s+([0-9]+/[0-9]+|[0-9]+|sight)'
-    range_pattern += '|Reach\s+([0-9]+)'
+    range_pattern += '|Range\s+([0-9]+; targets.*?;|[0-9]+)'
+    range_pattern += '|[Rr]each\s+([0-9]+; targets.*?;|[0-9]+)'
     range_pattern += ')'
     range_pattern += '(\s+\(.*?\)|)'
     range_pattern += '(.*?)$'
     if range_match := re.search(range_pattern,  shortdescription_str):
-#        range_str = range_match.group(2).strip() + range_match.group(12)
-        range_str = re.sub(r';$', '', range_match.group(2)).strip() + range_match.group(12)
+        range_str = re.sub(r';$', '', range_match.group(2)).strip().capitalize() + range_match.group(13)
         # remove leading semi-colons or newlines
-        shortdescription_str = re.sub(r'^(;|\\n|)*', '', range_match.group(1).strip() + range_match.group(13).strip())
+        shortdescription_str = re.sub(r'^(;|\\n|)*', '', range_match.group(1).strip() + range_match.group(14).strip())
         # remove empty clauses caused by extracting Range
         shortdescription_str = re.sub(r':\s*;', ':', shortdescription_str)
 
+    # Fix up Triggered actions for Layout 2
+    if not layout_1 and trigger_str != '':
+        if action_str == 'Free':
+            action_str = 'Triggered'
+            shortdescription_str = '(Free Action):' + shortdescription_str
+        elif action_str == 'Immediate Interrupt':
+            action_str = 'Triggered'
+            shortdescription_str = '(Immediate Interrupt):' + shortdescription_str
+        elif action_str == 'Immediate Reaction':
+            action_str = 'Triggered'
+            shortdescription_str = '(Immediate Reaction):' + shortdescription_str
+
     # Prepend any Sustain or Trigger info
-    shortdescription_str = sustain_str + trigger_str + shortdescription_str
+    shortdescription_str = (sustain_str + trigger_str + shortdescription_str).strip()
 
     # Format the list of powers into statblocks
     entry_id = str(id_in).rjust(3, '0')
@@ -491,7 +509,7 @@ def extract_monster_db(db_in):
         level_str = row["Level"].replace('\\', '')
         role_str = row["Role"].replace('\\', '')
 
-#        if name_str not in ['Bullywug Leaper', 'Berbalang', 'Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
+#        if name_str not in ['Ancient Earthquake Dragon', 'Bullywug Leaper', 'Berbalang', 'Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
 #            continue
 #        print('\n' + name_str)
 
