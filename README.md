@@ -53,25 +53,23 @@ Options:
   --magic            export all magic items
 ```
 
-1. Copy `module_maker.exe` into the unzipped Portable Compendium directory (default will be `/Portable Compendium New`. It will use the data files in the `/sql` subdirectory to create modules.
+1. Download `module_maker.exe` and `run_all.bat` into the unzipped Portable Compendium directory (default will be `/Portable Compendium New`. It will use the data files in the `/sql` subdirectory to create modules.
 
 2. \[Optional\] Paste an image named `thumbnail.png` in the same directory if you want it to automatically add a thumbnail image to any created modules.
 
 3. Open a command prompt or PowerShell and navigate to the Portable Compendium directory.
 
-4. Run `module_maker.exe` with the switches as above to create the modules you want.
-
-You can use `run_all.bat` to create the following four Libraries, which include everything currently available:
+4. Run `run_all.bat` to create the following four Libraries, which include everything currently available:
 
 ```
-module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t -s
-module_maker.exe --filename 4E_Traps_Terrain_Diseases --library "4E Traps, Terrain and Diseases" -T -e -d -s
+module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t
+module_maker.exe --filename 4E_Traps_Terrain_Diseases --library "4E Traps, Terrain and Diseases" -T -e -d
 module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -R -C -B -H -P -E -F -D -f -p -b -s
 module_maker.exe --filename 4E_Items --library "4E Items" -a -r -m -o -i -t -s
 ```
 
-Default filename/library will be `4E_Compendium` / `4E Compendium` if not supplied.
-
-5. Copy or Move the `.mod` file to into your FG modules folder (default should be `.../Fantasy Gounds/modules`) and load them in your campaign!
+5. Copy or Move the new `.mod` file to into your FG modules folder (default should be `.../Fantasy Gounds/modules`) and load them in your campaign!
 
 6. Don't forget to grant your players access to any items / feats / powers modules to ease character creation.
+
+If you want more control over what is in the modules, or their names, you can roll your own module_maker commands using the available switches instead of using the ones supplied in the run_all file.
