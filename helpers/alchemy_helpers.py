@@ -184,15 +184,14 @@ def create_formula_library(id_in, list_in, name_in):
         return xml_out, id_in
 
     id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
 
-    xml_out += (f'\t\t\t\t<{lib_id}-alchemyformulas>\n')
+    xml_out += (f'\t\t\t\t<l{id_in:0>3}-alchemyformulas>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.formulas@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-alchemyformulas>\n')
+    xml_out += (f'\t\t\t\t</l{id_in:0>3}-alchemyformulas>\n')
 
     return xml_out, id_in
 
@@ -205,15 +204,14 @@ def create_alchemy_item_library(id_in, list_in, name_in):
         return xml_out, id_in
 
     id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
 
-    xml_out += (f'\t\t\t\t<{lib_id}-alchemyitems>\n')
+    xml_out += (f'\t\t\t\t<l{id_in:0>3}-alchemyitems>\n')
     xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.alchemicalitems@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-alchemyitems>\n')
+    xml_out += (f'\t\t\t\t</l{id_in:0>3}-alchemyitems>\n')
 
     return xml_out, id_in
 
