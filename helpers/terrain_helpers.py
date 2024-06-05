@@ -12,21 +12,20 @@ def terrain_list_sorter(entry_in):
     return (name)
 
 
-def create_terrain_library(id_in):
+def create_terrain_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-terrain>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Terrain</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.terrain@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-terrain>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Terrain</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 def create_terrain_list(list_in):
@@ -34,9 +33,6 @@ def create_terrain_list(list_in):
 
     if not list_in:
         return xml_out
-
-    name_camel = ''
-    previous_group = ''
 
     # Terrain List
     # This controls the list that appears when you click on a Library menu
@@ -47,16 +43,16 @@ def create_terrain_list(list_in):
 
     # Create individual item entries
     for terrain_dict in sorted(list_in, key=terrain_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', terrain_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', terrain_dict["name"]).lower()
 
         # Terrain list entry
-        xml_out += (f'\t\t\t\t<terrain{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{terrain_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.terrain.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.terrain.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</listlink>\n')
-        xml_out += (f'\t\t\t\t</terrain{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{terrain_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t</{name_lower}>\n')
 
     xml_out += (f'\t\t\t</index>\n')
     xml_out += (f'\t\t</terrain>\n')
@@ -70,25 +66,21 @@ def create_terrain_cards(list_in):
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     terrain_out += ('\t\t<terrain>\n')
     for terrain_dict in sorted(list_in, key=terrain_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', terrain_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', terrain_dict["name"]).lower()
 
         terrain_out += f'\t\t\t<{name_lower}>\n'
-        terrain_out += f'\t\t\t\t<name type="string">{terrain_dict["name"]}</name>\n'
-        if terrain_dict["description"] != '':
-            terrain_out += f'\t\t\t\t<source type="string">{terrain_dict["type"]}</source>\n'
         terrain_out += f'\t\t\t\t<description type="formattedtext">'
         if terrain_dict["description"] != '':
             terrain_out += f'{terrain_dict["description"]}'
         if terrain_dict["published"] != '':
             terrain_out += f'{terrain_dict["published"]}'
         terrain_out += f'</description>\n'
+        terrain_out += f'\t\t\t\t<name type="string">{terrain_dict["name"]}</name>\n'
+        if terrain_dict["type"] != '':
+            terrain_out += f'\t\t\t\t<source type="string">{terrain_dict["type"]}</source>\n'
         terrain_out += f'\t\t\t</{name_lower}>\n'
 
     terrain_out += ('\t\t</terrain>\n')

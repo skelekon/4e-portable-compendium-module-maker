@@ -95,40 +95,40 @@ def mi_list_sorter(entry_in):
     name = entry_in["name"]
     return (name)
 
-def create_mi_library(id_in, tier_list, name_in, item_in):
+def create_mi_library(tier_list, name_in, item_in):
     xml_out = ''
-    item_camel = re.sub('[^a-zA-Z0-9_]', '', item_in)
+    item_lower = re.sub('[^a-zA-Z0-9_]', '', item_in).lower()
 
     for t in tier_list:
 
         if t != '' and len(tier_list) > 1:
             tier_str = ' (' + t + ')'
+            tier_lower = '_' + re.sub('[^a-zA-Z0-9_]', '', t).lower()
         else:
             tier_str = ''
+            tier_lower = ''
 
-        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
 
-        id_in += 1
-        lib_id = 'l' + str(id_in).rjust(3, '0')
+        settings.lib_id += 1
 
-        xml_out += (f'\t\t\t\t<{lib_id}-magicitems>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
+        xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmagicitemtablelist</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>lists.mi{item_camel}{tier_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>lists.magicitems_{item_lower}{tier_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
-        xml_out += (f'\t\t\t\t</{lib_id}-magicitems>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
+        xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
-def create_mi_table(list_in, tier_list, item_in):
+def create_mi_list(list_in, tier_list, item_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    item_camel = re.sub('[^a-zA-Z0-9_]', '', item_in)
+    item_lower = re.sub('[^a-zA-Z0-9_]', '', item_in).lower()
 
     # Loop through the Tier list that has been built for this export
     for t in tier_list:
@@ -137,14 +137,15 @@ def create_mi_table(list_in, tier_list, item_in):
         # Set up a label suffix for the current Tier
         if t != '' and len(tier_list) > 1:
             tier_str = ' (' + t + ')'
+            tier_lower = '_' + re.sub('[^a-zA-Z0-9_]', '', t).lower()
         else:
             tier_str = ''
+            tier_lower = ''
 
-        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
 
         # Open Item List
         # This controls the table that appears when you click on a Library menu
-        xml_out += (f'\t\t<mi{item_camel}{tier_camel}>\n')
+        xml_out += (f'\t\t<magicitems_{item_lower}{tier_lower}>\n')
         xml_out += (f'\t\t\t<description type="string">Magic Item Table</description>\n')
         xml_out += ('\t\t\t<groups>\n')
 
@@ -162,7 +163,7 @@ def create_mi_table(list_in, tier_list, item_in):
                 item_tier = 'Epic'
 
             level_str = str(entry_dict["level"]).rjust(2, '0')
-            name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
+            name_lower = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"]).lower()
             # Remove '(Level nn)' as the table already has a level column
             name_display = re.sub(r'\s*\(Level\s*[0-9]*\)', '', entry_dict["name"])
 
@@ -185,16 +186,16 @@ def create_mi_table(list_in, tier_list, item_in):
             # only output items for the correct tier
             if item_tier == t:
 
-                xml_out += (f'\t\t\t\t\t\t<mi{level_str}-{name_camel}>\n')
-                xml_out += (f'\t\t\t\t\t\t\t<name type="string">{name_display}</name>\n')
+                xml_out += (f'\t\t\t\t\t\t<mi{level_str}_{name_lower}>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<cat type="string">{entry_dict["cat"]}</cat>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
                 xml_out += (f'\t\t\t\t\t\t\t<level type="number">{entry_dict["level"]}</level>\n')
                 xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
                 xml_out += ('\t\t\t\t\t\t\t\t<class>referencemagicitem</class>\n')
-                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}-{level_str}@{settings.library}</recordname>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_lower}@{settings.library}</recordname>\n')
                 xml_out += ('\t\t\t\t\t\t\t</link>\n')
-                xml_out += (f'\t\t\t\t\t\t</mi{level_str}-{name_camel}>\n')
+                xml_out += (f'\t\t\t\t\t\t\t<name type="string">{name_display}</name>\n')
+                xml_out += (f'\t\t\t\t\t\t</mi{level_str}_{name_lower}>\n')
 
         # Close last Section
         xml_out += ('\t\t\t\t\t</items>\n')
@@ -202,7 +203,7 @@ def create_mi_table(list_in, tier_list, item_in):
 
         # Close Item List
         xml_out += ('\t\t\t</groups>\n')
-        xml_out += (f'\t\t</mi{item_camel}{tier_camel}>\n')
+        xml_out += (f'\t\t</magicitems_{item_lower}{tier_lower}>\n')
 
     return xml_out
 
@@ -238,7 +239,7 @@ def multi_level(soup_in):
     return multi_out
 
 
-def create_mi_desc(list_in):
+def create_mi_cards(list_in):
     mi_out = ''
     power_out = ''
 
@@ -256,13 +257,12 @@ def create_mi_desc(list_in):
             continue
         
         level_str = str(entry_dict["level"]).rjust(2, '0')
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"]).lower()
 
         # Create all Required Power entries
         power_out += entry_dict["powerdesc"]
 
-        mi_out += (f'\t\t\t<{name_camel}-{level_str}>\n')
-        mi_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        mi_out += (f'\t\t\t<{name_lower}>\n')
         mi_out += (f'\t\t\t\t<bonus type="number">{entry_dict["bonus"]}</bonus>\n')
         mi_out += (f'\t\t\t\t<class type="string">{entry_dict["class"]}</class>\n')
         if entry_dict["cost"] != '':
@@ -275,6 +275,7 @@ def create_mi_desc(list_in):
             mi_out += (f'\t\t\t\t<flavor type="string">{entry_dict["flavor"]}</flavor>\n')
         mi_out += (f'\t\t\t\t<formatteditemblock type="formattedtext">{entry_dict["flavor"]}</formatteditemblock>\n')
         mi_out += (f'\t\t\t\t<level type="number">{entry_dict["level"]}</level>\n')
+        mi_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         mi_out += (f'\t\t\t\t<mitype type="string">{entry_dict["mitype"]}</mitype>\n')
         if entry_dict["prerequisite"] != '':
             mi_out += (f'\t\t\t\t<prerequisite type="string">{entry_dict["prerequisite"]}</prerequisite>\n')
@@ -284,7 +285,9 @@ def create_mi_desc(list_in):
             mi_out += (f'\t\t\t\t<powers>\n{entry_dict["mipowers"]}\t\t\t\t</powers>\n')
         if entry_dict["props"] != '':
             mi_out += (f'\t\t\t\t<props>\n{entry_dict["props"]}\t\t\t\t</props>\n')
-        mi_out += (f'\t\t\t</{name_camel}-{level_str}>\n')
+        else:
+            mi_out += ('\t\t\t\t<props />\n')
+        mi_out += (f'\t\t\t</{name_lower}>\n')
 
     return mi_out, power_out
 
@@ -382,68 +385,66 @@ def powers_format(soup_in, name_in):
         powers_list.append(copy.deepcopy(power_item))
 
     # Loop though power list to create all the tags
-    name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
+    name_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
     powerdesc_out = ''
     mi_powerstag_out = ''
-    id = 0
+    pwr_id = 0
 
     for power in powers_list:
-        id += 1
+        pwr_id += 1
         recharge_alpha = re.sub('[^a-zA-Z0-9_]', '', power["recharge"])
-        entry_id = str(id).rjust(2, '0')
         power_name = 'Power' if power["recharge"] == '' else 'Power - ' + power["recharge"]
 
-        mi_powerstag_out += f'\t\t\t\t\t<id-{entry_id}>\n'
-        mi_powerstag_out += f'\t\t\t\t\t\t<name type="string">{power_name}</name>\n'
+        mi_powerstag_out += f'\t\t\t\t\t<id-{pwr_id:0>5}>\n'
         if power["action"] != '':
             mi_powerstag_out += f'\t\t\t\t\t\t<action type="string">{power["action"]}</action>\n'
+        mi_powerstag_out += '\t\t\t\t\t\t<link type="windowreference">\n'
+        mi_powerstag_out += '\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+        mi_powerstag_out += f'\t\t\t\t\t\t\t<recordname>reference.powers.{name_lower}_id-{pwr_id:0>5}@{settings.library}</recordname>\n'
+        mi_powerstag_out += '\t\t\t\t\t\t</link>\n'
+        mi_powerstag_out += f'\t\t\t\t\t\t<name type="string">{power_name}</name>\n'
         if power["recharge"] != '':
             mi_powerstag_out += f'\t\t\t\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
         if power["shortdescription"] != '':
             mi_powerstag_out += f'\t\t\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
-        mi_powerstag_out += '\t\t\t\t\t\t<link type="windowreference">\n'
-        mi_powerstag_out += '\t\t\t\t\t\t\t<class>powerdesc</class>\n'
-        mi_powerstag_out += f'\t\t\t\t\t\t\t<recordname>reference.powers.item{name_camel}Power-{entry_id}@{settings.library}</recordname>\n'
-        mi_powerstag_out += '\t\t\t\t\t\t</link>\n'
-        mi_powerstag_out += f'\t\t\t\t\t</id-{entry_id}>\n'
+        mi_powerstag_out += f'\t\t\t\t\t</id-{pwr_id:0>5}>\n'
 
-        powerdesc_out += f'\t\t<item{name_camel}Power-{entry_id}>\n'
-        powerdesc_out += f'\t\t\t<name type="string">{name_in} {power_name}</name>\n'
+        powerdesc_out += f'\t\t\t<{name_lower}_id-{pwr_id:0>5}>\n'
         if power["action"] != '':
-            powerdesc_out += f'\t\t\t<action type="string">{power["action"]}</action>\n'
-        powerdesc_out += '\t\t\t<class type="string">Item</class>\n'
+            powerdesc_out += f'\t\t\t\t<action type="string">{power["action"]}</action>\n'
+        powerdesc_out += '\t\t\t\t<class type="string">Item</class>\n'
         if power["shortdescription"] != '':
-            powerdesc_out += f'\t\t\t<description type="formattedtext">{power["shortdescription"]}</description>\n'
+            powerdesc_out += f'\t\t\t\t<description type="formattedtext">{power["shortdescription"]}</description>\n'
 ##        if power["shortdescription"] != '':
 ##            powerdesc_out += f'\t\t\t<effect type="formattedtext">{power["shortdescription"]}</effect>\n'
 ##        if power["shortdescription"] != '':
 ##            powerdesc_out += f'\t\t\t<flavor type="string">{power["shortdescription"]}</flavor>\n'
         if power["keywords"] != '':
-            powerdesc_out += f'\t\t\t<keywords type="string">{power["keywords"]}</keywords>\n'
-        powerdesc_out += '\t\t\t<level type="number">0</level>\n'
+            powerdesc_out += f'\t\t\t\t<keywords type="string">{power["keywords"]}</keywords>\n'
+        powerdesc_out += '\t\t\t\t<level type="number">0</level>\n'
+        powerdesc_out += f'\t\t\t\t<name type="string">{name_in} {power_name}</name>\n'
         if power["recharge"] != '':
-            powerdesc_out += f'\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
+            powerdesc_out += f'\t\t\t\t<recharge type="string">{power["recharge"]}</recharge>\n'
         if power["shortdescription"] != '':
-            powerdesc_out += f'\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
-        powerdesc_out += f'\t\t\t<source type="string">Item</source>\n'
-        powerdesc_out += '\t\t\t<type type="string">Item</type>\n'
-        powerdesc_out += f'\t\t</item{name_camel}Power-{entry_id}>\n'
+            powerdesc_out += f'\t\t\t\t<shortdescription type="string">{power["shortdescription"]}</shortdescription>\n'
+        powerdesc_out += f'\t\t\t\t<source type="string">Item</source>\n'
+        powerdesc_out += '\t\t\t\t<type type="string">Item</type>\n'
+        powerdesc_out += f'\t\t\t</{name_lower}_id-{pwr_id:0>5}>\n'
 
     return powerdesc_out, mi_powerstag_out
 
 
 def props_format(props_in):
     props_out = ''
-    id = 0
+    prop_id = 0
 
     # Loop though properties list to create all the tags
-    for p in props_in:
-        if p.strip() == '':
+    for prop in props_in:
+        if prop.strip() == '':
             continue
-        id += 1
-        entrry_id = str(id).rjust(3, '0')
-        props_out += f'\t\t\t\t<id-{entrry_id}>\n'
-        props_out += f'\t\t\t\t\t<shortdescription type="string">{p}</shortdescription>\n'
-        props_out += f'\t\t\t\t</id-{entrry_id}>\n'
+        prop_id += 1
+        props_out += f'\t\t\t\t\t<id-{prop_id:0>5}>\n'
+        props_out += f'\t\t\t\t\t\t<shortdescription type="string">{prop}</shortdescription>\n'
+        props_out += f'\t\t\t\t\t</id-{prop_id:0>5}>\n'
 
     return props_out

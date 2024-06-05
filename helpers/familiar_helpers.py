@@ -12,21 +12,20 @@ def familiar_list_sorter(entry_in):
     return (name)
 
 
-def create_familiar_library(id_in):
+def create_familiar_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-familiar>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Familiars</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.familiars@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-familiar>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Familiars</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 def create_familiar_list(list_in):
@@ -34,9 +33,6 @@ def create_familiar_list(list_in):
 
     if not list_in:
         return xml_out
-
-    name_camel = ''
-    previous_group = ''
 
     # Familiars List
     # This controls the list that appears when you click on a Library menu
@@ -47,16 +43,16 @@ def create_familiar_list(list_in):
 
     # Create individual item entries
     for familiar_dict in sorted(list_in, key=familiar_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', familiar_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', familiar_dict["name"]).lower()
 
         # Familiars list entry
-        xml_out += (f'\t\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{familiar_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_familiar</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.familiars.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.familiars.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</listlink>\n')
-        xml_out += (f'\t\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{familiar_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t</{name_lower}>\n')
 
     xml_out += (f'\t\t\t</index>\n')
     xml_out += (f'\t\t</familiars>\n')
@@ -70,27 +66,23 @@ def create_familiar_cards(list_in):
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     familiars_out += ('\t\t<familiars>\n')
     for familiar_dict in sorted(list_in, key=familiar_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', familiar_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', familiar_dict["name"]).lower()
 
         familiars_out += f'\t\t\t<{name_lower}>\n'
-        familiars_out += f'\t\t\t\t<name type="string">{familiar_dict["name"]}</name>\n'
+        if familiar_dict["active"] != '':
+            familiars_out += (f'\t\t\t\t<active type="string">{familiar_dict["active"]}</active>\n')
+        if familiar_dict["constant"] != '':
+            familiars_out += f'\t\t\t\t<constant type="string">{familiar_dict["constant"]}</constant>\n'
         if familiar_dict["flavor"] != '':
             familiars_out += f'\t\t\t\t<flavor type="string">{familiar_dict["flavor"]}</flavor>\n'
+        familiars_out += f'\t\t\t\t<name type="string">{familiar_dict["name"]}</name>\n'
         if familiar_dict["senses"] != '':
             familiars_out += f'\t\t\t\t<senses type="string">{familiar_dict["senses"]}</senses>\n'
         if familiar_dict["speed"] != '':
             familiars_out += (f'\t\t\t\t<speed type="string">{familiar_dict["speed"]}</speed>\n')
-        if familiar_dict["constant"] != '':
-            familiars_out += f'\t\t\t\t<constant type="string">{familiar_dict["constant"]}</constant>\n'
-        if familiar_dict["active"] != '':
-            familiars_out += (f'\t\t\t\t<active type="string">{familiar_dict["active"]}</active>\n')
         familiars_out += f'\t\t\t</{name_lower}>\n'
 
     familiars_out += ('\t\t</familiars>\n')

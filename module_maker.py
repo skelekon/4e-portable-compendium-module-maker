@@ -33,7 +33,7 @@ from helpers.disease_helpers import create_disease_cards
 from helpers.races_helpers import extract_races_db
 from helpers.races_helpers import create_races_library
 from helpers.races_helpers import create_races_list
-from helpers.races_helpers import create_races_desc
+from helpers.races_helpers import create_races_cards
 
 from helpers.classes_helpers import extract_classes_db
 from helpers.classes_helpers import create_classes_library
@@ -42,23 +42,23 @@ from helpers.classes_helpers import create_classes_cards
 
 from helpers.background_helpers import extract_background_db
 from helpers.background_helpers import create_background_library
-from helpers.background_helpers import create_background_table
-from helpers.background_helpers import create_background_desc
+from helpers.background_helpers import create_background_list
+from helpers.background_helpers import create_background_cards
 
 from helpers.heroic_helpers import extract_heroic_db
 from helpers.heroic_helpers import create_heroic_library
-from helpers.heroic_helpers import create_heroic_table
-from helpers.heroic_helpers import create_heroic_desc
+from helpers.heroic_helpers import create_heroic_list
+from helpers.heroic_helpers import create_heroic_cards
 
 from helpers.paragon_helpers import extract_paragon_db
 from helpers.paragon_helpers import create_paragon_library
-from helpers.paragon_helpers import create_paragon_table
-from helpers.paragon_helpers import create_paragon_desc
+from helpers.paragon_helpers import create_paragon_list
+from helpers.paragon_helpers import create_paragon_cards
 
 from helpers.epic_helpers import extract_epic_db
 from helpers.epic_helpers import create_epic_library
-from helpers.epic_helpers import create_epic_table
-from helpers.epic_helpers import create_epic_desc
+from helpers.epic_helpers import create_epic_list
+from helpers.epic_helpers import create_epic_cards
 
 from helpers.familiar_helpers import extract_familiar_db
 from helpers.familiar_helpers import create_familiar_library
@@ -72,25 +72,25 @@ from helpers.deities_helpers import create_deities_cards
 
 from helpers.feat_helpers import extract_feat_db
 from helpers.feat_helpers import create_feat_library
-from helpers.feat_helpers import create_feat_table
-from helpers.feat_helpers import create_feat_desc
+from helpers.feat_helpers import create_feat_list
+from helpers.feat_helpers import create_feat_cards
 
 from helpers.power_helpers import extract_power_db
 from helpers.power_helpers import create_power_library
 from helpers.power_helpers import create_power_list
-from helpers.power_helpers import create_power_desc
+from helpers.power_helpers import create_power_cards
 
 from helpers.alchemy_helpers import extract_alchemy_db
 from helpers.alchemy_helpers import create_alchemy_item_library
 from helpers.alchemy_helpers import create_formula_library
-from helpers.alchemy_helpers import create_alchemy_item_table
-from helpers.alchemy_helpers import create_formula_table
-from helpers.alchemy_helpers import create_formula_desc
+from helpers.alchemy_helpers import create_alchemy_item_list
+from helpers.alchemy_helpers import create_formula_list
+from helpers.alchemy_helpers import create_formula_cards
 
 from helpers.ritual_helpers import extract_ritual_db
 from helpers.ritual_helpers import create_ritual_library
-from helpers.ritual_helpers import create_ritual_table
-from helpers.ritual_helpers import create_ritual_desc
+from helpers.ritual_helpers import create_ritual_list
+from helpers.ritual_helpers import create_ritual_cards
 
 from helpers.poison_helpers import extract_poison_db
 from helpers.poison_helpers import create_poison_library
@@ -99,13 +99,13 @@ from helpers.poison_helpers import create_poison_cards
 
 from helpers.armor_helpers import extract_armor_db
 from helpers.armor_helpers import create_armor_library
-from helpers.armor_helpers import create_armor_table
-from helpers.armor_helpers import create_armor_reference
+from helpers.armor_helpers import create_armor_list
+from helpers.armor_helpers import create_armor_cards
 
 from helpers.weapons_helpers import extract_weapons_db
 from helpers.weapons_helpers import create_weapons_library
-from helpers.weapons_helpers import create_weapons_table
-from helpers.weapons_helpers import create_weapons_reference
+from helpers.weapons_helpers import create_weapons_list
+from helpers.weapons_helpers import create_weapons_cards
 
 from helpers.equipment_helpers import extract_equipment_db
 from helpers.equipment_helpers import create_equipment_library
@@ -117,9 +117,9 @@ from helpers.mi_other_helpers import extract_mi_other_db
 from helpers.mi_weaplements_helpers import extract_mi_weaplements_db
 
 from helpers.mi_helpers import mi_other_list
-from helpers.mi_helpers import create_mi_desc
+from helpers.mi_helpers import create_mi_cards
 from helpers.mi_helpers import create_mi_library
-from helpers.mi_helpers import create_mi_table
+from helpers.mi_helpers import create_mi_list
 
 if __name__ == '__main__':
 
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 ##    settings.mi_wondrous = True
 
     # Counter the determines the order of Library menu items
-    menu_id = 0
+    settings.lib_id = 0
 
     tier_list = []
     # Create a tier_list depending on whether the 'tiers' option is set or not
@@ -267,13 +267,13 @@ if __name__ == '__main__':
         monster_extract = extract_monster_db(monster_db)
 
         # Loop through the different monster list types to build the library menus and lists
-        monster_list_concat += ('\t\t<npcs>\n')
+        monster_list_concat += ('\t\t<npc>\n')
         for tbl_name in monster_tbl_list:
-            monster_lib, menu_id = create_monster_library(menu_id, tier_list, tbl_name + suffix_str)
+            monster_lib = create_monster_library(tier_list, tbl_name + suffix_str)
             monster_list = create_monster_list(monster_extract, tier_list, tbl_name + suffix_str)
             monster_lib_concat += monster_lib
             monster_list_concat += monster_list
-        monster_list_concat += ('\t\t</npcs>\n')
+        monster_list_concat += ('\t\t</npc>\n')
 
         monster_cards = create_monster_cards(monster_extract)
 
@@ -305,7 +305,7 @@ if __name__ == '__main__':
         # Loop through the different traps list types to build the library menus and lists
         trap_list_concat += ('\t\t<traps>\n')
         for tbl_name in trap_tbl_list:
-            trap_lib, menu_id = create_trap_library(menu_id, tier_list, tbl_name + suffix_str)
+            trap_lib = create_trap_library(tier_list, tbl_name + suffix_str)
             trap_list = create_trap_list(trap_extract, tier_list, tbl_name + suffix_str)
             trap_lib_concat += trap_lib
             trap_list_concat += trap_list
@@ -335,7 +335,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         terrain_extract = extract_terrain_db(terrain_db)
-        terrain_lib, menu_id = create_terrain_library(menu_id)
+        terrain_lib = create_terrain_library()
         terrain_list = create_terrain_list(terrain_extract)
         terrain_cards = create_terrain_cards(terrain_extract)
 
@@ -361,7 +361,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         disease_extract = extract_disease_db(diseases_db)
-        disease_lib, menu_id = create_disease_library(menu_id)
+        disease_lib = create_disease_library()
         disease_list = create_disease_list(disease_extract)
         disease_cards = create_disease_cards(disease_extract)
 
@@ -388,9 +388,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
         races_extract = extract_races_db(races_db)
-        races_lib, menu_id = create_races_library(menu_id)
+        races_lib = create_races_library()
         races_list = create_races_list(races_extract)
-        races_cards, racefeatures_cards = create_races_desc(races_extract)
+        races_cards, racefeatures_cards = create_races_cards(races_extract)
 
     #===========================
     # CLASSES
@@ -415,7 +415,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         classes_extract = extract_classes_db(classes_db)
-        classes_lib, menu_id = create_classes_library(menu_id)
+        classes_lib = create_classes_library()
         classes_list = create_classes_list(classes_extract)
         classes_cards, classfeatures_cards = create_classes_cards(classes_extract)
 
@@ -442,9 +442,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
         background_extract = extract_background_db(background_db)
-        background_lib, menu_id = create_background_library(menu_id)
-        background_list = create_background_table(background_extract)
-        background_cards = create_background_desc(background_extract)
+        background_lib = create_background_library()
+        background_list = create_background_list(background_extract)
+        background_cards = create_background_cards(background_extract)
 
     #===========================
     # HEROIC THEMES
@@ -469,9 +469,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
         heroic_extract = extract_heroic_db(heroic_db)
-        heroic_lib, menu_id = create_heroic_library(menu_id)
-        heroic_list = create_heroic_table(heroic_extract)
-        heroic_cards, heroicfeatures_cards = create_heroic_desc(heroic_extract)
+        heroic_lib = create_heroic_library()
+        heroic_list = create_heroic_list(heroic_extract)
+        heroic_cards, heroicfeatures_cards = create_heroic_cards(heroic_extract)
 
     #===========================
     # PARAGON PATHS
@@ -496,9 +496,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
         paragon_extract = extract_paragon_db(paragon_db)
-        paragon_lib, menu_id = create_paragon_library(menu_id)
-        paragon_list = create_paragon_table(paragon_extract)
-        paragon_cards, paragonfeatures_cards = create_paragon_desc(paragon_extract)
+        paragon_lib = create_paragon_library()
+        paragon_list = create_paragon_list(paragon_extract)
+        paragon_cards, paragonfeatures_cards = create_paragon_cards(paragon_extract)
 
     #===========================
     # EPIC DESTINIES
@@ -523,9 +523,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
         epic_extract = extract_epic_db(epic_db)
-        epic_lib, menu_id = create_epic_library(menu_id)
-        epic_list = create_epic_table(epic_extract)
-        epic_cards, epicfeatures_cards = create_epic_desc(epic_extract)
+        epic_lib = create_epic_library()
+        epic_list = create_epic_list(epic_extract)
+        epic_cards, epicfeatures_cards = create_epic_cards(epic_extract)
 
     #===========================
     # FAMILIARS
@@ -549,7 +549,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         familiar_extract = extract_familiar_db(familiar_db)
-        familiar_lib, menu_id = create_familiar_library(menu_id)
+        familiar_lib = create_familiar_library()
         familiar_list = create_familiar_list(familiar_extract)
         familiar_cards = create_familiar_cards(familiar_extract)
 
@@ -575,7 +575,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         deities_extract = extract_deities_db(deities_db)
-        deities_lib, menu_id = create_deities_library(menu_id)
+        deities_lib = create_deities_library()
         deities_list = create_deities_list(deities_extract)
         deities_cards = create_deities_cards(deities_extract)
 
@@ -601,9 +601,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
         feat_extract = extract_feat_db(feat_db)
-        feat_lib, menu_id = create_feat_library(menu_id, feat_extract)
-        feat_list = create_feat_table(feat_extract)
-        feat_cards = create_feat_desc(feat_extract)
+        feat_lib = create_feat_library(feat_extract)
+        feat_list = create_feat_list(feat_extract)
+        feat_cards = create_feat_cards(feat_extract)
 
     #===========================
     # POWERS
@@ -613,7 +613,7 @@ if __name__ == '__main__':
     power_list = ''
     power_cards = ''
 
-    if settings.powers or settings.feats or settings.races or settings.classes or settings.heroic or settings.paragon or settings.epic:
+    if settings.powers or settings.basic or settings.feats or settings.races or settings.classes or settings.heroic or settings.paragon or settings.epic:
         # Pull Powers data from Portable Compendium
         power_db = []
         try:
@@ -627,9 +627,9 @@ if __name__ == '__main__':
             sys.exit(0)
 
         power_extract = extract_power_db(power_db)
-        power_lib, menu_id = create_power_library(menu_id, power_extract, suffix_str)
+        power_lib = create_power_library(power_extract, suffix_str)
         power_list = create_power_list(power_extract)
-        power_cards = create_power_desc(power_extract)
+        power_cards = create_power_cards(power_extract)
 
     #===========================
     # ALCHEMY
@@ -645,11 +645,11 @@ if __name__ == '__main__':
 
     if settings.alchemy:
         alchemy_extract = extract_alchemy_db(ritual_db, 'Formula')
-        alchemy_lib, menu_id = create_formula_library(menu_id, alchemy_extract, 'Alchemical Formulas' + suffix_str)
-        alchemy_item_lib, menu_id = create_alchemy_item_library(menu_id, alchemy_extract, 'Alchemical Items')
-        formulas_list = create_formula_table(alchemy_extract)
-        alchemy_item_list = create_alchemy_item_table(alchemy_extract)
-        alchemy_cards, alchemy_mi_cards, alchemy_power = create_formula_desc(alchemy_extract)
+        alchemy_lib = create_formula_library(alchemy_extract, 'Alchemical Formulas' + suffix_str)
+        alchemy_item_lib = create_alchemy_item_library(alchemy_extract, 'Alchemical Items')
+        formulas_list = create_formula_list(alchemy_extract)
+        alchemy_item_list = create_alchemy_item_list(alchemy_extract)
+        alchemy_cards, alchemy_mi_cards, alchemy_power = create_formula_cards(alchemy_extract)
 
     #===========================
     # RITUALS
@@ -661,9 +661,9 @@ if __name__ == '__main__':
 
     if settings.rituals:
         ritual_extract = extract_ritual_db(ritual_db, 'Ritual')
-        ritual_lib, menu_id = create_ritual_library(menu_id, ritual_extract, 'Rituals' + suffix_str)
-        ritual_list = create_ritual_table(ritual_extract, 'Rituals' + suffix_str)
-        ritual_cards = create_ritual_desc(ritual_extract)
+        ritual_lib = create_ritual_library(ritual_extract, 'Rituals' + suffix_str)
+        ritual_list = create_ritual_list(ritual_extract, 'Rituals' + suffix_str)
+        ritual_cards = create_ritual_cards(ritual_extract)
 
     #===========================
     # MARTIAL PRACTICES
@@ -675,9 +675,9 @@ if __name__ == '__main__':
 
     if settings.practices:
         practice_extract = extract_ritual_db(ritual_db, 'Practice')
-        practice_lib, menu_id = create_ritual_library(menu_id, practice_extract, 'Martial Practices' + suffix_str)
-        practice_list = create_ritual_table(practice_extract, 'Martial Practices' + suffix_str)
-        practice_cards = create_ritual_desc(practice_extract)
+        practice_lib = create_ritual_library(practice_extract, 'Martial Practices' + suffix_str)
+        practice_list = create_ritual_list(practice_extract, 'Martial Practices' + suffix_str)
+        practice_cards = create_ritual_cards(practice_extract)
 
     #===========================
     # POISONS
@@ -701,7 +701,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         poison_extract = extract_poison_db(poison_db)
-        poison_lib, menu_id = create_poison_library(menu_id)
+        poison_lib = create_poison_library()
         poison_list = create_poison_list(poison_extract)
         poison_cards = create_poison_cards(poison_extract)
 
@@ -715,9 +715,9 @@ if __name__ == '__main__':
 
     if settings.armor:
         armor_extract = extract_armor_db(item_db)
-        armor_lib, menu_id = create_armor_library(menu_id, 'Items - Armor')
-        armor_list = create_armor_table(armor_extract)
-        armor_cards = create_armor_reference(armor_extract)
+        armor_lib = create_armor_library('Items - Armor')
+        armor_list = create_armor_list(armor_extract)
+        armor_cards = create_armor_cards(armor_extract)
 
     #===========================
     # WEAPONS
@@ -729,9 +729,9 @@ if __name__ == '__main__':
 
     if settings.weapons:
         weapons_extract = extract_weapons_db(item_db)
-        weapons_lib, menu_id = create_weapons_library(menu_id, 'Items - Weapons')
-        weapons_list = create_weapons_table(weapons_extract)
-        weapons_cards = create_weapons_reference(weapons_extract)
+        weapons_lib = create_weapons_library('Items - Weapons')
+        weapons_list = create_weapons_list(weapons_extract)
+        weapons_cards = create_weapons_cards(weapons_extract)
 
     #===========================
     # EQUIPMENT
@@ -743,7 +743,7 @@ if __name__ == '__main__':
 
     if settings.equipment:
         equipment_extract = extract_equipment_db(item_db)
-        equipment_lib, menu_id = create_equipment_library(menu_id, 'Items - Equipment')
+        equipment_lib = create_equipment_library('Items - Equipment')
         equipment_list = create_equipment_list(equipment_extract)
         equipment_cards = create_equipment_cards(equipment_extract)
 
@@ -758,9 +758,9 @@ if __name__ == '__main__':
 
     if settings.mi_armor:
         mi_armor_extract = extract_mi_armor_db(item_db)
-        mi_armor_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Armor' + suffix_str, 'Armor')
-        mi_armor_list = create_mi_table(mi_armor_extract, tier_list, 'Armor')
-        mi_armor_cards, mi_armor_power = create_mi_desc(mi_armor_extract)
+        mi_armor_lib = create_mi_library(tier_list, 'Magic Items - Armor' + suffix_str, 'Armor')
+        mi_armor_list = create_mi_list(mi_armor_extract, tier_list, 'Armor')
+        mi_armor_cards, mi_armor_power = create_mi_cards(mi_armor_extract)
 
     #===========================
     # MAGIC IMPLEMENTS
@@ -773,9 +773,9 @@ if __name__ == '__main__':
 
     if settings.mi_implements:
         mi_implements_extract = extract_mi_weaplements_db(item_db, 'Implement')
-        mi_implements_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Implements' + suffix_str, 'Implements')
-        mi_implements_list = create_mi_table(mi_implements_extract, tier_list, 'Implements')
-        mi_implements_cards, mi_implements_power = create_mi_desc(mi_implements_extract)
+        mi_implements_lib = create_mi_library(tier_list, 'Magic Items - Implements' + suffix_str, 'Implements')
+        mi_implements_list = create_mi_list(mi_implements_extract, tier_list, 'Implements')
+        mi_implements_cards, mi_implements_power = create_mi_cards(mi_implements_extract)
 
     #===========================
     # MAGIC WEAPONS
@@ -788,9 +788,9 @@ if __name__ == '__main__':
 
     if settings.mi_weapons:
         mi_weapons_extract = extract_mi_weaplements_db(item_db, 'Weapon')
-        mi_weapons_lib, menu_id = create_mi_library(menu_id, tier_list, 'Magic Items - Weapons' + suffix_str, 'Weapons')
-        mi_weapons_list = create_mi_table(mi_weapons_extract, tier_list, 'Weapons')
-        mi_weapons_cards, mi_weapons_power = create_mi_desc(mi_weapons_extract)
+        mi_weapons_lib = create_mi_library(tier_list, 'Magic Items - Weapons' + suffix_str, 'Weapons')
+        mi_weapons_list = create_mi_list(mi_weapons_extract, tier_list, 'Weapons')
+        mi_weapons_cards, mi_weapons_power = create_mi_cards(mi_weapons_extract)
 
     #===========================
     # MAGIC OTHER
@@ -810,9 +810,9 @@ if __name__ == '__main__':
         # get the value for this mi variable from settings
         if process_flag := eval(f'settings.{mi["arg"]}'):
             mi_other_extract = extract_mi_other_db(item_db, mi["filter"])
-            mi_other_lib, menu_id = create_mi_library(menu_id, empty_tier_list, 'Magic Items - ' + mi["literal"] + suffix_str, mi["literal"])
-            mi_other_list = create_mi_table(mi_other_extract, empty_tier_list, mi["literal"])
-            mi_other_cards, mi_other_power = create_mi_desc(mi_other_extract)
+            mi_other_lib = create_mi_library(empty_tier_list, 'Magic Items - ' + mi["literal"] + suffix_str, mi["literal"])
+            mi_other_list = create_mi_list(mi_other_extract, empty_tier_list, mi["literal"])
+            mi_other_cards, mi_other_power = create_mi_cards(mi_other_extract)
 
             # Concatenate all the results together
             mi_other_lib_concat += mi_other_lib
@@ -837,7 +837,6 @@ if __name__ == '__main__':
 
     export_xml += ('\t<library>\n')
     export_xml += ('\t\t<lib4ecompendium>\n')
-    export_xml += (f'\t\t\t<name type="string">{settings.library}</name>\n')
     export_xml += ('\t\t\t<categoryname type="string">4E Compendium</categoryname>\n')
     export_xml += ('\t\t\t<entries>\n')
 
@@ -869,6 +868,7 @@ if __name__ == '__main__':
     export_xml += mi_other_lib_concat
 
     export_xml += ('\t\t\t</entries>\n')
+    export_xml += (f'\t\t\t<name type="string">{settings.library}</name>\n')
     export_xml += ('\t\t</lib4ecompendium>\n')
     export_xml += ('\t</library>\n')
 
@@ -880,32 +880,32 @@ if __name__ == '__main__':
     else:
         export_xml += ('\t<lists>\n')
 
-    export_xml += monster_list_concat
-    export_xml += trap_list_concat
-    export_xml += terrain_list
-    export_xml += disease_list
-    export_xml += races_list
-    export_xml += classes_list
+    export_xml += alchemy_item_list
+    export_xml += armor_list
     export_xml += background_list
+    export_xml += classes_list
+    export_xml += deities_list
+    export_xml += disease_list
+    export_xml += epic_list
+    export_xml += equipment_list
+    export_xml += familiar_list
+    export_xml += feat_list
+    export_xml += formulas_list
     export_xml += heroic_list
     export_xml += paragon_list
-    export_xml += epic_list
-    export_xml += familiar_list
-    export_xml += deities_list
-    export_xml += feat_list
-    export_xml += power_list
-    export_xml += formulas_list
-    export_xml += alchemy_item_list
-    export_xml += ritual_list
-    export_xml += practice_list
-    export_xml += poison_list
-    export_xml += armor_list
-    export_xml += weapons_list
-    export_xml += equipment_list
     export_xml += mi_armor_list
     export_xml += mi_implements_list
     export_xml += mi_weapons_list
     export_xml += mi_other_list_concat
+    export_xml += monster_list_concat   # tag is <npc>
+    export_xml += poison_list
+    export_xml += power_list
+    export_xml += practice_list
+    export_xml += races_list
+    export_xml += ritual_list
+    export_xml += terrain_list
+    export_xml += trap_list_concat
+    export_xml += weapons_list
 
     export_xml += ('\t</lists>\n')
 
@@ -919,28 +919,13 @@ if __name__ == '__main__':
     else:
         export_xml += ('\t<reference>\n')
 
-    # NPCS / TRAPS
-    if settings.npcs or settings.traps:
-        export_xml += ('\t\t<npcs>\n')
-        export_xml += monster_cards
-        export_xml += trap_cards
-        export_xml += ('\t\t</npcs>\n')
-
-    #TERRAIN
-    export_xml += terrain_cards
-
-    #DISEASES
-    export_xml += disease_cards
-
-    # RACES / CLASSES/ BACKGROUNDS / HEROIC THEMES / PARAGON PATHS / EPIC DESTINIES
-    export_xml += races_cards
-    export_xml += classes_cards
     export_xml += background_cards
-    export_xml += heroic_cards
-    export_xml += paragon_cards
+    export_xml += classes_cards
+    export_xml += deities_cards
+    export_xml += disease_cards
     export_xml += epic_cards
     export_xml += familiar_cards
-    export_xml += deities_cards
+    export_xml += feat_cards
 
     # FEATURES
     if settings.races or settings.classes or settings.heroic or settings.paragon or settings.epic:
@@ -952,24 +937,7 @@ if __name__ == '__main__':
         export_xml += epicfeatures_cards
         export_xml += ('\t\t</features>\n')
 
-    # FEATS
-    export_xml += feat_cards
-
-    # POWERDESC
-    # These are the individual cards for Character, Feat or Item Powers
-    if settings.magic or settings.feats or settings.powers or settings.alchemy or settings.races \
-       or settings.classes or settings.heroic or settings.paragon or settings.epic:
-        export_xml += ('\t\t<powers>\n')
-        export_xml += mi_armor_power
-        export_xml += mi_implements_power
-        export_xml += mi_weapons_power
-        export_xml += mi_other_power_concat
-        export_xml += power_cards
-        export_xml += alchemy_power
-        export_xml += ('\t\t</powers>\n')
-
-    # POISONS
-    export_xml += poison_cards
+    export_xml += heroic_cards
 
     # ITEMS
     if settings.mundane or settings.magic or settings.alchemy:
@@ -977,12 +945,37 @@ if __name__ == '__main__':
         export_xml += armor_cards
         export_xml += weapons_cards
         export_xml += equipment_cards
+        export_xml += alchemy_mi_cards
         export_xml += mi_armor_cards
         export_xml += mi_implements_cards
         export_xml += mi_weapons_cards
         export_xml += mi_other_cards_concat
-        export_xml += alchemy_mi_cards
         export_xml +=('\t\t</items>\n')
+
+    # NPCS / TRAPS
+    if settings.npcs or settings.traps:
+        export_xml += ('\t\t<npcs>\n')
+        export_xml += monster_cards
+        export_xml += trap_cards
+        export_xml += ('\t\t</npcs>\n')
+
+    export_xml += paragon_cards
+    export_xml += poison_cards
+
+    # POWERDESC
+    # These are the individual cards for Character, Feat or Item Powers
+    if settings.magic or settings.feats or settings.powers or settings.alchemy or settings.races \
+       or settings.classes or settings.heroic or settings.paragon or settings.epic:
+        export_xml += ('\t\t<powers>\n')
+        export_xml += power_cards
+        export_xml += alchemy_power
+        export_xml += mi_armor_power
+        export_xml += mi_implements_power
+        export_xml += mi_weapons_power
+        export_xml += mi_other_power_concat
+        export_xml += ('\t\t</powers>\n')
+
+    export_xml += races_cards
 
     # RITUALS
     if settings.alchemy or settings.rituals or settings.practices:
@@ -991,6 +984,8 @@ if __name__ == '__main__':
         export_xml += ritual_cards
         export_xml += practice_cards
         export_xml += ('\t\t</rituals>\n')
+
+    export_xml += terrain_cards
 
     export_xml += ('\t</reference>\n')
 

@@ -15,9 +15,9 @@ def trap_list_sorter(entry_in):
 
 
 # This creates the top-level menus when you select a Module
-def create_trap_library(id_in, tier_list, name_in):
+def create_trap_library(tier_list, name_in):
     xml_out = ''
-    class_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
+    class_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
 
     for t in tier_list:
 
@@ -26,20 +26,19 @@ def create_trap_library(id_in, tier_list, name_in):
         else:
             tier_str = ''
 
-        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
+        tier_lower = re.sub('[^a-zA-Z0-9_]', '', t).lower()
 
-        id_in += 1
-        lib_id = 'l' + str(id_in).rjust(3, '0')
+        settings.lib_id += 1
 
-        xml_out += (f'\t\t\t\t<{lib_id}-traps{class_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
+        xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmonsterlist</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>lists.traps.{class_camel}{tier_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>lists.traps.{class_lower}_{tier_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
-        xml_out += (f'\t\t\t\t</{lib_id}-traps{class_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
+        xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 # This controls the table that appears when you click on a Library menu
@@ -49,12 +48,12 @@ def create_trap_list(list_in, tier_list, name_in):
     if not list_in:
         return xml_out
 
-    class_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
+    class_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
 
     # Populate the sort order and sub-heading fields according to which table is being built
     if re.search(r'Traps By Letter', name_in):
         for trap_dict in list_in:
-            trap_dict["group_id"] = re.sub('[^a-zA-Z0-9_]', '', trap_dict["name"])[0:1].upper()
+            trap_dict["group_id"] = re.sub('[^a-zA-Z0-9_]', '', trap_dict["name"])[0:1].lower()
             trap_dict["group_str"] = re.sub('[^a-zA-Z0-9_]', '', trap_dict["name"])[0:1].upper()
     elif re.search(r'Traps By Level( |$)', name_in):
         for trap_dict in list_in:
@@ -113,14 +112,14 @@ def create_trap_list(list_in, tier_list, name_in):
         else:
             tier_str = ''
 
-        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
+        tier_lower = re.sub('[^a-zA-Z0-9_]', '', t).lower()
 
         previous_group = ''
 
         # Trap List
 
         # Open new Class (new Table)
-        xml_out += (f'\t\t\t<{class_camel}{tier_camel}>\n')
+        xml_out += (f'\t\t\t<{class_lower}_{tier_lower}>\n')
         xml_out += (f'\t\t\t\t<description type="string">{name_in}{tier_str}</description>\n')
         xml_out += ('\t\t\t\t<groups>\n')
         group_flag = False
@@ -146,7 +145,7 @@ def create_trap_list(list_in, tier_list, name_in):
                 group_flag = True
 
                 # format name to be link target
-                name_camel = re.sub('[^a-zA-Z0-9_]', '', trap_dict["name"])
+                name_lower = re.sub('[^a-zA-Z0-9_]', '', trap_dict["name"]).lower()
 
                 # Check for new Group
                 if trap_dict["group_id"] != previous_group:
@@ -154,31 +153,32 @@ def create_trap_list(list_in, tier_list, name_in):
                     # Close previous Group
                     if previous_group != '':
                         xml_out += ('\t\t\t\t\t\t</monsters>\n')
-                        xml_out += (f'\t\t\t\t\t</traps{previous_group}>\n')
+                        xml_out += (f'\t\t\t\t\t</traps_{previous_group}>\n')
 
                     # Open new Group
-                    xml_out += (f'\t\t\t\t\t<traps{trap_dict["group_id"]}>\n')
+                    xml_out += (f'\t\t\t\t\t<traps_{trap_dict["group_id"]}>\n')
                     xml_out += (f'\t\t\t\t\t\t<description type="string">{trap_dict["group_str"]}</description>\n')
                     xml_out += ('\t\t\t\t\t\t<monsters>\n')
 
                 # Trap list entry
-                xml_out += (f'\t\t\t\t\t\t\t<trap{name_camel}>\n')
+                xml_out += (f'\t\t\t\t\t\t\t<{name_lower}_{trap_dict["trap_id"]:0>3}>\n')
                 xml_out += ('\t\t\t\t\t\t\t\t<link type="windowreference">\n')
                 xml_out += ('\t\t\t\t\t\t\t\t\t<class>npc</class>\n')
-                xml_out += (f'\t\t\t\t\t\t\t\t\t<recordname>reference.npcs.{name_camel}-{str(trap_dict["trap_id"]).rjust(3, "0")}@{settings.library}</recordname>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t\t<recordname>reference.npcs.{name_lower}_{trap_dict["trap_id"]:0>3}@{settings.library}</recordname>\n')
                 xml_out += ('\t\t\t\t\t\t\t\t</link>\n')
-                xml_out += (f'\t\t\t\t\t\t\t</trap{name_camel}>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t\t<name>{trap_dict["name"]}</name>\n')
+                xml_out += (f'\t\t\t\t\t\t\t</{name_lower}_{trap_dict["trap_id"]:0>3}>\n')
 
                 previous_group = trap_dict["group_id"]
 
         # Close final Group if there was at least one entry
         if group_flag:
             xml_out += ('\t\t\t\t\t\t</monsters>\n')
-            xml_out += (f'\t\t\t\t\t</traps{previous_group}>\n')
+            xml_out += (f'\t\t\t\t\t</traps_{previous_group}>\n')
 
         # Close final Class
         xml_out += ('\t\t\t\t</groups>\n')
-        xml_out += (f'\t\t\t</{class_camel}{tier_camel}>\n')
+        xml_out += (f'\t\t\t</{class_lower}_{tier_lower}>\n')
 
     return xml_out
 
@@ -196,43 +196,57 @@ def create_trap_cards(list_in):
 
     # Create individual item entries
     for trap_dict in sorted(list_in, key=trap_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', trap_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', trap_dict["name"]).lower()
 
-        xml_out += (f'\t\t\t<{name_camel}-{str(trap_dict["trap_id"]).rjust(3, "0")}>\n')
-        xml_out += (f'\t\t\t\t<name type="string">{trap_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t\t<levelrole type="string">{trap_dict["levelrole"]}</levelrole>\n')
-        xml_out += (f'\t\t\t\t<type type="string">{trap_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t<{name_lower}_{trap_dict["trap_id"]:0>3}>\n')
         xml_out += (f'\t\t\t\t<xp type="number">{trap_dict["xp"]}</xp>\n')
-        if trap_dict["flavor"] != '':
-            xml_out += (f'\t\t\t\t<flavor type="string">{trap_dict["flavor"]}</flavor>\n')
-        if trap_dict["trapdesc"] != '':
-            xml_out += (f'\t\t\t\t<trapdesc type="string">{trap_dict["trapdesc"]}</trapdesc>\n')
+        if trap_dict["ac"] != '':
+            xml_out += (f'\t\t\t\t<ac type="number">{trap_dict["ac"]}</ac>\n')
+        else:
+            xml_out += ('\t\t\t\t<ac type="number">0</ac>\n')
+        if trap_dict["counters"] != '':
+            xml_out += (f'\t\t\t\t<countermeasures>\n{trap_dict["counters"]}\t\t\t\t</countermeasures>\n')
+        else:
+            xml_out += ('\t\t\t\t<countermeasures />\n')
         if trap_dict["detect"] != '':
             xml_out += (f'\t\t\t\t<detect type="string">{trap_dict["detect"]}</detect>\n')
+        if trap_dict["flavor"] != '':
+            xml_out += (f'\t\t\t\t<flavor type="string">{trap_dict["flavor"]}</flavor>\n')
+        if trap_dict["fortitude"] != '':
+            xml_out += (f'\t\t\t\t<fortitude type="number">{trap_dict["fortitude"]}</fortitude>\n')
+        else:
+            xml_out += ('\t\t\t\t<fortitude type="number">0</fortitude>\n')
         if trap_dict["hp"] != '':
             xml_out += (f'\t\t\t\t<hp type="string">{trap_dict["hp"]}</hp>\n')
         if trap_dict["init"] != '':
             xml_out += (f'\t\t\t\t<init type="number">{trap_dict["init"]}</init>\n')
-        if trap_dict["ac"] != '':
-            xml_out += (f'\t\t\t\t<ac type="number">{trap_dict["ac"]}</ac>\n')
-        if trap_dict["fortitude"] != '':
-            xml_out += (f'\t\t\t\t<fortitude type="number">{trap_dict["fortitude"]}</fortitude>\n')
+        else:
+            xml_out += ('\t\t\t\t<init type="number">0</init>\n')
+        xml_out += (f'\t\t\t\t<levelrole type="string">{trap_dict["levelrole"]}</levelrole>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{trap_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<npctype type="string">Trap</npctype>\n')
+        if trap_dict["powers"] != '':
+            xml_out += (f'\t\t\t\t<powers>\n{trap_dict["powers"]}\t\t\t\t</powers>\n')
+        else:
+            xml_out += ('\t\t\t\t<powers />\n')
         if trap_dict["reflex"] != '':
             xml_out += (f'\t\t\t\t<reflex type="number">{trap_dict["reflex"]}</reflex>\n')
+        else:
+            xml_out += ('\t\t\t\t<reflex type="number">0</reflex>\n')
         if trap_dict["speed"] != '':
             xml_out += (f'\t\t\t\t<speed type="string">{trap_dict["speed"]}</speed>\n')
         if trap_dict["specialdefenses"] != '':
             xml_out += (f'\t\t\t\t<specialdefenses type="string">{trap_dict["specialdefenses"]}</specialdefenses>\n')
-        if trap_dict["trapskills"] != '':
-            xml_out += (f'\t\t\t\t<trapskills>\n{trap_dict["trapskills"]}\t\t\t\t</trapskills>\n')
-        if trap_dict["powers"] != '':
-            xml_out += (f'\t\t\t\t<powers>\n{trap_dict["powers"]}\t\t\t\t</powers>\n')
-        if trap_dict["counters"] != '':
-            xml_out += (f'\t\t\t\t<countermeasures>\n{trap_dict["counters"]}\t\t\t\t</countermeasures>\n')
-        xml_out += (f'\t\t\t\t<npctype type="string">Trap</npctype>\n')
         if trap_dict["published"] != '':
             xml_out += (f'\t\t\t\t<text type="formattedtext">{trap_dict["published"]}</text>\n')
-        xml_out += (f'\t\t\t</{name_camel}-{str(trap_dict["trap_id"]).rjust(3, "0")}>\n')
+        if trap_dict["trapdesc"] != '':
+            xml_out += (f'\t\t\t\t<trapdesc type="string">{trap_dict["trapdesc"]}</trapdesc>\n')
+        if trap_dict["trapskills"] != '':
+            xml_out += (f'\t\t\t\t<trapskills>\n{trap_dict["trapskills"]}\t\t\t\t</trapskills>\n')
+        else:
+            xml_out += ('\t\t\t\t<trapskills />\n')
+        xml_out += (f'\t\t\t\t<type type="string">{trap_dict["type"]}</type>\n')
+        xml_out += (f'\t\t\t</{name_lower}_{trap_dict["trap_id"]:0>3}>\n')
 
     return xml_out
 
@@ -242,12 +256,9 @@ def format_counter(soup_in, id_in):
     
     text_str = (''.join(soup_in.find('p').text)).strip()
 
-    # Format the list of powers into statblocks
-    entry_id = str(id_in).rjust(3, '0')
-
-    counter_out += f'\t\t\t\t\t<cm-{entry_id}>\n'
+    counter_out += f'\t\t\t\t\t<id-{id_in:0>5}>\n'
     counter_out += f'\t\t\t\t\t\t<text type="string">{text_str}</text>\n'
-    counter_out += f'\t\t\t\t\t</cm-{entry_id}>\n'
+    counter_out += f'\t\t\t\t\t</id-{id_in:0>5}>\n'
 
     return counter_out
 
@@ -277,7 +288,7 @@ def format_old_power(soup_in, id_in):
     # Action
     for bdy_tag in body_tags:
         for tag in bdy_tag:
-            if re.search(r'^(Free Action|Immediate|Minor|Move Action|Opportunity Action|Standard Action)(\s|$)', tag.text) != None:
+            if re.search(r'^(Free Action|Immediate Interrupt|Immediate Reaction|Minor|Move Action|Opportunity Action|Standard Action)(\s|$)', tag.text) != None:
                 action_str = tag.text
                 tag.decompose()
 
@@ -289,6 +300,11 @@ def format_old_power(soup_in, id_in):
     # remove other tags
     shortdescription_str = re.sub(r'<.*?>', '', shortdescription_str)
     shortdescription_str = re.sub(r'(^\s*[\\n]*|[\\n]*$)', '', shortdescription_str)
+
+    # Put Triggered Actions back into the Attack line
+    if re.search(r'Attack:', shortdescription_str) != None and action_str.strip() in ['Immediate Interrupt', 'Immediate Reaction', 'Opportunity Action']:
+        shortdescription_str = re.sub('Attack:', 'Attack (' + action_str + '):', shortdescription_str)
+        action_str  = 'Triggered'
 
     # Range - split out any Ranges or Sizes
     # regex has become too complicated, so build it up piecewise
@@ -314,19 +330,21 @@ def format_old_power(soup_in, id_in):
         shortdescription_str = re.sub(r':\s*;', ':', shortdescription_str)
 
     # Format the list of powers into statblocks
-    entry_id = str(id_in).rjust(3, '0')
-
-    power_out += f'\t\t\t\t\t<pwr-{entry_id}>\n'
-    power_out += f'\t\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
+    power_out += f'\t\t\t\t\t<id-{id_in:0>5}>\n'
     if action_str != '':
         power_out += f'\t\t\t\t\t\t<action type="string">{action_str}</action>\n'
     if keywords_str != '':
         power_out += f'\t\t\t\t\t\t<keywords type="string">{keywords_str}</keywords>\n'
+    power_out += '\t\t\t\t\t\t<link type="windowreference">\n'
+    power_out += '\t\t\t\t\t\t\t<class>reference_power_custom</class>\n'
+    power_out += '\t\t\t\t\t\t\t<recordname />\n'
+    power_out += '\t\t\t\t\t\t</link>\n'
+    power_out += f'\t\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
     if range_str != '':
         power_out += f'\t\t\t\t\t\t<range type="string">{range_str}</range>\n'
     if shortdescription_str != '':
         power_out += f'\t\t\t\t\t\t<shortdescription type="string">{shortdescription_str}</shortdescription>\n'
-    power_out += f'\t\t\t\t\t</pwr-{entry_id}>\n'
+    power_out += f'\t\t\t\t\t</id-{id_in:0>5}>\n'
 
     return power_out
 
@@ -380,7 +398,7 @@ def format_new_power(soup_in, id_in):
 
     # Action - should be in the first (action) tag
     if action_tag:
-        if action_match := re.search(r'(Aura|Free|Immediate|Minor Action|Move Action|Opportunity|Standard Action|Trait|Triggered Action)', action_tag.text, re.IGNORECASE):
+        if action_match := re.search(r'(Aura|Free|Immediate|Minor Action|Move Action|Opportunity|Standard Action|Trait|Triggered)', action_tag.text, re.IGNORECASE):
             action_str = action_match.group(1)
 
     # Keywords - anything in parentheses in the header tag
@@ -417,11 +435,11 @@ def format_new_power(soup_in, id_in):
         shortdescription_str += ' '.join(bdy_tag.stripped_strings) + '\\n'
     shortdescription_str = re.sub(r'(^;*\s*|\\n$)', '', shortdescription_str)
 
-    # Triggered Action - split out Immediate and Opportunity actions
-    if action_str == 'Triggered Action':
-        if trigger_match := re.search(r'^(.*?)(Immediate Interrupt|Immediate Reaction|Opportunity Action)(.*?)$', shortdescription_str):
-            action_str = trigger_match.group(2)
-            shortdescription_str = re.sub(r'(^\\n|\(\))*', '', trigger_match.group(1).strip() + trigger_match.group(3).strip())
+#    # Triggered Action - split out Immediate and Opportunity actions
+#    if action_str == 'Triggered Action':
+#        if trigger_match := re.search(r'^(.*?)(Immediate Interrupt|Immediate Reaction|Opportunity Action)(.*?)$', shortdescription_str):
+#            action_str = trigger_match.group(2)
+#            shortdescription_str = re.sub(r'(^\\n|\(\))*', '', trigger_match.group(1).strip() + trigger_match.group(3).strip())
 
     # Range - split out any Ranges or Sizes
     # regex has become too complicated, so build it up piecewise
@@ -447,25 +465,27 @@ def format_new_power(soup_in, id_in):
         shortdescription_str = re.sub(r':\s*;', ':', shortdescription_str)
 
     # Format the list of powers into statblocks
-    entry_id = str(id_in).rjust(3, '0')
-
-    power_out += f'\t\t\t\t<pwr-{entry_id}>\n'
-    power_out += f'\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
+    power_out += f'\t\t\t\t\t<id-{id_in:0>5}>\n'
     if action_str != '':
-        power_out += f'\t\t\t\t\t<action type="string">{action_str}</action>\n'
+        power_out += f'\t\t\t\t\t\t<action type="string">{action_str}</action>\n'
     if icon_str != '':
-        power_out += f'\t\t\t\t\t<icon type="string">{icon_str}</icon>\n'
+        power_out += f'\t\t\t\t\t\t<icon type="string">{icon_str}</icon>\n'
     if keywords_str != '':
-        power_out += f'\t\t\t\t\t<keywords type="string">{keywords_str}</keywords>\n'
+        power_out += f'\t\t\t\t\t\t<keywords type="string">{keywords_str}</keywords>\n'
+    power_out += '\t\t\t\t\t\t<link type="windowreference">\n'
+    power_out += '\t\t\t\t\t\t\t<class>reference_power_custom</class>\n'
+    power_out += '\t\t\t\t\t\t\t<recordname />\n'
+    power_out += '\t\t\t\t\t\t</link>\n'
+    power_out += f'\t\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
     if powertype_str != '':
-        power_out += f'\t\t\t\t\t<powertype type="string">{powertype_str}</powertype>\n'
+        power_out += f'\t\t\t\t\t\t<powertype type="string">{powertype_str}</powertype>\n'
     if range_str != '':
-        power_out += f'\t\t\t\t\t<range type="string">{range_str}</range>\n'
+        power_out += f'\t\t\t\t\t\t<range type="string">{range_str}</range>\n'
     if recharge_str != '':
-        power_out += f'\t\t\t\t\t<recharge type="string">{recharge_str}</recharge>\n'
+        power_out += f'\t\t\t\t\t\t<recharge type="string">{recharge_str}</recharge>\n'
     if shortdescription_str != '':
-        power_out += f'\t\t\t\t\t<shortdescription type="string">{shortdescription_str}</shortdescription>\n'
-    power_out += f'\t\t\t\t</pwr-{entry_id}>\n'
+        power_out += f'\t\t\t\t\t\t<shortdescription type="string">{shortdescription_str}</shortdescription>\n'
+    power_out += f'\t\t\t\t\t</id-{id_in:0>5}>\n'
 
     return power_out
 
@@ -489,7 +509,7 @@ def extract_trap_db(db_in):
         role_str = row["Role"].replace('\\', '')
         class_str = row["Class"].replace('\\', '')
 
-#        if name_str not in ['Ash Tree', 'Astral Lodestone']:#'Far Realm Anomaly', 'False-Floor Pit', 'Animated Crossbow', 'Animated Rapier']:
+#        if name_str not in ['Abyssal Breach', 'Animated Rapier', 'Abyssal Portal', 'Altar of Pazuzu', 'Ash Tree', 'Astral Lodestone', 'Far Realm Anomaly', 'False-Floor Pit', 'Animated Crossbow']:
 #            continue
 #        print('\n' + name_str)
 
@@ -595,27 +615,36 @@ def extract_trap_db(db_in):
                             if previous_section != '':
                                 trapskills_str += node_str
                                 trapskills_str += f'\t\t\t\t\t\t</nodes>\n'
-                                trapskills_str += f'\t\t\t\t\t</s{str(trapskills_id).rjust(2, "0")}-{skill_camel}>\n'
+                                trapskills_str += f'\t\t\t\t\t</id-{trapskills_id:0>5}>\n'
                                 node_str = ''
                                 node_id = 0
 
                             trapskills_id += 1
-                            skill_camel = re.sub('[^a-zA-Z0-9_]', '', current_section)
-                            trapskills_str += f'\t\t\t\t\t<s{str(trapskills_id).rjust(2, "0")}-{skill_camel}>\n'
+                            skill_lower = re.sub('[^a-zA-Z0-9_]', '', current_section)
+                            trapskills_str += f'\t\t\t\t\t<id-{trapskills_id:0>5}>\n'
                             trapskills_str += f'\t\t\t\t\t\t<name type="string">{current_section}</name>\n'
                             trapskills_str += f'\t\t\t\t\t\t<nodes>\n'
 
                         node_id += 1
-                        node_str += f'\t\t\t\t\t\t\t<node-{str(node_id).rjust(3, "0")}>\n'
-                        node_str += f'\t\t\t\t\t\t\t\t<text type="string">{tag.text.strip()}</text>\n'
-                        node_str += f'\t\t\t\t\t\t\t</node-{str(node_id).rjust(3, "0")}>\n'
+                        text_str = tag.text.strip()
+                        # Split out the DC if found
+                        if dc_match := re.search(r'DC ([0-9]+)[: ]*(.*)', text_str):
+                            dc_str = dc_match.group(1)
+                            text_str = dc_match.group(2)
+                        else:
+                            dc_str = '0'
+
+                        node_str += f'\t\t\t\t\t\t\t<id-{node_id:0>5}>\n'
+                        node_str += f'\t\t\t\t\t\t\t\t<dc type="number">{dc_str}</dc>\n'
+                        node_str += f'\t\t\t\t\t\t\t\t<text type="string">{text_str}</text>\n'
+                        node_str += f'\t\t\t\t\t\t\t</id-{node_id:0>5}>\n'
                         previous_section = current_section
 
                     elif title_match := re.search(r'^Countermeasures', current_section):
                         counter_id += 1
-                        counters_str += f'\t\t\t\t\t<cm-{str(counter_id).rjust(3, "0")}>\n'
+                        counters_str += f'\t\t\t\t\t<id-{counter_id:0>5}>\n'
                         counters_str += f'\t\t\t\t\t\t<text type="string">{tag.text.strip()}</text>\n'
-                        counters_str += f'\t\t\t\t\t</cm-{str(counter_id).rjust(3, "0")}>\n'
+                        counters_str += f'\t\t\t\t\t</id-{counter_id:0>5}>\n'
 
                         # Look for HP & Defenses in Countermeasures text
                         if defense_match := re.search(r'(\(.*?AC [0-9]+.*(hit points|hp).*?\))', tag.text):
@@ -640,7 +669,7 @@ def extract_trap_db(db_in):
         if trapskills_str != '':
             trapskills_str += node_str
             trapskills_str += f'\t\t\t\t\t\t</nodes>\n'
-            trapskills_str += f'\t\t\t\t\t</s{str(trapskills_id).rjust(2, "0")}-{skill_camel}>\n'
+            trapskills_str += f'\t\t\t\t\t</id-{trapskills_id:0>5}>\n'
 
         # Loop through the trap_html and build all the powers entries
         power_html = BeautifulSoup('', features='html.parser')

@@ -12,34 +12,33 @@ def epic_list_sorter(entry_in):
     return (name)
 
 
-def create_epic_library(id_in):
+def create_epic_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-epic>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Epic Destinies</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.epicdestinies@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-epic>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Epic Destinies</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
-def create_epic_table(list_in):
+def create_epic_list(list_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    name_camel = ''
     previous_group = ''
 
     # Epic Destinies List
     # This controls the list that appears when you click on a Library menu
+    # Start a new group for each first letter
 
     xml_out += (f'\t\t<epicdestinies>\n')
     xml_out += (f'\t\t\t<description type="string">Epic Destinies</description>\n')
@@ -47,36 +46,40 @@ def create_epic_table(list_in):
 
     # Create individual item entries
     for epic_dict in sorted(list_in, key=epic_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', epic_dict["name"])
-        group_camel = name_camel[0:1].upper()
+        # Required to handle that there is both a Warmaster and a War Master E.D.
+        if epic_dict["name"] == 'War Master':
+            name_lower = 'war_master'
+        else:
+            name_lower = re.sub('[^a-zA-Z0-9_]', '', epic_dict["name"]).lower()
+        group_letter = name_lower[0:1]
 
         # Check for new Group
-        if group_camel != previous_group:
+        if group_letter != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t</epicdestinies{previous_group}>\n')
+                xml_out += (f'\t\t\t\t</epicdestinies_{previous_group}>\n')
 
             # Open new Group
-            xml_out += (f'\t\t\t\t<epicdestinies{group_camel}>\n')
-            xml_out += (f'\t\t\t\t\t<description type="string">{group_camel}</description>\n')
+            xml_out += (f'\t\t\t\t<epicdestinies_{group_letter}>\n')
+            xml_out += (f'\t\t\t\t\t<description type="string">{group_letter.upper()}</description>\n')
             xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Epic Destinies list entry
-        xml_out += (f'\t\t\t\t\t\t<epic{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<source type="string">{epic_dict["name"]}</source>\n')
+        xml_out += (f'\t\t\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.epicdestinies.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.epicdestinies.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t\t</epic{name_camel}>\n')
+#        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{epic_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t</{name_lower}>\n')
 
-        previous_group = group_camel
+        previous_group = group_letter
 
     # Close final Group
     xml_out += ('\t\t\t\t\t</powers>\n')
-    xml_out += (f'\t\t\t\t</epicdestinies{previous_group}>\n')
+    xml_out += (f'\t\t\t\t</epicdestinies_{previous_group}>\n')
 
     xml_out += (f'\t\t\t</groups>\n')
     xml_out += (f'\t\t</epicdestinies>\n')
@@ -84,29 +87,23 @@ def create_epic_table(list_in):
     return xml_out
 
 
-def create_epic_desc(list_in):
+def create_epic_cards(list_in):
     epic_out = ''
     featuredesc_out = ''
 
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     epic_out += ('\t\t<epicdestinies>\n')
     for epic_dict in sorted(list_in, key=epic_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', epic_dict["name"])
+        # Required to handle that there is both a Warmaster and a War Master E.D.
+        if epic_dict["name"] == 'War Master':
+            name_lower = 'war_master'
+        else:
+            name_lower = re.sub('[^a-zA-Z0-9_]', '', epic_dict["name"]).lower()
 
         epic_out += f'\t\t\t<{name_lower}>\n'
-        epic_out += f'\t\t\t\t<name type="string">{epic_dict["name"]}</name>\n'
-        epic_out += '\t\t\t\t<source type="string">Epic Destiny</source>\n'
-        if epic_dict["prerequisite"] != '':
-            epic_out += (f'\t\t\t\t<prerequisite type="string">{epic_dict["prerequisite"]}</prerequisite>\n')
-        if epic_dict["flavor"] != '':
-            epic_out += f'\t\t\t\t<flavor type="string">{epic_dict["flavor"]}</flavor>\n'
         epic_out += f'\t\t\t\t<description type="formattedtext">\n'
         if epic_dict["description"] != '':
             epic_out += f'{epic_dict["description"]}'
@@ -116,8 +113,14 @@ def create_epic_desc(list_in):
             epic_out += f'{epic_dict["powers"]}'
         if epic_dict["published"] != '':
             epic_out += f'{epic_dict["published"]}'
-#        xml_out += (f'\t\t\t\t<shortdescription type="string">{epic_dict["shortdescription"]}</shortdescription>\n')
         epic_out += f'\n\t\t\t\t</description>\n'
+        if epic_dict["flavor"] != '':
+            epic_out += f'\t\t\t\t<flavor type="string">{epic_dict["flavor"]}</flavor>\n'
+        epic_out += f'\t\t\t\t<name type="string">{epic_dict["name"]}</name>\n'
+        if epic_dict["prerequisite"] != '':
+            epic_out += (f'\t\t\t\t<prerequisite type="string">{epic_dict["prerequisite"]}</prerequisite>\n')
+#        xml_out += (f'\t\t\t\t<shortdescription type="string">{epic_dict["shortdescription"]}</shortdescription>\n')
+        epic_out += '\t\t\t\t<source type="string">Epic Destiny</source>\n'
         epic_out += f'\t\t\t</{name_lower}>\n'
 
         # Create all Required Power entries
@@ -141,26 +144,30 @@ def create_feature(feature_dict, pathname_in):
     else:
         level_str = ''
 
-    pathname_camel = re.sub('[^a-zA-Z0-9_]', '', pathname_in)
-    feature_camel = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"])
+    # Required to handle that there is both a Warmaster and a War Master E.D.
+    if pathname_in == 'War Master':
+        pathname_lower = 'war_master'
+    else:
+        pathname_lower = re.sub('[^a-zA-Z0-9_]', '', pathname_in).lower()
+    feature_lower = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"]).lower()
     feature_desc = clean_formattedtext(feature_dict["desc"])
 
-    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{pathname_camel}{feature_camel}@{settings.library}">{feature_dict["name"]}</link>\n')
+    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{pathname_lower}{feature_lower}@{settings.library}">{feature_dict["name"]}</link>\n')
 
-    featuredesc_out += f'\t\t\t<{pathname_camel}{feature_camel}>\n'
-    featuredesc_out += f'\t\t\t\t<name type="string">{heading_str}</name>\n'
-    featuredesc_out += f'\t\t\t\t<source type="string">{pathname_in} Feature</source>\n'
-    featuredesc_out += f'\t\t\t\t<prerequisite type="string">{prerequisites_str}</prerequisite>\n'
+    featuredesc_out += f'\t\t\t<{pathname_lower}{feature_lower}>\n'
     featuredesc_out += f'\t\t\t\t<description type="formattedtext"><p><b>Prerequisite:</b>{prerequisites_str}</p>{feature_desc}</description>\n'
-    featuredesc_out += f'\t\t\t</{pathname_camel}{feature_camel}>\n'
+    featuredesc_out += f'\t\t\t\t<name type="string">{heading_str}</name>\n'
+    featuredesc_out += f'\t\t\t\t<prerequisite type="string">{prerequisites_str}</prerequisite>\n'
+    featuredesc_out += f'\t\t\t\t<source type="string">{pathname_in} Feature</source>\n'
+    featuredesc_out += f'\t\t\t</{pathname_lower}{feature_lower}>\n'
     
     return link_out, featuredesc_out
 
 
 def create_power(power_dict, name_in):
     xml_out = ''
-    power_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
-    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_camel}@{settings.library}">{power_dict["name"]}</link>\n')
+    power_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"]).lower()
+    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_lower}@{settings.library}">{power_dict["name"]}</link>\n')
 
     return xml_out
 
@@ -179,7 +186,7 @@ def extract_epic_db(db_in):
         # Retrieve the data with dedicated columns
         name_str =  row["Name"].replace('\\', '')
 
-#        if name_str not in ['Zephyr Warchief', 'Feytouched']:
+#        if name_str not in ['Warmaster', 'War Master']:
 #            continue
 #        print(name_str)
 

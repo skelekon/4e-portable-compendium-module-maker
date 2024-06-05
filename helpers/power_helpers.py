@@ -65,11 +65,17 @@ def power_list_sorter(entry_in):
     return (clss, group_id, name)
 
 
-def create_power_library(id_in, list_in, suffix_in):
+def card_list_sorter(entry_in):
+    name = entry_in["name"]
+
+    return (name)
+
+
+def create_power_library(list_in, suffix_in):
     lib_xml = ''
 
     if not list_in:
-        return lib_xml, list_xml, id_in
+        return lib_xml
 
     # Create one levels of menu except for Race, Class, Paragon Path, Epic Destiny
 
@@ -81,18 +87,17 @@ def create_power_library(id_in, list_in, suffix_in):
 
         if power_dict["class"] != previous_class:
             previous_class = power_dict["class"]
-            class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
+            class_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"]).lower()
 
-            id_in += 1
-            lib_id = 'l' + str(id_in).rjust(3, '0')
+            settings.lib_id += 1
 
-            lib_xml += (f'\t\t\t\t<{lib_id}-powers{class_camel}>\n')
-            lib_xml += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}{suffix_in}</name>\n')
+            lib_xml += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
             lib_xml += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             lib_xml += ('\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
-            lib_xml += (f'\t\t\t\t\t\t<recordname>lists.powers.{class_camel}@{settings.library}</recordname>\n')
+            lib_xml += (f'\t\t\t\t\t\t<recordname>lists.powers.{class_lower}@{settings.library}</recordname>\n')
             lib_xml += ('\t\t\t\t\t</librarylink>\n')
-            lib_xml += (f'\t\t\t\t</{lib_id}-powers{class_camel}>\n')
+            lib_xml += (f'\t\t\t\t\t<name type="string">{power_dict["prefix"]} - {power_dict["class"]}{suffix_in}</name>\n')
+            lib_xml += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
     # Create two levels of menu for Race, Class, Paragon Path, Epic Destiny
 
@@ -104,27 +109,30 @@ def create_power_library(id_in, list_in, suffix_in):
         if not(power_dict["prefix"] in ['Class Powers', 'Racial Powers', 'Paragon Path Powers', 'Epic Destiny Powers']):
             continue
         
-        prefix_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["prefix"])
-        class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
+        prefix_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["prefix"]).lower()
+        # Required to handle that there is both a Warmaster and a War Master E.D.
+        if power_dict["class"] == 'War Master':
+            class_lower = 'war_master'
+        else:
+            class_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"]).lower()
 
         # we only care when something changes
-        if prefix_camel == previous_prefix and class_camel == previous_class:
+        if power_dict["prefix"] == previous_prefix and power_dict["class"] == previous_class:
             continue
 
         # Check for new Library
-        if prefix_camel != previous_prefix:
+        if power_dict["prefix"] != previous_prefix:
 
             # Close previous Library
             if previous_prefix != '':
                 lib_xml += (f'\t\t\t\t\t</index>\n')
-                lib_xml += (f'\t\t\t\t</{lib_id}-powers{previous_prefix}>\n')
+                lib_xml += (f'\t\t\t\t\t<name type="string">Powers - {previous_prefix}{suffix_in}</name>\n')
+                lib_xml += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
             # Open new Library
-            id_in += 1
-            lib_id = 'l' + str(id_in).rjust(3, '0')
+            settings.lib_id += 1
 
-            lib_xml += (f'\t\t\t\t<{lib_id}-powers{prefix_camel}>\n')
-            lib_xml += (f'\t\t\t\t\t<name type="string">Powers - {power_dict["prefix"]}{suffix_in}</name>\n')
+            lib_xml += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
             lib_xml += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             lib_xml += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
             lib_xml += (f'\t\t\t\t\t\t<recordname>..</recordname>\n')
@@ -132,26 +140,27 @@ def create_power_library(id_in, list_in, suffix_in):
             lib_xml += (f'\t\t\t\t\t<index>\n')
 
         # Check for new Class
-        if class_camel != previous_class:
+        if power_dict["class"] != previous_class:
 
             # Write new Class
-            lib_xml += (f'\t\t\t\t\t\t<{class_camel}>\n')
-            lib_xml += (f'\t\t\t\t\t\t\t<name type="string">{power_dict["class"]}{suffix_in}</name>\n')
+            lib_xml += (f'\t\t\t\t\t\t<{class_lower}>\n')
             lib_xml += ('\t\t\t\t\t\t\t<listlink type="windowreference">\n')
             lib_xml += ('\t\t\t\t\t\t\t\t<class>reference_classpowerlist</class>\n')
-            lib_xml += (f'\t\t\t\t\t\t\t\t<recordname>lists.powers.{class_camel}@{settings.library}</recordname>\n')
+            lib_xml += (f'\t\t\t\t\t\t\t\t<recordname>lists.powers.{class_lower}@{settings.library}</recordname>\n')
             lib_xml += ('\t\t\t\t\t\t\t</listlink>\n')
-            lib_xml += (f'\t\t\t\t\t\t</{class_camel}>\n')
+            lib_xml += (f'\t\t\t\t\t\t\t<name type="string">{power_dict["class"]}{suffix_in}</name>\n')
+            lib_xml += (f'\t\t\t\t\t\t</{class_lower}>\n')
 
-        previous_class = class_camel
-        previous_prefix = prefix_camel
+        previous_class = power_dict["class"]
+        previous_prefix = power_dict["prefix"]
 
     # Close final Library if there were any nested menus
     if previous_prefix != '':
         lib_xml += ('\t\t\t\t\t</index>\n')
-        lib_xml += (f'\t\t\t\t</{lib_id}-powers{previous_prefix}>\n')
+        lib_xml += (f'\t\t\t\t\t<name type="string">Powers - {previous_prefix}{suffix_in}</name>\n')
+        lib_xml += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return lib_xml, id_in
+    return lib_xml
 
 
 def create_power_list(list_in):
@@ -163,7 +172,6 @@ def create_power_list(list_in):
     previous_class = ''
     previous_group = ''
     class_lower = ''
-    level_lower = ''
 
     # Power List
     # This controls the table that appears when you click on a Library menu
@@ -171,17 +179,21 @@ def create_power_list(list_in):
 
     # Create individual item entries
     for power_dict in sorted(list_in, key=power_list_sorter):
-        class_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"])
-        group_camel = power_dict["group_id"]
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
+        # Required to handle that there is both a Warmaster and a War Master E.D.
+        if power_dict["class"] == 'War Master':
+            class_lower = 'war_master'
+        else:
+            class_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["class"]).lower()
+        group_lower = power_dict["group_id"].lower()
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"]).lower()
 
         # Check for new Class
-        if class_camel != previous_class:
+        if class_lower != previous_class:
 
             # Close previous Group
             if previous_group != '':
                 list_xml += ('\t\t\t\t\t</powers>\n')
-                list_xml += (f'\t\t\t\t\t</{previous_class}-{previous_group}>\n')
+                list_xml += (f'\t\t\t\t\t</{previous_class}_{previous_group}>\n')
 
             # Close previous Class
             if previous_class != '':
@@ -189,49 +201,49 @@ def create_power_list(list_in):
                 list_xml += (f'\t\t\t</{previous_class}>\n')
 
             # Open new Class
-            previous_group = group_camel
-            list_xml += (f'\t\t\t<{class_camel}>\n')
+            previous_group = group_lower
+            list_xml += (f'\t\t\t<{class_lower}>\n')
             list_xml += (f'\t\t\t\t<description type="string">{power_dict["class"]}</description>\n')
             list_xml += ('\t\t\t\t<groups>\n')
     
             # Open new Group
-            list_xml += (f'\t\t\t\t\t<{class_camel}-{group_camel}>\n')
+            list_xml += (f'\t\t\t\t\t<{class_lower}_{group_lower}>\n')
             list_xml += (f'\t\t\t\t\t<description type="string">{power_dict["group"]}</description>\n')
             list_xml += ('\t\t\t\t\t<powers>\n')
 
         # Check for new Group
-        if group_camel != previous_group:
+        if group_lower != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 list_xml += ('\t\t\t\t\t\t</powers>\n')
-                list_xml += (f'\t\t\t\t\t</{class_camel}-{previous_group}>\n')
+                list_xml += (f'\t\t\t\t\t</{class_lower}_{previous_group}>\n')
 
             # Open new Group if not the first entry in the table
             if previous_class != '':
-                list_xml += (f'\t\t\t\t\t<{class_camel}-{group_camel}>\n')
+                list_xml += (f'\t\t\t\t\t<{class_lower}_{group_lower}>\n')
                 list_xml += (f'\t\t\t\t\t<description type="string">{power_dict["group"]}</description>\n')
                 list_xml += ('\t\t\t\t\t<powers>\n')
 
         # Powers list entry
-        list_xml += (f'\t\t\t\t\t\t<power{name_camel}>\n')
+        list_xml += (f'\t\t\t\t\t\t<{name_lower}>\n')
         list_xml += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         list_xml += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        list_xml += (f'\t\t\t\t\t\t\t\t<recordname>reference.powers.{name_camel}@{settings.library}</recordname>\n')
+        list_xml += (f'\t\t\t\t\t\t\t\t<recordname>reference.powers.{name_lower}@{settings.library}</recordname>\n')
         list_xml += ('\t\t\t\t\t\t\t</link>\n')
-        list_xml += (f'\t\t\t\t\t\t\t<source type="string">{power_dict["name"]}</source>\n')
-        list_xml += (f'\t\t\t\t\t\t</power{name_camel}>\n')
+        list_xml += (f'\t\t\t\t\t\t\t<name type="string">{power_dict["name"]}</name>\n')
+        list_xml += (f'\t\t\t\t\t\t</{name_lower}>\n')
 
-        previous_class = class_camel
-        previous_group = group_camel
+        previous_class = class_lower
+        previous_group = group_lower
 
     # Close final Group
     list_xml += ('\t\t\t\t\t</powers>\n')
-    list_xml += (f'\t\t\t\t\t</{class_camel}-{previous_group}>\n')
+    list_xml += (f'\t\t\t\t\t</{class_lower}_{previous_group}>\n')
 
     # Close final Class
     list_xml += ('\t\t\t\t</groups>\n')
-    list_xml += (f'\t\t\t</{class_camel}>\n')
+    list_xml += (f'\t\t\t</{class_lower}>\n')
 
     list_xml += ('\t\t</powers>\n')
 
@@ -249,29 +261,25 @@ def create_linkedpowers(basename_in, name_in, list_in):
 
     # Create any linked power entries
     for pwr in linked_list:
-        power_camel = re.sub('[^a-zA-Z0-9_]', '', pwr)
-        xml_out += (f'\t\t\t\t<power{power_camel}>\n')
-        xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.powers.{power_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t</power{power_camel}>\n')
+        power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr).lower()
+        xml_out += (f'\t\t\t\t\t<{power_lower}>\n')
+        xml_out += ('\t\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t\t<class>powerdesc</class>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<recordname>reference.powers.{power_lower}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t\t</link>\n')
+        xml_out += (f'\t\t\t\t\t</{power_lower}>\n')
     
     return xml_out
 
 
-def create_power_desc(list_in):
+def create_power_cards(list_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    entry_str = ''
-    section_str = ''
-    name_camel = ''
-
     # Create individual item entries
-    for power_dict in sorted(list_in, key=power_list_sorter):
+    for power_dict in sorted(list_in, key=card_list_sorter):
 
         # Only the first power from an entry gets the linked powers, otherwise it causes an infinite loop when adding to a PC sheet
         if power_dict["power_id"] == 1:
@@ -279,21 +287,24 @@ def create_power_desc(list_in):
         else:
             linked_powers = ''
 
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"]).lower()
 
-        xml_out += (f'\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t<name type="string">{power_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t<{name_lower}>\n')
         xml_out += (f'\t\t\t\t<action type="string">{power_dict["action"]}</action>\n')
         xml_out += (f'\t\t\t\t<description type="formattedtext">{power_dict["description"]}</description>\n')
         xml_out += (f'\t\t\t\t<flavor type="string">{power_dict["flavor"]}</flavor>\n')
         xml_out += (f'\t\t\t\t<keywords type="string">{power_dict["keywords"]}</keywords>\n')
+        if linked_powers != '':
+            xml_out += (f'\t\t\t\t<linkedpowers>\n{linked_powers}\t\t\t\t</linkedpowers>\n')
+        else:
+            xml_out += ('\t\t\t\t<linkedpowers />\n')
+        xml_out += (f'\t\t\t\t<name type="string">{power_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t<range type="string">{power_dict["range"]}</range>\n')
         xml_out += (f'\t\t\t\t<recharge type="string">{power_dict["recharge"]}</recharge>\n')
+## the description is required twice as this unformatted one is copied to the character sheet when a power is added
         xml_out += (f'\t\t\t\t<shortdescription type="string">{power_dict["shortdescription"]}</shortdescription>\n')
         xml_out += (f'\t\t\t\t<source type="string">{power_dict["source"]}</source>\n')
-        if linked_powers != '':
-            xml_out += (f'\t\t\t\t<linkedpowers>\n{linked_powers}\t\t\t</linkedpowers>\n')
-        xml_out += (f'\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t</{name_lower}>\n')
 
     return xml_out
 
@@ -358,7 +369,7 @@ def extract_power_db(db_in):
         basic_dict["Txt"] += '<p class=\"flavor\"><i>You reach out and grasp your foe, preventing it from moving.</i></p>'
         basic_dict["Txt"] += '<p class=\"powerstat\"><b>At-Will</b><br/><b>Standard Action</b><b>Melee</b> touch</p>'
         basic_dict["Txt"] += '<p class=\"flavor\"><b>Requirement</b>: You must have a hand free.</p>'
-        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Target</b>: One creature that is no more than one size category larger than youe</p>'
+        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Target</b>: One creature that is no more than one size category larger than you</p>'
         basic_dict["Txt"] += '<p class=\"powerstat\"><b>Attack</b>: Strength vs. Reflex</p>'
         basic_dict["Txt"] += '<p class=\"flavor\"><b>Hit</b>: You grab the target until the end of your next turn. You can end the grab as a free action.</p>'
         basic_dict["Txt"] += '<p class=\"powerstat\"><b>Sustain Minor</b>: The grab persists until the end of your next turn.</p>'
@@ -366,6 +377,21 @@ def extract_power_db(db_in):
         basic_dict["Txt"] += '<p class=\"publishedIn\">Published in <a href=\"http://anonym.to/?http://www.wizards.com/default.asp?x=products/dndacc/9780786950164\" target=\"_new\">Rules Compendium</a>, page(s) 243.</p>'
         basic_dict["Txt"] += '</div>'
         db_in.append(copy.deepcopy(basic_dict))
+
+    # Add class 'powers' that are not in the Powers database
+##    if settings.powers or settings.classes:
+##        basic_dict["Name"] = 'Hunter\'s Quarry'
+##        basic_dict["Class"] = 'Ranger'
+##        basic_dict["Level"] = '0'
+##        basic_dict["Txt"] = '<div id=\"detail\">'
+##        basic_dict["Txt"] += '<h1 class=\"atwillpower\"><span class=\"level\">Hunter\'s Quarry</span>Hunter\'s Quarry</h1>'
+##        basic_dict["Txt"] += '<p class=\"powerstat\"><b>At-Will</b><br/><b>Minor Action</b></p>'
+##        basic_dict["Txt"] += '<p class=\"powerstat\"><b>Effect</b>: You can designate the nearest enemy to you that you can see as your quarry.</p>'
+##        basic_dict["Txt"] += '<br/>'
+##        basic_dict["Txt"] += '<p class=\"publishedIn\">Published in <a href=\"http://anonym.to/?http://www.wizards.com/default.asp?x=products/dndacc/217367200\" target=\"_new\">Player\'s Handbook</a>, page(s) 103.</p>'
+##        basic_dict["Txt"] += '</div>'
+##        db_in.append(copy.deepcopy(basic_dict))
+
 
     # Lists for checking what type of power it is
     try:
@@ -401,7 +427,7 @@ def extract_power_db(db_in):
         class_str =  row["Class"].replace('\\', '')
         level_str =  row["Level"].replace('\\', '')
 
-#        if basename_str not in ['Your Doom Awaits']:#'Iron Fist', 'Psychic Anomaly', 'Eyes of the Vestige']: #, 'Aggressive Lunge', 'Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
+#        if basename_str not in ['Preserver\'s Rebuke', 'Armor of Wrath']:#'Brilliant Strategy', 'Your Doom Awaits', 'Iron Fist', 'Psychic Anomaly', 'Eyes of the Vestige']: #, 'Aggressive Lunge', 'Demoralizing Strike', 'Cloud of Daggers', 'Spell Magnet', 'Open the Gate of Battle [Attack Technique]', 'Turn Undead', 'Healing Word', 'Holy Cleansing', 'Grease']:
 #            continue
 #        print(basename_str)        
 
@@ -622,7 +648,7 @@ def extract_power_db(db_in):
                     else:
                         recharge_id = '5zz'
                 # concatenate padded level and recharge id
-                group_id = level_str.rjust(3, '0') + '-' + recharge_id
+                group_id = f'{level_str:0>2}_{recharge_id}'
 
                 if int(level_str) >= settings.min_lvl and int(level_str) <= settings.max_lvl:
                     export_dict = {}

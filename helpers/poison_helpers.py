@@ -12,21 +12,20 @@ def poison_list_sorter(entry_in):
     return (name)
 
 
-def create_poison_library(id_in):
+def create_poison_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-poison>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Poisons</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.poisons@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-poison>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Poisons</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 def create_poison_list(list_in):
@@ -34,9 +33,6 @@ def create_poison_list(list_in):
 
     if not list_in:
         return xml_out
-
-    name_camel = ''
-    previous_group = ''
 
     # Poisons List
     # This controls the list that appears when you click on a Library menu
@@ -47,16 +43,16 @@ def create_poison_list(list_in):
 
     # Create individual item entries
     for poison_dict in sorted(list_in, key=poison_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', poison_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', poison_dict["name"]).lower()
 
         # Poisons list entry
-        xml_out += (f'\t\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{poison_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_poison</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.poisons.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.poisons.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</listlink>\n')
-        xml_out += (f'\t\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{poison_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t</{name_lower}>\n')
 
     xml_out += (f'\t\t\t</index>\n')
     xml_out += (f'\t\t</poisons>\n')
@@ -65,37 +61,33 @@ def create_poison_list(list_in):
 
 
 def create_poison_cards(list_in):
-    poisons_out = ''
+    xml_out = ''
 
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
-    poisons_out += ('\t\t<poisons>\n')
+    xml_out += ('\t\t<poisons>\n')
     for poison_dict in sorted(list_in, key=poison_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', poison_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', poison_dict["name"]).lower()
 
-        poisons_out += f'\t\t\t<{name_lower}>\n'
-        poisons_out += f'\t\t\t\t<name type="string">{poison_dict["name"]}</name>\n'
-        if poison_dict["flavor"] != '':
-            poisons_out += f'\t\t\t\t<flavor type="string">{poison_dict["flavor"]}</flavor>\n'
-        if poison_dict["level"] != '':
-            poisons_out += f'\t\t\t\t<level type="number">{poison_dict["level"]}</level>\n'
-        if poison_dict["cost"] != '':
-            poisons_out += f'\t\t\t\t<cost type="number">{poison_dict["cost"]}</cost>\n'
+        xml_out += f'\t\t\t<{name_lower}>\n'
         if poison_dict["attack"] != '':
-            poisons_out += (f'\t\t\t\t<attack type="string">{poison_dict["attack"]}</attack>\n')
+            xml_out += (f'\t\t\t\t<attack type="string">{poison_dict["attack"]}</attack>\n')
+        if poison_dict["cost"] != '':
+            xml_out += f'\t\t\t\t<cost type="number">{poison_dict["cost"]}</cost>\n'
         if poison_dict["description"] != '':
-            poisons_out += (f'\t\t\t\t<formattedpoisonblock type="formattedtext">{poison_dict["description"]}</formattedpoisonblock>\n')
-        poisons_out += f'\t\t\t</{name_lower}>\n'
+            xml_out += (f'\t\t\t\t<formattedpoisonblock type="formattedtext">{poison_dict["description"]}</formattedpoisonblock>\n')
+        if poison_dict["flavor"] != '':
+            xml_out += f'\t\t\t\t<flavor type="string">{poison_dict["flavor"]}</flavor>\n'
+        if poison_dict["level"] != '':
+            xml_out += f'\t\t\t\t<level type="number">{poison_dict["level"]}</level>\n'
+        xml_out += f'\t\t\t\t<name type="string">{poison_dict["name"]}</name>\n'
+        xml_out += f'\t\t\t</{name_lower}>\n'
 
-    poisons_out += ('\t\t</poisons>\n')
+    xml_out += ('\t\t</poisons>\n')
 
-    return poisons_out
+    return xml_out
 
 
 def extract_poison_db(db_in):

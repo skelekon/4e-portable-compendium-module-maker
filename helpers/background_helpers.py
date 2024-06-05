@@ -12,34 +12,33 @@ def background_list_sorter(entry_in):
     return (name)
 
 
-def create_background_library(id_in):
+def create_background_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-background>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Backgrounds</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.backgrounds@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-background>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Backgrounds</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
-def create_background_table(list_in):
+def create_background_list(list_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    name_camel = ''
     previous_group = ''
 
     # Backgrounds List
     # This controls the list that appears when you click on a Library menu
+    # Start a new group for each first letter
 
     xml_out += (f'\t\t<backgrounds>\n')
     xml_out += (f'\t\t\t<description type="string">Backgrounds</description>\n')
@@ -47,36 +46,36 @@ def create_background_table(list_in):
 
     # Create individual item entries
     for background_dict in sorted(list_in, key=background_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', background_dict["name"])
-        group_camel = name_camel[0:1].upper()
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', background_dict["name"]).lower()
+        group_letter = name_lower[0:1]
 
         # Check for new Group
-        if group_camel != previous_group:
+        if group_letter != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t</backgrounds{previous_group}>\n')
+                xml_out += (f'\t\t\t\t</backgrounds_{previous_group}>\n')
 
             # Open new Group
-            xml_out += (f'\t\t\t\t<backgrounds{group_camel}>\n')
-            xml_out += (f'\t\t\t\t\t<description type="string">{group_camel}</description>\n')
+            xml_out += (f'\t\t\t\t<backgrounds_{group_letter}>\n')
+            xml_out += (f'\t\t\t\t\t<description type="string">{group_letter.upper()}</description>\n')
             xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Backgrounds list entry
-        xml_out += (f'\t\t\t\t\t\t<background{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<source type="string">{background_dict["name"]}</source>\n')
+        xml_out += (f'\t\t\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.backgrounds.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.backgrounds.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t\t</background{name_camel}>\n')
+#        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{background_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t</{name_lower}>\n')
 
-        previous_group = group_camel
+        previous_group = group_letter
 
     # Close final Group
     xml_out += ('\t\t\t\t\t</powers>\n')
-    xml_out += (f'\t\t\t\t</backgrounds{previous_group}>\n')
+    xml_out += (f'\t\t\t\t</backgrounds_{previous_group}>\n')
 
     xml_out += (f'\t\t\t</groups>\n')
     xml_out += (f'\t\t</backgrounds>\n')
@@ -84,36 +83,32 @@ def create_background_table(list_in):
     return xml_out
 
 
-def create_background_desc(list_in):
+def create_background_cards(list_in):
     backgrounds_out = ''
 
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     backgrounds_out += ('\t\t<backgrounds>\n')
     for background_dict in sorted(list_in, key=background_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', background_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', background_dict["name"]).lower()
 
         backgrounds_out += f'\t\t\t<{name_lower}>\n'
-        backgrounds_out += f'\t\t\t\t<name type="string">{background_dict["name"]}</name>\n'
-        backgrounds_out += '\t\t\t\t<source type="string">Background</source>\n'
-        if background_dict["flavor"] != '':
-            backgrounds_out += f'\t\t\t\t<flavor type="string">{background_dict["flavor"]}</flavor>\n'
         backgrounds_out += f'\t\t\t\t<description type="formattedtext">'
         if background_dict["description"] != '':
             backgrounds_out += f'{background_dict["description"]}'
         if background_dict["published"] != '':
             backgrounds_out += f'{background_dict["published"]}'
         backgrounds_out += f'</description>\n'
+        if background_dict["flavor"] != '':
+            backgrounds_out += f'\t\t\t\t<flavor type="string">{background_dict["flavor"]}</flavor>\n'
+        backgrounds_out += f'\t\t\t\t<name type="string">{background_dict["name"]}</name>\n'
         if background_dict["prerequisite"] != '':
             backgrounds_out += (f'\t\t\t\t<prerequisite type="string">{background_dict["prerequisite"]}</prerequisite>\n')
         if background_dict["shortdescription"] != '':
             backgrounds_out += (f'\t\t\t\t<shortdescription type="string">{background_dict["shortdescription"]}</shortdescription>\n')
+        backgrounds_out += '\t\t\t\t<source type="string">Background</source>\n'
         backgrounds_out += f'\t\t\t</{name_lower}>\n'
 
     backgrounds_out += ('\t\t</backgrounds>\n')

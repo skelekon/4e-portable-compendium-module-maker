@@ -12,34 +12,33 @@ def paragon_list_sorter(entry_in):
     return (name)
 
 
-def create_paragon_library(id_in):
+def create_paragon_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-paragon>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Paragon Paths</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.paragonpaths@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-paragon>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Paragon Paths</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
-def create_paragon_table(list_in):
+def create_paragon_list(list_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    name_camel = ''
     previous_group = ''
 
     # Paragon Paths List
     # This controls the list that appears when you click on a Library menu
+    # Start a new group for each first letter
 
     xml_out += (f'\t\t<paragonpaths>\n')
     xml_out += (f'\t\t\t<description type="string">Paragon Paths</description>\n')
@@ -47,36 +46,36 @@ def create_paragon_table(list_in):
 
     # Create individual item entries
     for paragon_dict in sorted(list_in, key=paragon_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', paragon_dict["name"])
-        group_camel = name_camel[0:1].upper()
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', paragon_dict["name"]).lower()
+        group_letter = name_lower[0:1]
 
         # Check for new Group
-        if group_camel != previous_group:
+        if group_letter != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t</paragonpaths{previous_group}>\n')
+                xml_out += (f'\t\t\t\t</paragonpaths_{previous_group}>\n')
 
             # Open new Group
-            xml_out += (f'\t\t\t\t<paragonpaths{group_camel}>\n')
-            xml_out += (f'\t\t\t\t\t<description type="string">{group_camel}</description>\n')
+            xml_out += (f'\t\t\t\t<paragonpaths_{group_letter}>\n')
+            xml_out += (f'\t\t\t\t\t<description type="string">{group_letter.upper()}</description>\n')
             xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Paragon Paths list entry
-        xml_out += (f'\t\t\t\t\t\t<paragon{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<source type="string">{paragon_dict["name"]}</source>\n')
+        xml_out += (f'\t\t\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.paragonpaths.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.paragonpaths.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t\t</paragon{name_camel}>\n')
+#        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{paragon_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t</{name_lower}>\n')
 
-        previous_group = group_camel
+        previous_group = group_letter
 
     # Close final Group
     xml_out += ('\t\t\t\t\t</powers>\n')
-    xml_out += (f'\t\t\t\t</paragonpaths{previous_group}>\n')
+    xml_out += (f'\t\t\t\t</paragonpaths_{previous_group}>\n')
 
     xml_out += (f'\t\t\t</groups>\n')
     xml_out += (f'\t\t</paragonpaths>\n')
@@ -84,29 +83,19 @@ def create_paragon_table(list_in):
     return xml_out
 
 
-def create_paragon_desc(list_in):
+def create_paragon_cards(list_in):
     paragon_out = ''
     featuredesc_out = ''
 
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     paragon_out += ('\t\t<paragonpaths>\n')
     for paragon_dict in sorted(list_in, key=paragon_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', paragon_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', paragon_dict["name"]).lower()
 
         paragon_out += f'\t\t\t<{name_lower}>\n'
-        paragon_out += f'\t\t\t\t<name type="string">{paragon_dict["name"]}</name>\n'
-        paragon_out += '\t\t\t\t<source type="string">Paragon Path</source>\n'
-        if paragon_dict["prerequisite"] != '':
-            paragon_out += (f'\t\t\t\t<prerequisite type="string">{paragon_dict["prerequisite"]}</prerequisite>\n')
-        if paragon_dict["flavor"] != '':
-            paragon_out += f'\t\t\t\t<flavor type="string">{paragon_dict["flavor"]}</flavor>\n'
         paragon_out += f'\t\t\t\t<description type="formattedtext">\n'
         if paragon_dict["description"] != '':
             paragon_out += f'{paragon_dict["description"]}'
@@ -116,8 +105,14 @@ def create_paragon_desc(list_in):
             paragon_out += f'{paragon_dict["powers"]}'
         if paragon_dict["published"] != '':
             paragon_out += f'{paragon_dict["published"]}'
-#        xml_out += (f'\t\t\t\t<shortdescription type="string">{paragon_dict["shortdescription"]}</shortdescription>\n')
         paragon_out += f'\n\t\t\t\t</description>\n'
+        if paragon_dict["flavor"] != '':
+            paragon_out += f'\t\t\t\t<flavor type="string">{paragon_dict["flavor"]}</flavor>\n'
+        paragon_out += f'\t\t\t\t<name type="string">{paragon_dict["name"]}</name>\n'
+        if paragon_dict["prerequisite"] != '':
+            paragon_out += (f'\t\t\t\t<prerequisite type="string">{paragon_dict["prerequisite"]}</prerequisite>\n')
+#        xml_out += (f'\t\t\t\t<shortdescription type="string">{paragon_dict["shortdescription"]}</shortdescription>\n')
+        paragon_out += '\t\t\t\t<source type="string">Paragon Path</source>\n'
         paragon_out += f'\t\t\t</{name_lower}>\n'
 
         # Create all Required Power entries
@@ -141,26 +136,26 @@ def create_feature(feature_dict, pathname_in):
     else:
         level_str = ''
 
-    pathname_camel = re.sub('[^a-zA-Z0-9_]', '', pathname_in)
-    feature_camel = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"])
+    pathname_lower = re.sub('[^a-zA-Z0-9_]', '', pathname_in).lower()
+    feature_lower = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"]).lower()
     feature_desc = clean_formattedtext(feature_dict["desc"])
 
-    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{pathname_camel}{feature_camel}@{settings.library}">{feature_dict["name"]}</link>\n')
+    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{pathname_lower}{feature_lower}@{settings.library}">{feature_dict["name"]}</link>\n')
 
-    featuredesc_out += f'\t\t\t<{pathname_camel}{feature_camel}>\n'
-    featuredesc_out += f'\t\t\t\t<name type="string">{heading_str}</name>\n'
-    featuredesc_out += f'\t\t\t\t<source type="string">{pathname_in} Feature</source>\n'
-    featuredesc_out += f'\t\t\t\t<prerequisite type="string">{prerequisites_str}</prerequisite>\n'
+    featuredesc_out += f'\t\t\t<{pathname_lower}{feature_lower}>\n'
     featuredesc_out += f'\t\t\t\t<description type="formattedtext"><p><b>Prerequisite:</b>{prerequisites_str}</p>{feature_desc}</description>\n'
-    featuredesc_out += f'\t\t\t</{pathname_camel}{feature_camel}>\n'
+    featuredesc_out += f'\t\t\t\t<name type="string">{heading_str}</name>\n'
+    featuredesc_out += f'\t\t\t\t<prerequisite type="string">{prerequisites_str}</prerequisite>\n'
+    featuredesc_out += f'\t\t\t\t<source type="string">{pathname_in} Feature</source>\n'
+    featuredesc_out += f'\t\t\t</{pathname_lower}{feature_lower}>\n'
     
     return link_out, featuredesc_out
 
 
 def create_power(power_dict, name_in):
     xml_out = ''
-    power_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
-    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_camel}@{settings.library}">{power_dict["name"]}</link>\n')
+    power_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"]).lower()
+    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_lower}@{settings.library}">{power_dict["name"]}</link>\n')
 
     return xml_out
 

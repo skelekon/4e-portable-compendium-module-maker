@@ -12,21 +12,20 @@ def races_list_sorter(entry_in):
     return (name)
 
 
-def create_races_library(id_in):
+def create_races_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-races>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Races</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.races@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-races>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Races</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 def create_races_list(list_in):
@@ -34,8 +33,6 @@ def create_races_list(list_in):
 
     if not list_in:
         return xml_out
-
-    name_camel = ''
 
     # Races List
     # This controls the table that appears when you click on a Library menu
@@ -46,16 +43,16 @@ def create_races_list(list_in):
 
     # Create individual item entries
     for races_dict in sorted(list_in, key=races_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', races_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', races_dict["name"]).lower()
 
         # Races list entry
-        xml_out += (f'\t\t\t\t<race{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{races_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.races.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.races.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</listlink>\n')
-        xml_out += (f'\t\t\t\t</race{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{races_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t</{name_lower}>\n')
 
     xml_out += ('\t\t\t</index>\n')
     xml_out += ('\t\t</races>\n')
@@ -63,27 +60,19 @@ def create_races_list(list_in):
     return xml_out
 
 
-def create_races_desc(list_in):
+def create_races_cards(list_in):
     races_out = ''
     featuredesc_out = ''
 
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_camel = ''
-
     # Create individual item entries
     races_out += ('\t\t<races>\n')
     for races_dict in sorted(list_in, key=races_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', races_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', races_dict["name"]).lower()
 
-        races_out += f'\t\t\t<{name_camel}>\n'
-        races_out += f'\t\t\t\t<name type="string">{races_dict["name"]}</name>\n'
-        races_out += '\t\t\t\t<source type="string">Race</source>\n'
-        if races_dict["flavor"] != '':
-            races_out += f'\t\t\t\t<flavor type="string">{races_dict["flavor"]}</flavor>\n'
+        races_out += f'\t\t\t<{name_lower}>\n'
         races_out += f'\t\t\t\t<description type="formattedtext">\n'
         if races_dict["description"] != '':
             races_out += f'{races_dict["description"]}'
@@ -94,8 +83,12 @@ def create_races_desc(list_in):
         if races_dict["published"] != '':
             races_out += f'{races_dict["published"]}'
         races_out += f'\n\t\t\t\t</description>\n'
+        if races_dict["flavor"] != '':
+            races_out += f'\t\t\t\t<flavor type="string">{races_dict["flavor"]}</flavor>\n'
+        races_out += f'\t\t\t\t<name type="string">{races_dict["name"]}</name>\n'
 #        xml_out += (f'\t\t\t\t<shortdescription type="string">{races_dict["shortdescription"]}</shortdescription>\n')
-        races_out += f'\t\t\t</{name_camel}>\n'
+        races_out += '\t\t\t\t<source type="string">Race</source>\n'
+        races_out += f'\t\t\t</{name_lower}>\n'
 
         # Create all Required Power entries
         featuredesc_out += races_dict["featuredesc"]
@@ -111,22 +104,22 @@ def create_features(features_in, name_in, heading_in):
     if len(features_in) == 0:
         return listlink_out, featuredesc_out
 
-    name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
+    name_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
     
     listlink_out += f'<p><b>{heading_in}</b></p>\n'
     listlink_out += '\t\t\t\t<listlink>\n'
 
     for ftr in features_in:
-        feature_camel = re.sub('[^a-zA-Z0-9_]', '', ftr["name"])
-        listlink_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_camel}{feature_camel}@{settings.library}">{ftr["name"]}</link>\n')
+        feature_lower = re.sub('[^a-zA-Z0-9_]', '', ftr["name"]).lower()
+        listlink_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_lower}{feature_lower}@{settings.library}">{ftr["name"]}</link>\n')
 
-        featuredesc_out += f'\t\t\t<{name_camel}{feature_camel}>\n'
+        featuredesc_out += f'\t\t\t<{name_lower}{feature_lower}>\n'
+        featuredesc_out += f'\t\t\t\t<description type="formattedtext">{ftr["desc"]}</description>\n'
         featuredesc_out += f'\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
-        featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
         featuredesc_out += f'\t\t\t\t<prerequisite type="string">{name_in} Race</prerequisite>\n'
 #        featuredesc_out += f'\t\t\t\t<shortdescription type="string">{ftr["shortdesc"]}</shortdescription>\n'
-        featuredesc_out += f'\t\t\t\t<description type="formattedtext">{ftr["desc"]}</description>\n'
-        featuredesc_out += f'\t\t\t</{name_camel}{feature_camel}>\n'
+        featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
+        featuredesc_out += f'\t\t\t</{name_lower}{feature_lower}>\n'
 
     listlink_out += '\t\t\t\t</listlink>\n'
     
@@ -140,7 +133,7 @@ def create_powers(powers_in):
     previous_type = ''
     
     for pwr in powers_in:
-        power_camel = re.sub('[^a-zA-Z0-9_]', '', pwr["name"])
+        power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr["name"]).lower()
         if pwr["type"] != previous_type:
             # Close previous Type
             if previous_type != '':
@@ -151,7 +144,7 @@ def create_powers(powers_in):
             previous_type = pwr["type"]
             xml_out += '\t\t\t\t<listlink>\n'
 
-        xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_camel}@{settings.library}">{pwr["name"]}</link>\n')
+        xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_lower}@{settings.library}">{pwr["name"]}</link>\n')
     # Close last Type
     xml_out += '\t\t\t\t</listlink>\n'
     
@@ -330,18 +323,18 @@ def extract_races_db(db_in):
                 settings.races_power_list.append('Concussive Vengeance')
                 description_str += '<p><b>Bozak Draconian Racial Attack </b></p>\n'
                 description_str += '\t\t\t<listlink>\n'
-                description_str += f'\t\t\t\t<link class="powerdesc" recordname="reference.powers.ConcussiveVengeance@{settings.library}">Concussive Vengeance</link>\n'
+                description_str += f'\t\t\t\t<link class="powerdesc" recordname="reference.powers.concussivevengeance@{settings.library}">Concussive Vengeance</link>\n'
                 description_str += '\t\t\t</listlink>\n'
             elif name_str == 'Kapak Draconian':
                 settings.races_power_list.append('Toxic Saliva')
                 settings.races_power_list.append('Acidic Revenge')
                 description_str += '<p><b>Kapak Draconian Racial Utility </b></p>\n'
                 description_str += '\t\t\t<listlink>\n'
-                description_str += f'\t\t\t\t<link class="powerdesc" recordname="reference.powers.ToxicSaliva@{settings.library}">Toxic Saliva</link>\n'
+                description_str += f'\t\t\t\t<link class="powerdesc" recordname="reference.powers.toxicsaliva@{settings.library}">Toxic Saliva</link>\n'
                 description_str += '\t\t\t</listlink>\n'
                 description_str += '<p><b>Kapak Draconian Racial Attack </b></p>\n'
                 description_str += '\t\t\t<listlink>\n'
-                description_str += f'\t\t\t\t<link class="powerdesc" recordname="reference.powers.AcidicRevenge@{settings.library}">Acidic Revenge</link>\n'
+                description_str += f'\t\t\t\t<link class="powerdesc" recordname="reference.powers.acidicrevenge@{settings.library}">Acidic Revenge</link>\n'
                 description_str += '\t\t\t</listlink>\n'
 
 
