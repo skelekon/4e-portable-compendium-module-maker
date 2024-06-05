@@ -54,3 +54,5 @@ heroic_power_list = []
 paragon_power_list = []
 epic_power_list = []
 feat_power_list = []
+
+lib_id = 0

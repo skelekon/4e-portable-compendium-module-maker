@@ -14,22 +14,21 @@ def armor_list_sorter(entry_in):
 
     return (section_id, ac, min_enhance, checkpenalty, name)
 
-def create_armor_library(id_in, name_in):
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+def create_armor_library(name_in):
+    settings.lib_id += 1
 
     xml_out = ''
-    xml_out += (f'\t\t\t\t<{lib_id}-armor>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classarmortablelist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.armor@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-armor>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
-def create_armor_table(list_in):
+def create_armor_list(list_in):
     xml_out = ''
     section_id = 0
     item_id = 0
@@ -43,9 +42,9 @@ def create_armor_table(list_in):
     # Create individual item entries
     for entry_dict in sorted(list_in, key=armor_list_sorter):
         item_id += 1
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"]).lower()
         # Need a synthetic field to provide sort order as list items appear in tag order
-        entry_str = 'a' + str(item_id).rjust(3, '0')
+        entry_str = f'id-{item_id:0>5}'
 
         # Check for new section
         if entry_dict["section_id"] != section_id:
@@ -60,20 +59,20 @@ def create_armor_table(list_in):
             xml_out += (f'\t\t\t\t\t<subdescription type="string">{entry_dict["type"]}</subdescription>\n')
             xml_out += ('\t\t\t\t\t<armors>\n')
 
-        xml_out += (f'\t\t\t\t\t\t<{entry_str}-{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t<{entry_str}>\n')
         xml_out += (f'\t\t\t\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
         xml_out += (f'\t\t\t\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
         xml_out += (f'\t\t\t\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
+        xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
+        xml_out += ('\t\t\t\t\t\t\t\t<class>referencearmor</class>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_lower}@{settings.library}</recordname>\n')
+        xml_out += ('\t\t\t\t\t\t\t</link>\n')
         xml_out += (f'\t\t\t\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
         xml_out += (f'\t\t\t\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
         xml_out += (f'\t\t\t\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
-        xml_out += ('\t\t\t\t\t\t\t\t<class>referencearmor</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.items.{name_camel}@{settings.library}</recordname>\n')
-        xml_out += ('\t\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t\t</{entry_str}-{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t\t</{entry_str}>\n')
 
     # Close out the last section
     xml_out += ('\t\t\t\t\t</armors>\n')
@@ -85,22 +84,17 @@ def create_armor_table(list_in):
 
     return xml_out
 
-def create_armor_reference(list_in):
+def create_armor_cards(list_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     for entry_dict in sorted(list_in, key=armor_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', entry_dict["name"]).lower()
 
-        xml_out += (f'\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t<{name_lower}>\n')
         xml_out += (f'\t\t\t\t<ac type="number">{entry_dict["ac"]}</ac>\n')
         xml_out += (f'\t\t\t\t<checkpenalty type="number">{entry_dict["checkpenalty"]}</checkpenalty>\n')
         xml_out += (f'\t\t\t\t<cost type="string">{entry_dict["cost"]}</cost>\n')
@@ -108,13 +102,14 @@ def create_armor_reference(list_in):
         xml_out += (f'\t\t\t\t<flavor type="string">{entry_dict["description"]}</flavor>\n')
         xml_out += (f'\t\t\t\t<min_enhance type="number">{entry_dict["min_enhance"]}</min_enhance>\n')
         xml_out += (f'\t\t\t\t<mitype type="string">armor</mitype>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{entry_dict["name"]}</name>\n')
         xml_out += (f'\t\t\t\t<prof type="string">{entry_dict["prof"]}</prof>\n')
         if entry_dict["special"] != '':
             xml_out += (f'\t\t\t\t<special type="string">{entry_dict["special"]}</special>\n')
         xml_out += (f'\t\t\t\t<speed type="number">{entry_dict["speed"]}</speed>\n')
         xml_out += (f'\t\t\t\t<type type="string">{entry_dict["type"]}</type>\n')
         xml_out += (f'\t\t\t\t<weight type="number">{entry_dict["weight"]}</weight>\n')
-        xml_out += (f'\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t</{name_lower}>\n')
 
     return xml_out
 

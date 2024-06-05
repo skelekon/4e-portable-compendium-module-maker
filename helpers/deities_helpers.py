@@ -12,21 +12,20 @@ def deities_list_sorter(entry_in):
     return (name)
 
 
-def create_deities_library(id_in):
+def create_deities_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-deity>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Deities</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.deities@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-deity>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Deities</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 def create_deities_list(list_in):
@@ -35,11 +34,11 @@ def create_deities_list(list_in):
     if not list_in:
         return xml_out
 
-    name_camel = ''
     previous_group = ''
 
     # Deities List
     # This controls the list that appears when you click on a Library menu
+    # Start a new group for each first letter
 
     xml_out += (f'\t\t<deities>\n')
     xml_out += (f'\t\t\t<description type="string">Deities</description>\n')
@@ -47,36 +46,36 @@ def create_deities_list(list_in):
 
     # Create individual item entries
     for deity_dict in sorted(list_in, key=deities_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', deity_dict["name"])
-        group_camel = name_camel[0:1].upper()
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', deity_dict["name"]).lower()
+        group_letter = name_lower[0:1]
 
         # Check for new Group
-        if group_camel != previous_group:
+        if group_letter != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t</deities{previous_group}>\n')
+                xml_out += (f'\t\t\t\t</deities_{previous_group}>\n')
 
             # Open new Group
-            xml_out += (f'\t\t\t\t<deities{group_camel}>\n')
-            xml_out += (f'\t\t\t\t\t<description type="string">{group_camel}</description>\n')
+            xml_out += (f'\t\t\t\t<deities_{group_letter}>\n')
+            xml_out += (f'\t\t\t\t\t<description type="string">{group_letter.upper()}</description>\n')
             xml_out += ('\t\t\t\t\t<powers>\n')
 
         # Deities list entry
-        xml_out += (f'\t\t\t\t\t\t<deity{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t\t\t<source type="string">{deity_dict["name"]}</source>\n')
+        xml_out += (f'\t\t\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.deities.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t<recordname>reference.deities.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t\t</deity{name_camel}>\n')
+#        xml_out += (f'\t\t\t\t\t\t\t<name type="string">{deity_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t</{name_lower}>\n')
 
-        previous_group = group_camel
+        previous_group = group_letter
 
     # Close final Group
     xml_out += ('\t\t\t\t\t</powers>\n')
-    xml_out += (f'\t\t\t\t</deities{previous_group}>\n')
+    xml_out += (f'\t\t\t\t</deities_{previous_group}>\n')
 
     xml_out += (f'\t\t\t</groups>\n')
     xml_out += (f'\t\t</deities>\n')
@@ -90,30 +89,26 @@ def create_deities_cards(list_in):
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     deities_out += ('\t\t<deities>\n')
     for deity_dict in sorted(list_in, key=deities_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', deity_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', deity_dict["name"]).lower()
 
         deities_out += f'\t\t\t<{name_lower}>\n'
-        deities_out += f'\t\t\t\t<name type="string">{deity_dict["name"]}</name>\n'
-        deities_out += '\t\t\t\t<source type="string">Deity</source>\n'
-        if deity_dict["flavor"] != '':
-            deities_out += f'\t\t\t\t<flavor type="string">{deity_dict["flavor"]}</flavor>\n'
         deities_out += f'\t\t\t\t<description type="formattedtext">'
         if deity_dict["description"] != '':
             deities_out += f'{deity_dict["description"]}'
         if deity_dict["published"] != '':
             deities_out += f'{deity_dict["published"]}'
         deities_out += f'</description>\n'
+        if deity_dict["flavor"] != '':
+            deities_out += f'\t\t\t\t<flavor type="string">{deity_dict["flavor"]}</flavor>\n'
+        deities_out += f'\t\t\t\t<name type="string">{deity_dict["name"]}</name>\n'
         if deity_dict["prerequisite"] != '':
             deities_out += (f'\t\t\t\t<prerequisite type="string">{deity_dict["prerequisite"]}</prerequisite>\n')
         if deity_dict["shortdescription"] != '':
             deities_out += (f'\t\t\t\t<shortdescription type="string">{deity_dict["shortdescription"]}</shortdescription>\n')
+        deities_out += '\t\t\t\t<source type="string">Deity</source>\n'
         deities_out += f'\t\t\t</{name_lower}>\n'
 
     deities_out += ('\t\t</deities>\n')

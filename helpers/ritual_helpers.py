@@ -14,14 +14,13 @@ def ritual_list_sorter(entry_in):
 
     return (name)
 
-def create_ritual_library(id_in, list_in, name_in):
+def create_ritual_library(list_in, name_in):
     xml_out = ''
 
     if not list_in:
         return xml_out, id_in
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
     # Set the name of the top-level XML tag
     if re.search('(Martial Practices)', name_in):
@@ -29,17 +28,17 @@ def create_ritual_library(id_in, list_in, name_in):
     else:
         list_str = 'rituals'
 
-    xml_out += (f'\t\t\t\t<{lib_id}-rituals>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>reference_rituallist</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.{list_str}@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-rituals>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">{name_in}</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
-def create_ritual_table(list_in, name_in):
+def create_ritual_list(list_in, name_in):
     xml_out = ''
 
     if not list_in:
@@ -50,8 +49,6 @@ def create_ritual_table(list_in, name_in):
         list_str = 'practices'
     else:
         list_str = 'rituals'
-
-    name_camel = ''
 
     # Ritual List
     # This controls the table that appears when you click on a Library menu
@@ -62,51 +59,49 @@ def create_ritual_table(list_in, name_in):
 
     # Create individual item entries
     for ritual_dict in sorted(list_in, key=ritual_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', ritual_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', ritual_dict["name"]).lower()
 
         # Rituals list entry
-        xml_out += (f'\t\t\t\t<ritual{name_camel}>\n')
+        xml_out += (f'\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_ritual</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.rituals.{ritual_dict["class"].lower()}{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.rituals.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t<source type="string">{ritual_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t\t</ritual{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{ritual_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t</{name_lower}>\n')
 
     xml_out += ('\t\t\t</groups>\n')
     xml_out += (f'\t\t</{list_str}>\n')
 
     return xml_out
 
-def create_ritual_desc(list_in):
+def create_ritual_cards(list_in):
     xml_out = ''
 
     if not list_in:
         return xml_out
 
-    name_camel = ''
-
     # Create individual item entries
     for ritual_dict in sorted(list_in, key=ritual_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', ritual_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', ritual_dict["name"]).lower()
 
-        xml_out += (f'\t\t<{ritual_dict["class"].lower()}{name_camel}>\n')
-        xml_out += (f'\t\t\t<name type="string">{ritual_dict["name"]}</name>\n')
-        xml_out += (f'\t\t\t<category type="string">{ritual_dict["category"]}</category>\n')
-        xml_out += (f'\t\t\t<component type="string">{ritual_dict["component"]}</component>\n')
-        xml_out += (f'\t\t\t<details type="formattedtext">{ritual_dict["details"]}</details>\n')
+        xml_out += (f'\t\t\t<{name_lower}>\n')
+        xml_out += (f'\t\t\t\t<category type="string">{ritual_dict["category"]}</category>\n')
+        xml_out += (f'\t\t\t\t<component type="string">{ritual_dict["component"]}</component>\n')
+        xml_out += (f'\t\t\t\t<details type="formattedtext">{ritual_dict["details"]}</details>\n')
         if ritual_dict["duration"] != '':
-            xml_out += (f'\t\t\t<duration type="string">{ritual_dict["duration"]}</duration>\n')
+            xml_out += (f'\t\t\t\t<duration type="string">{ritual_dict["duration"]}</duration>\n')
         if ritual_dict["flavor"] != '':
-            xml_out += (f'\t\t\t<flavor type="string">{ritual_dict["flavor"]}</flavor>\n')
-        xml_out += (f'\t\t\t<level type="string">{ritual_dict["level"]}</level>\n')
+            xml_out += (f'\t\t\t\t<flavor type="string">{ritual_dict["flavor"]}</flavor>\n')
+        xml_out += (f'\t\t\t\t<level type="string">{ritual_dict["level"]}</level>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{ritual_dict["name"]}</name>\n')
         if ritual_dict["prerequisite"] != '':
-            xml_out += (f'\t\t\t<prerequisite type="string">{ritual_dict["prerequisite"]}</prerequisite>\n')
-        xml_out += (f'\t\t\t<price type="string">{ritual_dict["price"]}</price>\n')
+            xml_out += (f'\t\t\t\t<prerequisite type="string">{ritual_dict["prerequisite"]}</prerequisite>\n')
+        xml_out += (f'\t\t\t\t<price type="string">{ritual_dict["price"]}</price>\n')
         if ritual_dict["skill"] != '':
-            xml_out += (f'\t\t\t<skill type="string">{ritual_dict["skill"]}</skill>\n')
-        xml_out += (f'\t\t\t<time type="string">{ritual_dict["time"]}</time>\n')
-        xml_out += (f'\t\t</{ritual_dict["class"].lower()}{name_camel}>\n')
+            xml_out += (f'\t\t\t\t<skill type="string">{ritual_dict["skill"]}</skill>\n')
+        xml_out += (f'\t\t\t\t<time type="string">{ritual_dict["time"]}</time>\n')
+        xml_out += (f'\t\t\t</{name_lower}>\n')
 
     return xml_out
 
@@ -137,7 +132,6 @@ def extract_ritual_db(db_in, filter_in):
         price_str = ''
         prerequisite_str = ''
         published_str = ''
-        section_id = 100
         skill_str =  ''
         time_str = ''
 
@@ -149,6 +143,7 @@ def extract_ritual_db(db_in, filter_in):
         if component_tag := parsed_html.find(string=re.compile('^Component')):
             component_str = re.sub(':\s*', '', component_tag.parent.next_sibling.get_text(separator = ', ', strip = True))
 
+        # Classify as Martial Practice, Ritual or Alchemical Formaula
         if re.search(r'(Martial Practice)', category_str, re.IGNORECASE):
             class_str = 'Practice'
         elif re.search(r'(See Alchemical|See below|See the item\'s price)', component_str, re.IGNORECASE)\
@@ -157,10 +152,8 @@ def extract_ritual_db(db_in, filter_in):
         else:
             class_str = 'Ritual'
 
+        # only Martial Practices and Rituals and handled in this module
         if (re.search(f'^({filter_in})$', class_str)):
-            section_id = 1
-
-        if section_id < 100:
 
             # Duration
             if duration_tag := parsed_html.find(string=re.compile('^Duration')):

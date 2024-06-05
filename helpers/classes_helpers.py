@@ -13,21 +13,20 @@ def classes_list_sorter(entry_in):
     return (name)
 
 
-def create_classes_library(id_in):
+def create_classes_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-classes>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Classes</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.classes@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-classes>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Classes</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 def create_classes_list(list_in):
@@ -35,8 +34,6 @@ def create_classes_list(list_in):
 
     if not list_in:
         return xml_out
-
-    name_camel = ''
 
     # Classes List
     # This controls the table that appears when you click on a Library menu
@@ -47,16 +44,16 @@ def create_classes_list(list_in):
 
     # Create individual item entries
     for classes_dict in sorted(list_in, key=classes_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', classes_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', classes_dict["name"]).lower()
 
         # Classes list entry
-        xml_out += (f'\t\t\t\t<class{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{classes_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.classes.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.classes.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</listlink>\n')
-        xml_out += (f'\t\t\t\t</class{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{classes_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t</{name_lower}>\n')
 
     xml_out += ('\t\t\t</index>\n')
     xml_out += ('\t\t</classes>\n')
@@ -71,18 +68,12 @@ def create_classes_cards(list_in):
     if not list_in:
         return xml_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     classes_out += ('\t\t<classes>\n')
     for classes_dict in sorted(list_in, key=classes_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', classes_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', classes_dict["name"]).lower()
 
         classes_out += f'\t\t\t<{name_lower}>\n'
-        classes_out += f'\t\t\t\t<name type="string">{classes_dict["name"]}</name>\n'
-        classes_out += '\t\t\t\t<source type="string">Class</source>\n'
         classes_out += f'\t\t\t\t<description type="formattedtext">\n'
         if classes_dict["description"] != '':
             classes_out += f'{classes_dict["description"]}'
@@ -94,6 +85,8 @@ def create_classes_cards(list_in):
             classes_out += f'{classes_dict["published"]}'
 #        xml_out += (f'\t\t\t\t<shortdescription type="string">{classes_dict["shortdescription"]}</shortdescription>\n')
         classes_out += f'\n\t\t\t\t</description>\n'
+        classes_out += f'\t\t\t\t<name type="string">{classes_dict["name"]}</name>\n'
+        classes_out += '\t\t\t\t<source type="string">Class</source>\n'
         classes_out += f'\t\t\t</{name_lower}>\n'
 
         # Create all Required Power entries
@@ -108,26 +101,26 @@ def create_feature(feature_dict, name_in):
     link_out = ''
     featuredesc_out = ''
 
-    name_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
-    feature_camel = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"])
+    name_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
+    feature_lower = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"]).lower()
     feature_desc = clean_formattedtext(feature_dict["desc"])
 
-    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_camel}{feature_camel}@{settings.library}">{feature_dict["name"]}</link>\n')
+    link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_lower}{feature_lower}@{settings.library}">{feature_dict["name"]}</link>\n')
 
-    featuredesc_out += f'\t\t\t<{name_camel}{feature_camel}>\n'
-    featuredesc_out += f'\t\t\t\t<name type="string">{feature_dict["name"]}</name>\n'
-    featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
-    featuredesc_out += f'\t\t\t\t<prerequisite type="string">{name_in} Class</prerequisite>\n'
+    featuredesc_out += f'\t\t\t<{name_lower}{feature_lower}>\n'
     featuredesc_out += f'\t\t\t\t<description type="formattedtext">{feature_desc}</description>\n'
-    featuredesc_out += f'\t\t\t</{name_camel}{feature_camel}>\n'
+    featuredesc_out += f'\t\t\t\t<name type="string">{feature_dict["name"]}</name>\n'
+    featuredesc_out += f'\t\t\t\t<prerequisite type="string">{name_in} Class</prerequisite>\n'
+    featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
+    featuredesc_out += f'\t\t\t</{name_lower}{feature_lower}>\n'
     
     return link_out, featuredesc_out
 
 
 def create_power(power_dict, name_in):
     xml_out = ''
-    power_camel = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"])
-    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_camel}@{settings.library}">{power_dict["name"]}</link>\n')
+    power_lower = re.sub('[^a-zA-Z0-9_]', '', power_dict["name"]).lower()
+    xml_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.powers.{power_lower}@{settings.library}">{power_dict["name"]}</link>\n')
 
     return xml_out
 

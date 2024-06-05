@@ -68,9 +68,9 @@ def monster_list_sorter(entry_in):
 
     return (group_id, name)
 
-def create_monster_library(id_in, tier_list, name_in):
+def create_monster_library(tier_list, name_in):
     xml_out = ''
-    class_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
+    class_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
 
     for t in tier_list:
 
@@ -79,20 +79,19 @@ def create_monster_library(id_in, tier_list, name_in):
         else:
             tier_str = ''
 
-        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
+        tier_lower = re.sub('[^a-zA-Z0-9_]', '', t).lower()
 
-        id_in += 1
-        lib_id = 'l' + str(id_in).rjust(3, '0')
+        settings.lib_id += 1
 
-        xml_out += (f'\t\t\t\t<{lib_id}-npcs{class_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
+        xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
         xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_classmonsterlist</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>lists.npcs.{class_camel}{tier_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>lists.npc.{class_lower}_{tier_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</librarylink>\n')
-        xml_out += (f'\t\t\t\t</{lib_id}-npcs{class_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{name_in}{tier_str}</name>\n')
+        xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 # This controls the table that appears when you click on a Library menu
@@ -102,12 +101,12 @@ def create_monster_list(list_in, tier_list, name_in):
     if not list_in:
         return xml_out
 
-    class_camel = re.sub('[^a-zA-Z0-9_]', '', name_in)
+    class_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
 
     # Populate the sort order and sub-heading fields according to which table is being built
     if re.search(r'NPCs By Letter', name_in):
         for monster_dict in list_in:
-            monster_dict["group_id"] = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])[0:1].upper()
+            monster_dict["group_id"] = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])[0:1].lower()
             monster_dict["group_str"] = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])[0:1].upper()
     elif re.search(r'NPCs By Level( |$)', name_in):
         for monster_dict in list_in:
@@ -166,14 +165,14 @@ def create_monster_list(list_in, tier_list, name_in):
         else:
             tier_str = ''
 
-        tier_camel = re.sub('[^a-zA-Z0-9_]', '', t)
+        tier_lower = re.sub('[^a-zA-Z0-9_]', '', t).lower()
 
         previous_group = ''
 
         # Monster List
 
         # Open new Class (new Table)
-        xml_out += (f'\t\t\t<{class_camel}{tier_camel}>\n')
+        xml_out += (f'\t\t\t<{class_lower}_{tier_lower}>\n')
         xml_out += (f'\t\t\t\t<description type="string">{name_in}{tier_str}</description>\n')
         xml_out += ('\t\t\t\t<groups>\n')
         group_flag = False
@@ -197,7 +196,7 @@ def create_monster_list(list_in, tier_list, name_in):
                 group_flag = True
 
                 # format name to be link target
-                name_camel = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])
+                name_lower = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"]).lower()
 
                 # Check for new Group
                 if monster_dict["group_id"] != previous_group:
@@ -205,31 +204,31 @@ def create_monster_list(list_in, tier_list, name_in):
                     # Close previous Group
                     if previous_group != '':
                         xml_out += ('\t\t\t\t\t\t</monsters>\n')
-                        xml_out += (f'\t\t\t\t\t</npcs{previous_group}>\n')
+                        xml_out += (f'\t\t\t\t\t</npcs_{previous_group}>\n')
 
                     # Open new Group
-                    xml_out += (f'\t\t\t\t\t<npcs{monster_dict["group_id"]}>\n')
+                    xml_out += (f'\t\t\t\t\t<npcs_{monster_dict["group_id"]}>\n')
                     xml_out += (f'\t\t\t\t\t\t<description type="string">{monster_dict["group_str"]}</description>\n')
                     xml_out += ('\t\t\t\t\t\t<monsters>\n')
 
                 # Monster list entry
-                xml_out += (f'\t\t\t\t\t\t\t<npc{name_camel}>\n')
+                xml_out += (f'\t\t\t\t\t\t\t<{name_lower}>\n')
                 xml_out += ('\t\t\t\t\t\t\t\t<link type="windowreference">\n')
                 xml_out += ('\t\t\t\t\t\t\t\t\t<class>npc</class>\n')
-                xml_out += (f'\t\t\t\t\t\t\t\t\t<recordname>reference.npcs.{name_camel}@{settings.library}</recordname>\n')
+                xml_out += (f'\t\t\t\t\t\t\t\t\t<recordname>reference.npcs.{name_lower}@{settings.library}</recordname>\n')
                 xml_out += ('\t\t\t\t\t\t\t\t</link>\n')
-                xml_out += (f'\t\t\t\t\t\t\t</npc{name_camel}>\n')
+                xml_out += (f'\t\t\t\t\t\t\t</{name_lower}>\n')
 
                 previous_group = monster_dict["group_id"]
 
         # Close final Group if there was at least one entry
         if group_flag:
             xml_out += ('\t\t\t\t\t\t</monsters>\n')
-            xml_out += (f'\t\t\t\t\t</npcs{previous_group}>\n')
+            xml_out += (f'\t\t\t\t\t</npcs_{previous_group}>\n')
 
         # Close final Class
         xml_out += ('\t\t\t\t</groups>\n')
-        xml_out += (f'\t\t\t</{class_camel}{tier_camel}>\n')
+        xml_out += (f'\t\t\t</{class_lower}_{tier_lower}>\n')
 
     return xml_out
 
@@ -247,13 +246,15 @@ def create_monster_cards(list_in):
 
     # Create individual item entries
     for monster_dict in sorted(list_in, key=monster_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', monster_dict["name"]).lower()
 
-        xml_out += (f'\t\t\t<{name_camel}>\n')
+        xml_out += (f'\t\t\t<{name_lower}>\n')
         xml_out += (f'\t\t\t\t<ac type="number">{monster_dict["ac"]}</ac>\n')
         xml_out += (f'\t\t\t\t<alignment type="string">{monster_dict["alignment"]}</alignment>\n')
         if monster_dict["ap"] != '':
             xml_out += (f'\t\t\t\t<ap type="number">{monster_dict["ap"]}</ap>\n')
+        else:
+            xml_out += ('\t\t\t\t<ap type="number">0</ap>\n')
         xml_out += (f'\t\t\t\t<charisma type="number">{monster_dict["charisma"]}</charisma>\n')
         xml_out += (f'\t\t\t\t<constitution type="number">{monster_dict["constitution"]}</constitution>\n')
         xml_out += (f'\t\t\t\t<dexterity type="number">{monster_dict["dexterity"]}</dexterity>\n')
@@ -287,7 +288,7 @@ def create_monster_cards(list_in):
         xml_out += (f'\t\t\t\t<will type="number">{monster_dict["will"]}</will>\n')
         xml_out += (f'\t\t\t\t<wisdom type="number">{monster_dict["wisdom"]}</wisdom>\n')
         xml_out += (f'\t\t\t\t<xp type="number">{monster_dict["xp"]}</xp>\n')
-        xml_out += (f'\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t</{name_lower}>\n')
 
     return xml_out
 
@@ -468,16 +469,18 @@ def format_power(soup_in, id_in):
     shortdescription_str = (sustain_str + trigger_str + shortdescription_str).strip()
 
     # Format the list of powers into statblocks
-    entry_id = str(id_in).rjust(3, '0')
-
-    power_out += f'\t\t\t\t\t<pwr-{entry_id}>\n'
-    power_out += f'\t\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
+    power_out += f'\t\t\t\t\t<id-{id_in:0>5}>\n'
     if action_str != '':
         power_out += f'\t\t\t\t\t\t<action type="string">{action_str}</action>\n'
     if icon_str != '':
         power_out += f'\t\t\t\t\t\t<icon type="string">{icon_str}</icon>\n'
     if keywords_str != '':
         power_out += f'\t\t\t\t\t\t<keywords type="string">{keywords_str}</keywords>\n'
+    power_out += '\t\t\t\t\t\t<link type="windowreference">\n'
+    power_out += '\t\t\t\t\t\t\t<class>reference_power_custom</class>\n'
+    power_out += '\t\t\t\t\t\t\t<recordname />\n'
+    power_out += '\t\t\t\t\t\t</link>\n'
+    power_out += f'\t\t\t\t\t\t<name type="string">{pwrname_str}</name>\n'
     if powertype_str != '':
         power_out += f'\t\t\t\t\t\t<powertype type="string">{powertype_str}</powertype>\n'
     if range_str != '':
@@ -486,7 +489,7 @@ def format_power(soup_in, id_in):
         power_out += f'\t\t\t\t\t\t<recharge type="string">{recharge_str}</recharge>\n'
     if shortdescription_str != '':
         power_out += f'\t\t\t\t\t\t<shortdescription type="string">{shortdescription_str}</shortdescription>\n'
-    power_out += f'\t\t\t\t\t</pwr-{entry_id}>\n'
+    power_out += f'\t\t\t\t\t</id-{id_in:0>5}>\n'
 
     return power_out
 
@@ -509,7 +512,7 @@ def extract_monster_db(db_in):
         level_str = row["Level"].replace('\\', '')
         role_str = row["Role"].replace('\\', '')
 
-#        if name_str not in ['Ancient Earthquake Dragon', 'Bullywug Leaper', 'Berbalang', 'Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
+#        if name_str not in ['Torog', 'Ancient Earthquake Dragon', 'Bullywug Leaper', 'Berbalang', 'Demogorgon', 'Abalach-Re, Sorcerer-Queen', 'Ancient Red Dragon', 'Balor', 'Aboleth Overseer', 'Adult Black Dragon', 'Astral Stalker', 'Shuffling Zombie', 'Dark Naga', 'Angel of Valor Legionnaire', 'Berbalang', 'Decrepit Skeleton', 'Ogrémoch', 'Yuan-ti Abomination']:
 #            continue
 #        print('\n' + name_str)
 
@@ -556,7 +559,11 @@ def extract_monster_db(db_in):
             while anchor_tag:
                 anchor_tag.replaceWithChildren()
                 anchor_tag = published_tag.find('a')
-            published_str = published_tag
+            # put it in a string and separate entries with <p> tags
+            published_str = str(published_tag)
+            published_str = re.sub(r'(page\(s\)[0-9, ]*), ', r'\1</p><p>', published_str)
+            published_str = re.sub(r'(Dungeon Magazine [0-9]+), ([^p])', r'\1</p><p>\2', published_str)
+            
 
         # Level-Role
         level_tag = parsed_html.find('span', class_='level')
@@ -684,7 +691,7 @@ def extract_monster_db(db_in):
 
                 # if we find an Aura in the header section, construct it like other powers so it can be processed with them
                 for a_tag in pwr_tag:
-                    if aura_match := re.search(r'aura\s*([0-9])(.*)', a_tag.text, re.IGNORECASE):
+                    if aura_match := re.search(r'aura\s*([0-9]+)(.*)', a_tag.text, re.IGNORECASE):
                         aura_head = aura_match.group(1)
                         aura_body = aura_match.group(2)
                         aura_name = a_tag.previous_sibling.text

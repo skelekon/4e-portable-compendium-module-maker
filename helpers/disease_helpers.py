@@ -14,21 +14,20 @@ def disease_list_sorter(entry_in):
 
 
 # This creates the top-level menus when you select a Module
-def create_disease_library(id_in):
+def create_disease_library():
     xml_out = ''
 
-    id_in += 1
-    lib_id = 'l' + str(id_in).rjust(3, '0')
+    settings.lib_id += 1
 
-    xml_out += (f'\t\t\t\t<{lib_id}-diseases>\n')
-    xml_out += (f'\t\t\t\t\t<name type="string">Diseases</name>\n')
+    xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
     xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
     xml_out += ('\t\t\t\t\t\t<class>referenceindex</class>\n')
     xml_out += (f'\t\t\t\t\t\t<recordname>lists.diseases@{settings.library}</recordname>\n')
     xml_out += ('\t\t\t\t\t</librarylink>\n')
-    xml_out += (f'\t\t\t\t</{lib_id}-diseases>\n')
+    xml_out += (f'\t\t\t\t\t<name type="string">Diseases</name>\n')
+    xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
 
-    return xml_out, id_in
+    return xml_out
 
 
 # This controls the table that appears when you click on a Library menu
@@ -37,8 +36,6 @@ def create_disease_list(list_in):
 
     if not list_in:
         return xml_out
-
-    name_camel = ''
 
     # Races List
     # This controls the table that appears when you click on a Library menu
@@ -49,16 +46,16 @@ def create_disease_list(list_in):
 
     # Create individual item entries
     for disease_dict in sorted(list_in, key=disease_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', disease_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', disease_dict["name"]).lower()
 
         # Races list entry
-        xml_out += (f'\t\t\t\t<disease{name_camel}>\n')
-        xml_out += (f'\t\t\t\t\t<name type="string">{disease_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t<listlink type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t<class>reference_disease</class>\n')
-        xml_out += (f'\t\t\t\t\t\t<recordname>reference.diseases.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t<recordname>reference.diseases.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t</listlink>\n')
-        xml_out += (f'\t\t\t\t</disease{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t<name type="string">{disease_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t</{name_lower}>\n')
 
     xml_out += ('\t\t\t</index>\n')
     xml_out += ('\t\t</diseases>\n')
@@ -75,18 +72,18 @@ def create_disease_cards(list_in):
     # Create individual item entries
     xml_out += ('\t\t<diseases>\n')
     for disease_dict in sorted(list_in, key=disease_list_sorter):
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', disease_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', disease_dict["name"]).lower()
 
-        xml_out += (f'\t\t\t<{name_camel}>\n')
-        xml_out += (f'\t\t\t\t<name type="string">{disease_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t<{name_lower}>\n')
         if disease_dict["flavor"] != '':
             xml_out += (f'\t\t\t\t<flavor type="string">{disease_dict["flavor"]}</flavor>\n')
-        if disease_dict["level"] != '':
-            xml_out += (f'\t\t\t\t<level type="number">{disease_dict["level"]}</level>\n')
-        if disease_dict["stable"] != '':
-            xml_out += (f'\t\t\t\t<stable type="number">{disease_dict["stable"]}</stable>\n')
         if disease_dict["improve"] != '':
             xml_out += (f'\t\t\t\t<improve type="number">{disease_dict["improve"]}</improve>\n')
+        if disease_dict["level"] != '':
+            xml_out += (f'\t\t\t\t<level type="number">{disease_dict["level"]}</level>\n')
+        xml_out += (f'\t\t\t\t<name type="string">{disease_dict["name"]}</name>\n')
+        if disease_dict["stable"] != '':
+            xml_out += (f'\t\t\t\t<stable type="number">{disease_dict["stable"]}</stable>\n')
         if disease_dict["stage000"] != '':
             xml_out += (f'\t\t\t\t<stage000 type="string">{disease_dict["stage000"]}</stage000>\n')
         if disease_dict["stage001"] != '':
@@ -99,7 +96,7 @@ def create_disease_cards(list_in):
             xml_out += (f'\t\t\t\t<stage004 type="string">{disease_dict["stage004"]}</stage004>\n')
         if disease_dict["stage005"] != '':
             xml_out += (f'\t\t\t\t<stage005 type="string">{disease_dict["stage005"]}</stage005>\n')
-        xml_out += (f'\t\t\t</{name_camel}>\n')
+        xml_out += (f'\t\t\t</{name_lower}>\n')
 
     xml_out += ('\t\t</diseases>\n')
 

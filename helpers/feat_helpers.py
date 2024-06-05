@@ -17,7 +17,7 @@ def feat_list_sorter(entry_in):
     return (class_id, name)
 
 
-def create_feat_library(id_in, list_in):
+def create_feat_library(list_in):
     xml_out = ''
 
     if not list_in:
@@ -27,22 +27,22 @@ def create_feat_library(id_in, list_in):
     for feat_dict in sorted(list_in, key=library_list_sorter):
         if feat_dict["class"] != previous_class:
             previous_class = feat_dict["class"]
-            class_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"])
+            class_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"]).lower()
 
-            id_in += 1
-            lib_id = 'l' + str(id_in).rjust(3, '0')
+            settings.lib_id += 1
 
-            xml_out += (f'\t\t\t\t<{lib_id}-feats{class_camel}>\n')
-            xml_out += (f'\t\t\t\t\t<name type="string">Feats - {feat_dict["class"]}</name>\n')
+            xml_out += (f'\t\t\t\t<id-{settings.lib_id:0>5}>\n')
             xml_out += ('\t\t\t\t\t<librarylink type="windowreference">\n')
             xml_out += ('\t\t\t\t\t\t<class>reference_classfeatlist</class>\n')
-            xml_out += (f'\t\t\t\t\t\t<recordname>lists.feats.{class_camel}@{settings.library}</recordname>\n')
+            xml_out += (f'\t\t\t\t\t\t<recordname>lists.feats.{class_lower}@{settings.library}</recordname>\n')
             xml_out += ('\t\t\t\t\t</librarylink>\n')
-            xml_out += (f'\t\t\t\t</{lib_id}-feats{class_camel}>\n')
-    return xml_out, id_in
+            xml_out += (f'\t\t\t\t\t<name type="string">Feats - {feat_dict["class"]}</name>\n')
+            xml_out += (f'\t\t\t\t</id-{settings.lib_id:0>5}>\n')
+
+    return xml_out
 
 
-def create_feat_table(list_in):
+def create_feat_list(list_in):
     xml_out = ''
 
     if not list_in:
@@ -50,7 +50,6 @@ def create_feat_table(list_in):
 
     previous_class = ''
     previous_group = ''
-    class_camel = ''
 
     # Feat List
     # This controls the table that appears when you click on a Library menu
@@ -58,17 +57,17 @@ def create_feat_table(list_in):
 
     # Create individual item entries
     for feat_dict in sorted(list_in, key=feat_list_sorter):
-        class_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"])
-        name_camel = re.sub('[^a-zA-Z0-9_]', '', feat_dict["name"])
-        group_camel = name_camel[0:1].upper()
+        class_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["class"]).lower()
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["name"]).lower()
+        group_letter = name_lower[0:1]
 
         #Check for new Class
-        if class_camel != previous_class:
+        if class_lower != previous_class:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t\t</{previous_class}{previous_group}>\n')
+                xml_out += (f'\t\t\t\t\t</{previous_class}_{previous_group}>\n')
 
             # Close previous Class
             if previous_class != '':
@@ -76,77 +75,75 @@ def create_feat_table(list_in):
                 xml_out += (f'\t\t\t</{previous_class}>\n')
 
             # Open new Class
-            previous_group = group_camel
-            xml_out += (f'\t\t\t<{class_camel}>\n')
+            previous_group = group_letter
+            xml_out += (f'\t\t\t<{class_lower}>\n')
             xml_out += (f'\t\t\t\t<description type="string">{feat_dict["class"]} Feats</description>\n')
             xml_out += ('\t\t\t\t<groups>\n')
     
             # Open new Group
-            xml_out += (f'\t\t\t\t\t<{class_camel}{group_camel}>\n')
-            xml_out += (f'\t\t\t\t\t\t<description type="string">{group_camel}</description>\n')
+            xml_out += (f'\t\t\t\t\t<{class_lower}_{group_letter}>\n')
+            xml_out += (f'\t\t\t\t\t\t<description type="string">{group_letter.upper()}</description>\n')
             xml_out += ('\t\t\t\t\t\t<powers>\n')
 
         # Check for new Group
-        if group_camel != previous_group:
+        if group_letter != previous_group:
 
             # Close previous Group
             if previous_group != '':
                 xml_out += ('\t\t\t\t\t\t</powers>\n')
-                xml_out += (f'\t\t\t\t\t</{class_camel}{previous_group}>\n')
+                xml_out += (f'\t\t\t\t\t</{class_lower}_{previous_group}>\n')
 
             # Open new Group if not the first entry in the table
             if previous_class != '':
-                xml_out += (f'\t\t\t\t\t<{class_camel}{group_camel}>\n')
-                xml_out += (f'\t\t\t\t\t\t<description type="string">{group_camel}</description>\n')
+                xml_out += (f'\t\t\t\t\t<{class_lower}_{group_letter}>\n')
+                xml_out += (f'\t\t\t\t\t\t<description type="string">{group_letter.upper()}</description>\n')
                 xml_out += ('\t\t\t\t\t\t<powers>\n')
 
         # Feats list entry
-        xml_out += (f'\t\t\t\t\t\t\t<feat{name_camel}>\n')
+        xml_out += (f'\t\t\t\t\t\t\t<{name_lower}>\n')
         xml_out += ('\t\t\t\t\t\t\t\t<link type="windowreference">\n')
         xml_out += ('\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t\t<recordname>reference.feats.{name_camel}@{settings.library}</recordname>\n')
+        xml_out += (f'\t\t\t\t\t\t\t\t\t<recordname>reference.feats.{name_lower}@{settings.library}</recordname>\n')
         xml_out += ('\t\t\t\t\t\t\t\t</link>\n')
-        xml_out += (f'\t\t\t\t\t\t\t\t<source type="string">{feat_dict["name"]}</source>\n')
-        xml_out += (f'\t\t\t\t\t\t\t</feat{name_camel}>\n')
+#        xml_out += (f'\t\t\t\t\t\t\t\t<name type="string">{feat_dict["name"]}</name>\n')
+        xml_out += (f'\t\t\t\t\t\t\t</{name_lower}>\n')
 
-        previous_class = class_camel
-        previous_group = group_camel
+        previous_class = class_lower
+        previous_group = group_letter
 
     # Close final Group
     xml_out += ('\t\t\t\t\t\t</powers>\n')
-    xml_out += (f'\t\t\t\t\t</{class_camel}{group_camel}>\n')
+    xml_out += (f'\t\t\t\t\t</{class_lower}_{group_letter}>\n')
 
     # Close final Class
     xml_out += ('\t\t\t\t</groups>\n')
-    xml_out += (f'\t\t\t</{class_camel}>\n')
+    xml_out += (f'\t\t\t</{class_lower}>\n')
 
     xml_out += ('\t\t</feats>\n')
 
     return xml_out
 
 
-def create_feat_desc(list_in):
+def create_feat_cards(list_in):
     feats_out = ''
 
     if not list_in:
         return feats_out
 
-    section_str = ''
-    entry_str = ''
-    name_lower = ''
-
     # Create individual item entries
     feats_out += ('\t\t<feats>\n')
     for feat_dict in sorted(list_in, key=feat_list_sorter):
-        name_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["name"])
+        name_lower = re.sub('[^a-zA-Z0-9_]', '', feat_dict["name"]).lower()
 
         feats_out += (f'\t\t\t<{name_lower}>\n')
-        feats_out += (f'\t\t\t\t<name type="string">{feat_dict["name"]}</name>\n')
         feats_out += (f'\t\t\t\t<description type="formattedtext">{feat_dict["description"]}</description>\n')
-        feats_out += (f'\t\t\t\t<prerequisite type="string">{feat_dict["prerequisite"]}</prerequisite>\n')
-        feats_out += (f'\t\t\t\t<shortdescription type="string">{feat_dict["shortdescription"]}</shortdescription>\n')
         if feat_dict["linkedpower"] != '':
             feats_out += (f'\t\t\t\t<linkedpowers>\n{feat_dict["linkedpower"]}\t\t\t\t</linkedpowers>\n')
+        else:
+            feats_out += ('\t\t\t\t<linkedpowers />\n')
+        feats_out += (f'\t\t\t\t<name type="string">{feat_dict["name"]}</name>\n')
+        feats_out += (f'\t\t\t\t<prerequisite type="string">{feat_dict["prerequisite"]}</prerequisite>\n')
+        feats_out += (f'\t\t\t\t<shortdescription type="string">{feat_dict["shortdescription"]}</shortdescription>\n')
         feats_out += (f'\t\t\t</{name_lower}>\n')
 
     feats_out += ('\t\t</feats>\n')
@@ -155,15 +152,16 @@ def create_feat_desc(list_in):
 
 
 def create_linked_power(power_in):
-    power_camel = re.sub('[^a-zA-Z0-9_]', '', power_in)
-
     power_out = ''
-    power_out += (f'\t\t\t\t\t<power{power_camel}>\n')
+
+    power_lower = re.sub('[^a-zA-Z0-9_]', '', power_in).lower()
+
+    power_out += (f'\t\t\t\t\t<{power_lower}>\n')
     power_out += ('\t\t\t\t\t\t<link type="windowreference">\n')
     power_out += ('\t\t\t\t\t\t\t<class>powerdesc</class>\n')
-    power_out += (f'\t\t\t\t\t\t\t<recordname>reference.powers.{power_camel}@{settings.library}</recordname>\n')
+    power_out += (f'\t\t\t\t\t\t\t<recordname>reference.powers.{power_lower}@{settings.library}</recordname>\n')
     power_out += ('\t\t\t\t\t\t</link>\n')
-    power_out += (f'\t\t\t\t\t</power{power_camel}>\n')
+    power_out += (f'\t\t\t\t\t</{power_lower}>\n')
     
     return power_out
 
@@ -183,7 +181,7 @@ def extract_feat_db(db_in):
         name_str =  row["Name"].replace('\\', '')
         class_str =  row["Tier"].replace('\\', '')
 
-##        if name_str != 'Anthem of Civilization':
+##        if name_str not in ['Cahulaks Novice', 'Gythka Specialist']: ##'Anthem of Civilization']:
 ##            continue
 
         class_id = ''
@@ -272,6 +270,7 @@ def extract_feat_db(db_in):
         for desc in desc_list:
             if re.search('Feat (Attack|Utility)', desc):
                 power_flag = True
+            # once a Power is hit, this will consume the rest of the feat text so it doesn't appear in Description
             if power_flag:
                 power_list.append(desc)
             else:
@@ -283,10 +282,18 @@ def extract_feat_db(db_in):
         # bold the Prerequisite & Benefit headings
         description_str = re.sub(r'(Prerequisite:|Benefit:)', r'<b>\1</b>', description_str)            
 
-        # this presumes there is one power at most per Feat. Cahulaks Novice & Gythka Specialist have 2
+        # the second entry in power_list contains the power name
         if power_flag:
             settings.feat_power_list.append(power_list[1])
-            linkedpower_str = create_linked_power(power_list[1])
+            linkedpower_str += create_linked_power(power_list[1])
+
+        # Cahulaks Novice & Gythka Specialist have a second power
+            if name_str == 'Cahulaks Novice':
+                settings.feat_power_list.append('Tripping Cahulaks Attack')
+                linkedpower_str += create_linked_power('Tripping Cahulaks Attack')            
+            elif name_str == 'Gythka Specialist':
+                settings.feat_power_list.append('Gythka Arc Attack')
+                linkedpower_str += create_linked_power('Gythka Arc Attack')            
 
         export_dict = {}
         export_dict["class"] = class_str
