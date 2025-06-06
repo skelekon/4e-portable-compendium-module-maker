@@ -76,13 +76,15 @@ def create_races_cards(list_in):
         races_out += f'\t\t\t\t<description type="formattedtext">\n'
         if races_dict["description"] != '':
             races_out += f'{races_dict["description"]}'
-#        if races_dict["features"] != '':
-#            races_out += f'{races_dict["features"]}'
-#        if races_dict["powers"] != '':
-#            races_out += f'{races_dict["powers"]}'
         if races_dict["published"] != '':
             races_out += f'{races_dict["published"]}'
         races_out += f'\n\t\t\t\t</description>\n'
+        if races_dict["traits"] != '':
+            races_out += f'\t\t\t\t<traits>\n{races_dict["traits"]}\t\t\t\t</traits>\n'
+        if races_dict["features"] != '':
+            races_out += f'\t\t\t\t<features>\n{races_dict["featuredesc"]}\t\t\t\t</features>\n'        
+        if races_dict["powers"] != '':
+           races_out += f'\t\t\t\t<powers>\n{races_dict["powerslib"]}\t\t\t\t</powers>\n'        
         if races_dict["flavor"] != '':
             races_out += f'\t\t\t\t<flavor type="string">{races_dict["flavor"]}</flavor>\n'
         races_out += f'\t\t\t\t<name type="string">{races_dict["name"]}</name>\n'
@@ -113,20 +115,37 @@ def create_features(features_in, name_in, heading_in):
         feature_lower = re.sub('[^a-zA-Z0-9_]', '', ftr["name"]).lower()
         listlink_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_lower}{feature_lower}@{settings.library}">{ftr["name"]}</link>\n')
 
-        featuredesc_out += f'\t\t\t<{name_lower}{feature_lower}>\n'
-        featuredesc_out += f'\t\t\t\t<description type="formattedtext">{ftr["desc"]}</description>\n'
-        featuredesc_out += f'\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
-        featuredesc_out += f'\t\t\t\t<prerequisite type="string">{name_in} Race</prerequisite>\n'
+        featuredesc_out += f'\t\t\t\t\t<{name_lower}{feature_lower}>\n'
+        featuredesc_out += f'\t\t\t\t\t\t<description type="formattedtext">{ftr["text"]}</description>\n'
+        featuredesc_out += f'\t\t\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
+        featuredesc_out += f'\t\t\t\t\t\t<prerequisite type="string">{name_in} Race</prerequisite>\n'
 #        featuredesc_out += f'\t\t\t\t<shortdescription type="string">{ftr["shortdesc"]}</shortdescription>\n'
-        featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
-        featuredesc_out += f'\t\t\t</{name_lower}{feature_lower}>\n'
+        featuredesc_out += f'\t\t\t\t\t\t<source type="string">{name_in} Feature</source>\n'
+        featuredesc_out += f'\t\t\t\t\t</{name_lower}{feature_lower}>\n'
 
     listlink_out += '\t\t\t\t</listlink>\n'
     
     return listlink_out, featuredesc_out
 
+def create_traits(traits_in):
+    traits_out = ''
+
+    if len(traits_in) == 0:
+        return traits_out
+
+    for trait in traits_in:
+        trait_lower = re.sub('[^a-zA-Z0-9_]', '', trait["name"]).lower()
+
+        traits_out += f'\t\t\t\t\t<{trait_lower}>\n'
+        traits_out += f'\t\t\t\t\t\t<name type="string">{trait["name"]}</name>\n'
+        traits_out += f'\t\t\t\t\t\t<text type="formattedtext">{trait["text"]}</text>\n'
+        traits_out += f'\t\t\t\t\t</{trait_lower}>\n'
+    
+    return traits_out    
+
 def create_powers(powers_in):
     xml_out = ''
+    powerdesc_out = ''
     if len(powers_in) == 0:
         return xml_out
 
@@ -149,6 +168,38 @@ def create_powers(powers_in):
     xml_out += '\t\t\t\t</listlink>\n'
     
     return xml_out
+
+def create_powers_lib(powers_in):
+    xml_out = ''
+    powerdesc_out = ''
+    if len(powers_in) == 0:
+        return powerdesc_out
+
+    previous_type = ''
+    settings.power_lib_id = 0
+    for pwr in powers_in:
+        power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr["name"]).lower()
+        # if pwr["class"] != previous_type:
+        #     settings.power_lib_id = 0
+
+        settings.power_lib_id += 1
+        #Open new Power Tag Description
+        powerdesc_out += (f'\t\t\t\t<id-{settings.power_lib_id:0>5}>\n')
+        powerdesc_out += (f'\t\t\t\t\t<abilities />\n')
+        powerdesc_out += (f'\t\t\t\t\t<flavor type="string">{pwr["flavor"]}</flavor>\n')
+        powerdesc_out += (f'\t\t\t\t\t<action type="string">{pwr["action"]}</action>\n')
+        powerdesc_out += (f'\t\t\t\t\t<keywords type="string">{pwr["keywords"]}</keywords>\n')
+        powerdesc_out += (f'\t\t\t\t\t<name type="string">{pwr["name"]}</name>\n')
+        powerdesc_out += (f'\t\t\t\t\t<prepared type="number">1</prepared>\n')
+        powerdesc_out += (f'\t\t\t\t\t<range type="string">{pwr["range"]}</range>\n')           
+        powerdesc_out += (f'\t\t\t\t\t<recharge type="string">{pwr["recharge"]}</recharge>\n')
+        powerdesc_out += (f'\t\t\t\t\t<shortdescription type="string">{pwr["shortdescription"]}</shortdescription>\n')
+        powerdesc_out += (f'\t\t\t\t\t<source type="string">{pwr["class"]}</source>\n')
+        powerdesc_out += (f'\t\t\t\t</id-{settings.power_lib_id:0>5}>\n')
+
+        # previous_type = pwr["class"]
+    
+    return powerdesc_out    
 
 def extract_races_db(db_in):
     races_out = []
@@ -174,8 +225,10 @@ def extract_races_db(db_in):
         featurehead_str = ''
         flavor_str = ''
         powers_str = ''
+        powersdesc_str = ''
         published_str = ''
         shortdescription_str = ''
+        traits_str = ''
         
         # Published In
         published_tag = parsed_html.find(class_='publishedIn').extract()
@@ -199,8 +252,9 @@ def extract_races_db(db_in):
             if flavor_tag := parsed_html.select_one('#detail > i'):
                 flavor_str = flavor_tag.text
 
-            # Traits
+            # Traits and Features
             feature_list = []
+            traits_list = []
             if traits_block := parsed_html.select_one('.flavor > blockquote'):
                 description_str += '<p><b>RACIAL TRAITS</b></p>\n'
                 for b in traits_block.find_all('b'):
@@ -208,6 +262,10 @@ def extract_races_db(db_in):
                     if b.text in ['Average Height', 'Average Weight', 'Ability scores', 'Size', 'Speed', 'Vision', 'Languages', 'Skill Bonuses']:
                         description_str += '<p>' + str(b)
                         description_str += b.next_sibling + '</p>\n'
+                        traits_dict = {}
+                        traits_dict["name"] = b.text
+                        traits_dict["text"] = b.next_sibling[1:].strip()
+                        traits_list.append(copy.copy(traits_dict))
                     # otherwise assume it is a Racial Feature
                     else:
                         feature_dict = {}
@@ -222,6 +280,7 @@ def extract_races_db(db_in):
                                 continue
                             else:
                                 feature_dict["desc"] += re.sub(r'^\s*:\s*', '', str(ftrtag))
+                                feature_dict["text"] = re.sub(r'^\s*:\s*', '', str(ftrtag))
 
                         feature_dict["desc"] += '</p>'
                         # remove tags
@@ -231,14 +290,18 @@ def extract_races_db(db_in):
 
             features_str, featuredesc_str = create_features(feature_list, name_str, name_str + ' Features')
             description_str += features_str
+            traits_str = create_traits(traits_list)
 
             # Powers
             power_list = []
+            powerlib_list = []
             power_h1 = parsed_html.find_all('h1', class_=re.compile(r'(atwillpower|encounterpower|dailypower)'))
             for h1 in power_h1:
                 pwr_type = ''
                 pwr_name = ''
+                pwer_text = ''
                 for item in h1:
+                    pwer_text = re.sub(r'^\s*:\s*', '', str(item.text))
                     if isinstance(item, NavigableString):
                         pwr_name = item
                     else:
@@ -246,11 +309,105 @@ def extract_races_db(db_in):
                 power_dict = {}
                 power_dict["type"] = pwr_type
                 power_dict["name"] = pwr_name
+
+                powerlib_dict = {}
+                powerlib_dict["class"] = pwr_type
+                powerlib_dict["name"] = pwr_name
+                powerlib_dict["source"] = ''
+                powerlib_dict["flavor"] = ''
+                powerlib_dict["recharge"] = ''
+                powerlib_dict["action"] = ''
+                powerlib_dict["range"] = ''
+                powerlib_dict["keywords"] = ''
+                powerlib_dict["description"] = ''
+                powerlib_dict["shortdescription"] = ''
+
+                # Power Source / Name
+                if source_tag := h1.select_one('span', class_='level'):
+                    source_str = source_tag.text
+                    power_name_str = source_tag.next_sibling.strip()
+                if power_name_str == '':
+                    power_name_str = basename_str
+                powerlib_dict["source"] = source_str
+                # Power Flavor
+                if power_flavor_ptag := h1.find_next_sibling('p', class_='flavor'):
+                    if power_flavor_itag := power_flavor_ptag.select_one('i') :
+                        power_flavor_str = power_flavor_itag.text
+                powerlib_dict["flavor"] = power_flavor_str
+                # Power Recharge
+                if power_recharge_ptag := h1.find_next_sibling('p', class_="powerstat"):
+                    if power_recharge_btag := power_recharge_ptag.select_one('b') :
+                        power_recharge_str = power_recharge_btag.text
+                        # small number of powers have alternate capitalization
+                        if power_recharge_str == 'At-will':
+                            power_recharge_str = 'At-Will'
+                        powerlib_dict["recharge"] = power_recharge_str
+                # Powerstat class - this is used to find Action, Range, Keywords
+                powerstat_p = h1.find_next_sibling('p', class_='powerstat')
+                if powerstat_p is not None:
+                    #Action
+                    powerstat_br = powerstat_p.find('br')
+                    action_tag = powerstat_br.find_next_sibling('b')
+                    action_str = action_tag.text
+                    powerlib_dict["action"] = action_str
+                    #Range
+                    range_tag = action_tag.find_next_sibling('b')
+                    if range_tag:
+                        range_next = range_tag.next_sibling
+                        range_str = range_tag.text + range_next.text if range_next else range_tag.text
+                    powerlib_dict["range"] = range_str
+                    #Keywords
+                    keywords = []
+                    power_bullet = powerstat_p.find('img', attrs={'src': 'images/bullet.gif'})
+                    if power_bullet:
+                        for tag in power_bullet.next_siblings:
+                            if tag.name == 'br':
+                                break
+                            elif tag.name == 'b':
+                                keywords.append(tag.text)
+                    keywords_str = ', '.join(keywords)
+                    powerlib_dict["keywords"] = keywords_str
+                    # Description
+                    description_tags = []
+                    for desc_tag in powerstat_p.find_all_next():
+                        if desc_tag.has_attr('class'):
+                            if desc_tag.get('class')[0] in ['powerstat', 'flavor', 'atwillpower', 'encounterpower', 'dailypower']:
+                                description_tags.append(desc_tag)
+                        # looking for Augment labels as they are not in the usual classes
+                        elif desc_tag.name == 'b':
+                            if re.search(r'^Augment [0-9]', desc_tag.text):
+                                description_tags.append(desc_tag)
+                    for tag in description_tags:
+                        # remove p classnames
+                        del tag['class']
+                    description_str = ''.join(map(str, description_tags))
+                    description_str = description_str.replace('\n', '')
+                    # wrap any Augment X in <p> tags, because it's easier to do once it's a string instead of messing with tags
+                    description_str = re.sub(r'(<b>Augment [0-9]</b>)', r'<p>\1</p>', description_str)
+                    # power description doesn't honor <br/> tags, so replace with new paragraphs
+                    description_str = re.sub('<br/>', '</p><p>', description_str)
+                    description_str += published_str
+                    powerlib_dict["description"] = description_str
+
+                # wrap any Augment X in <p> tags, because it's easier to do once it's a string instead of messing with tags
+                description_str = re.sub(r'(<b>Augment [0-9]</b>)', r'<p>\1</p>', description_str)
+                # power description doesn't honor <br/> tags, so replace with new paragraphs
+                description_str = re.sub('<br/>', '</p><p>', description_str)
+                description_str += published_str
+
+                # Short Description
+                # remove tags after replacing new paragraphs with newlines
+                shortdescription_str = re.sub('<.*?>', '', description_str.replace('</p><p>', '\n'))
+                shortdescription_str = shortdescription_str.replace('\n', '\\n')
+                powerlib_dict["shortdescription"] = shortdescription_str
+
                 settings.races_power_list.append(pwr_name)
                 power_list.append(copy.copy(power_dict))
+                powerlib_list.append(copy.copy(powerlib_dict))
 
             # Format the list of links to powers
             powers_str = create_powers(power_list)
+            powersdesc_str = create_powers_lib(powerlib_list)
             description_str += powers_str
 
             # Description
@@ -310,6 +467,7 @@ def extract_races_db(db_in):
                             continue
                         else:
                             feature_dict["desc"] += re.sub(r'^\s*:\s*', '', str(ftrtag))
+                            feature_dict["text"] = re.sub(r'^\s*:\s*', '', str(ftrtag))
 
                     feature_dict["desc"] += '</p>'
                     # remove tags and copy
@@ -349,6 +507,8 @@ def extract_races_db(db_in):
         export_dict["powers"] = powers_str
         export_dict["published"] = published_str
         export_dict["shortdescription"] = shortdescription_str
+        export_dict["traits"] = traits_str
+        export_dict["powerslib"] = powersdesc_str
 
         # Append a copy of generated item dictionary
         races_out.append(copy.deepcopy(export_dict))
