@@ -82,7 +82,7 @@ def create_races_cards(list_in):
         if races_dict["traits"] != '':
             races_out += f'\t\t\t\t<traits>\n{races_dict["traits"]}\t\t\t\t</traits>\n'
         if races_dict["features"] != '':
-            races_out += f'\t\t\t\t<features>\n{races_dict["featuredesc"]}\t\t\t\t</features>\n'        
+            races_out += f'\t\t\t\t<features>\n{races_dict["featureslib"]}\t\t\t\t</features>\n'        
         if races_dict["powers"] != '':
            races_out += f'\t\t\t\t<powers>\n{races_dict["powerslib"]}\t\t\t\t</powers>\n'        
         if races_dict["flavor"] != '':
@@ -115,6 +115,34 @@ def create_features(features_in, name_in, heading_in):
         feature_lower = re.sub('[^a-zA-Z0-9_]', '', ftr["name"]).lower()
         listlink_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_lower}{feature_lower}@{settings.library}">{ftr["name"]}</link>\n')
 
+        featuredesc_out += f'\t\t\t<{name_lower}{feature_lower}>\n'
+        featuredesc_out += f'\t\t\t\t<description type="formattedtext">{ftr["desc"]}</description>\n'
+        featuredesc_out += f'\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
+        featuredesc_out += f'\t\t\t\t<prerequisite type="string">{name_in} Race</prerequisite>\n'
+#        featuredesc_out += f'\t\t\t\t<shortdescription type="string">{ftr["shortdesc"]}</shortdescription>\n'
+        featuredesc_out += f'\t\t\t\t<source type="string">{name_in} Feature</source>\n'
+        featuredesc_out += f'\t\t\t</{name_lower}{feature_lower}>\n'
+
+    listlink_out += '\t\t\t\t</listlink>\n'
+    
+    return listlink_out, featuredesc_out
+
+def create_features_lib(features_in, name_in, heading_in):
+    listlink_out = ''
+    featuredesc_out = ''
+
+    if len(features_in) == 0:
+        return listlink_out, featuredesc_out
+
+    name_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
+    
+    listlink_out += f'<p><b>{heading_in}</b></p>\n'
+    listlink_out += '\t\t\t\t<listlink>\n'
+
+    for ftr in features_in:
+        feature_lower = re.sub('[^a-zA-Z0-9_]', '', ftr["name"]).lower()
+        listlink_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_lower}{feature_lower}@{settings.library}">{ftr["name"]}</link>\n')
+
         featuredesc_out += f'\t\t\t\t\t<{name_lower}{feature_lower}>\n'
         featuredesc_out += f'\t\t\t\t\t\t<description type="formattedtext">{ftr["text"]}</description>\n'
         featuredesc_out += f'\t\t\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
@@ -125,7 +153,7 @@ def create_features(features_in, name_in, heading_in):
 
     listlink_out += '\t\t\t\t</listlink>\n'
     
-    return listlink_out, featuredesc_out
+    return featuredesc_out
 
 def create_traits(traits_in):
     traits_out = ''
@@ -228,6 +256,7 @@ def extract_races_db(db_in):
         powersdesc_str = ''
         published_str = ''
         shortdescription_str = ''
+        featureslib_str = ''
         traits_str = ''
         
         # Published In
@@ -290,7 +319,8 @@ def extract_races_db(db_in):
 
             features_str, featuredesc_str = create_features(feature_list, name_str, name_str + ' Features')
             description_str += features_str
-            traits_str = create_traits(traits_list)
+            featureslib_str += create_features_lib(feature_list, name_str, name_str + ' Features')
+            traits_str += create_traits(traits_list)
 
             # Powers
             power_list = []
@@ -321,6 +351,7 @@ def extract_races_db(db_in):
                 powerlib_dict["keywords"] = ''
                 powerlib_dict["description"] = ''
                 powerlib_dict["shortdescription"] = ''
+                powerdescription_str = ''
 
                 # Power Source / Name
                 if source_tag := h1.select_one('span', class_='level'):
@@ -380,26 +411,19 @@ def extract_races_db(db_in):
                     for tag in description_tags:
                         # remove p classnames
                         del tag['class']
-                    description_str = ''.join(map(str, description_tags))
-                    description_str = description_str.replace('\n', '')
+                    powerdescription_str = ''.join(map(str, description_tags))
+                    powerdescription_str = powerdescription_str.replace('\n', '')
                     # wrap any Augment X in <p> tags, because it's easier to do once it's a string instead of messing with tags
-                    description_str = re.sub(r'(<b>Augment [0-9]</b>)', r'<p>\1</p>', description_str)
+                    powerdescription_str = re.sub(r'(<b>Augment [0-9]</b>)', r'<p>\1</p>', powerdescription_str)
                     # power description doesn't honor <br/> tags, so replace with new paragraphs
-                    description_str = re.sub('<br/>', '</p><p>', description_str)
-                    description_str += published_str
-                    powerlib_dict["description"] = description_str
-
-                # wrap any Augment X in <p> tags, because it's easier to do once it's a string instead of messing with tags
-                description_str = re.sub(r'(<b>Augment [0-9]</b>)', r'<p>\1</p>', description_str)
-                # power description doesn't honor <br/> tags, so replace with new paragraphs
-                description_str = re.sub('<br/>', '</p><p>', description_str)
-                description_str += published_str
+                    powerdescription_str = re.sub('<br/>', '</p><p>', powerdescription_str)
+                    powerlib_dict["description"] = powerdescription_str
 
                 # Short Description
                 # remove tags after replacing new paragraphs with newlines
-                shortdescription_str = re.sub('<.*?>', '', description_str.replace('</p><p>', '\n'))
-                shortdescription_str = shortdescription_str.replace('\n', '\\n')
-                powerlib_dict["shortdescription"] = shortdescription_str
+                powershortdescription_str = re.sub('<.*?>', '', powerdescription_str.replace('</p><p>', '\n'))
+                powershortdescription_str = powershortdescription_str.replace('\n', '\\n')
+                powerlib_dict["shortdescription"] = powershortdescription_str
 
                 settings.races_power_list.append(pwr_name)
                 power_list.append(copy.copy(power_dict))
@@ -508,6 +532,7 @@ def extract_races_db(db_in):
         export_dict["published"] = published_str
         export_dict["shortdescription"] = shortdescription_str
         export_dict["traits"] = traits_str
+        export_dict["featureslib"] = featureslib_str
         export_dict["powerslib"] = powersdesc_str
 
         # Append a copy of generated item dictionary
