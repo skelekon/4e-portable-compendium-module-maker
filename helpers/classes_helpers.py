@@ -103,7 +103,9 @@ def create_feature(feature_dict, name_in):
 
     name_lower = re.sub('[^a-zA-Z0-9_]', '', name_in).lower()
     feature_lower = re.sub('[^a-zA-Z0-9_]', '', feature_dict["name"]).lower()
-    feature_desc = clean_formattedtext(feature_dict["desc"])
+    # Remove lone colon at start of description
+    feature_desc = re.sub('^<p>\s*:\s*', '<p>', feature_dict["desc"])
+    feature_desc = clean_formattedtext(feature_desc)
 
     link_out += (f'\t\t\t\t\t<link class="powerdesc" recordname="reference.features.{name_lower}{feature_lower}@{settings.library}">{feature_dict["name"]}</link>\n')
 
@@ -139,9 +141,9 @@ def extract_classes_db(db_in):
         # Retrieve the data with dedicated columns
         name_str =  row["Name"].replace('\\', '')
 
-#        if name_str not in ['Bard (Skald)']:#'Fighter (Knight)', 'Cleric (Templar)', 'Wizard (Arcanist)', 'Hybrid Druid (Sentinel)', 'Warlock (Binder)', 'Ardent', 'Avenger']:
-#            continue
-#        print(name_str)
+        # if name_str not in ['Sorcerer']:#, 'Hybrid Druid', 'Runepriest', 'Hybrid Fighter', 'Hybrid Ranger', 'Hybrid Rogue']:
+        #     continue
+        # print(name_str)
 
         description_str = ''
         features_str = ''
@@ -210,7 +212,7 @@ def extract_classes_db(db_in):
                         continue
                 if tag.name == 'h3':
                     description_str += '<p><b>' + tag.text + '</b></p>\n'
-                elif tag.name == 'b':
+                elif tag.name == 'b' or tag.text in ['Suggested Combinations', 'Selecting Druid Powers', name_str.upper() + ' OVERVIEW']:
                     # if we are already in a feature then this is the end
                     if in_feature:
                         feature_dict["desc"] += '</p>'
@@ -220,7 +222,10 @@ def extract_classes_db(db_in):
                         feature_list.append(copy.copy(feature_dict))
                         in_feature = False
                     # work out whether this is just text or the start of a new feature
-                    if tag.text.isupper():
+                    if tag.text.isupper() or tag.text in ['Suggested Combinations', 'Selecting Druid Powers']:
+                        description_str += '<p><b>' + title_format(tag.text) + '</b></p>\n'
+                    # Sorcerer also has some paragraphs that look like features
+                    elif name_str == 'Sorcerer' and tag.text in ['Cosmic Magic', 'Dragon Magic', 'Storm Magic', 'Wild Magic']:
                         description_str += '<p><b>' + title_format(tag.text) + '</b></p>\n'
                     else:
                         # start capturing the feature details
@@ -266,6 +271,15 @@ def extract_classes_db(db_in):
                     pwr_link = create_power(power_dict, name_str)
                     description_str += pwr_link
                     in_power = False
+
+        # if we are still in a feature then close out the final one
+        if in_feature:
+            feature_dict["desc"] += '</p>'
+            ftr_link, ftr_desc = create_feature(feature_dict, name_str)
+            description_str += ftr_link
+            featuredesc_str += ftr_desc
+            feature_list.append(copy.copy(feature_dict))
+            in_feature = False
 
         description_str = clean_formattedtext(description_str)
 
