@@ -56,3 +56,4 @@ epic_power_list = []
 feat_power_list = []
 
 lib_id = 0
+power_lib_id = 0
