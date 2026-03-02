@@ -47,6 +47,49 @@ def create_traits(traits_in, classskilllist=None):
     return traits_out
 
 
+def create_features(features_in, class_name=''):
+    features_out = ''
+
+    if len(features_in) == 0:
+        return features_out
+
+    for idx, ftr in enumerate(features_in, start=1):
+        feature_desc = re.sub(r'^<p>\s*:\s*', '<p>', ftr["desc"])
+        feature_desc = clean_formattedtext(feature_desc)
+
+        features_out += f'\t\t\t\t\t<id-{idx:0>5}>\n'
+        features_out += f'\t\t\t\t\t\t<shortcut type="windowreference">\n'
+        features_out += f'\t\t\t\t\t\t\t<class />\n'
+        features_out += f'\t\t\t\t\t\t\t<recordname />\n'
+        features_out += f'\t\t\t\t\t\t</shortcut>\n'
+        features_out += f'\t\t\t\t\t\t<level type="number">1</level>\n'
+        features_out += f'\t\t\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
+        features_out += f'\t\t\t\t\t\t<description type="formattedtext">{feature_desc}</description>\n'
+
+        if "subfeatures" in ftr and len(ftr["subfeatures"]) > 0:
+            features_out += '\t\t\t\t\t\t<subfeatures>\n'
+            for sub_idx, sub_ftr in enumerate(ftr["subfeatures"], start=1):
+                sub_desc = re.sub(r'^<p>\s*:\s*', '<p>', sub_ftr["desc"])
+                sub_desc = clean_formattedtext(sub_desc)
+
+                name_lower = re.sub('[^a-zA-Z0-9_]', '', class_name).lower()
+                feature_lower = re.sub('[^a-zA-Z0-9_]', '', sub_ftr["name"]).lower()
+                features_out += f'\t\t\t\t\t\t\t<id-{sub_idx:0>5}>\n'
+                features_out += '\t\t\t\t\t\t\t\t<shortcut type="windowreference">\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
+                features_out += '\t\t\t\t\t\t\t\t</shortcut>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
+                features_out += f'\t\t\t\t\t\t\t</id-{sub_idx:0>5}>\n'
+            features_out += '\t\t\t\t\t\t</subfeatures>\n'
+
+        features_out += f'\t\t\t\t\t</id-{idx:0>5}>\n'
+
+    return features_out
+
+
 def create_classes_library():
     xml_out = ''
 
@@ -121,6 +164,9 @@ def create_classes_cards(list_in):
         classes_out += f'\n\t\t\t\t</description>\n'
         if classes_dict["traits"] != '':
             classes_out += f'\t\t\t\t<traits>\n{classes_dict["traits"]}\t\t\t\t</traits>\n'
+        features_xml = create_features(classes_dict["class_feature_list"], classes_dict["name"])
+        if features_xml != '':
+            classes_out += f'\t\t\t\t<features>\n{features_xml}\t\t\t\t</features>\n'
         classes_out += f'\t\t\t\t<name type="string">{classes_dict["name"]}</name>\n'
         classes_out += '\t\t\t\t<source type="string">Class</source>\n'
         classes_out += f'\t\t\t</{name_lower}>\n'
@@ -258,9 +304,11 @@ def extract_classes_db(db_in):
 
         # Features
         # these are the unique features for each Class (excluding powers)
-        feature_list = []
+        feature_list = [] #Used for the description section of the class
+        class_feature_list = []  #Used for the separate feature tags
         in_feature = False
         in_power = False
+        in_class_feature = False
         if feature_block := parsed_html.find('h3', text=re.compile('CLASS FEATURES')).previous_sibling:
             for tag in feature_block.next_siblings:
                 # skip these if found as they are part of a Power description
@@ -280,10 +328,22 @@ def extract_classes_db(db_in):
                     # work out whether this is just text or the start of a new feature
                     if tag.text.isupper() or tag.text in ['Suggested Combinations', 'Selecting Druid Powers']:
                         description_str += '<p><b>' + title_format(tag.text) + '</b></p>\n'
+                        if in_class_feature:
+                            class_feature_dict["desc"] += '</p>'
+                            class_feature_list.append(copy.copy(class_feature_dict))                        
+                        class_feature_dict = {}
+                        class_feature_dict["name"] =  title_format(tag.text)
+                        class_feature_dict["desc"] = "<p>"
+                        in_class_feature = True
                     # Sorcerer also has some paragraphs that look like features
                     elif name_str == 'Sorcerer' and tag.text in ['Cosmic Magic', 'Dragon Magic', 'Storm Magic', 'Wild Magic']:
                         description_str += '<p><b>' + title_format(tag.text) + '</b></p>\n'
                     else:
+                        # close out the class feature if we're in one
+                        if in_class_feature:
+                            class_feature_dict["desc"] += '</p>'
+                            class_feature_list.append(copy.copy(class_feature_dict))
+                            in_class_feature = False
                         # start capturing the feature details
                         in_feature = True
                         feature_dict = {}
@@ -301,11 +361,14 @@ def extract_classes_db(db_in):
                     if in_feature:
                         feature_dict["desc"] += str(tag)
                     else:
+                        if in_class_feature:
+                            class_feature_dict["desc"] += str(tag).replace(' <<br=""', '')
                         # .replace is to fix a one borked <br/> tag in Hybrid Druid (Sentinel)
                         description_str += '<p>' + str(tag).replace(' <<br=""', '') + '</p>\n'
 
                 if in_power:
                     # if we are already in a feature then this is the end
+                    was_in_feature = in_feature
                     if in_feature:
                         feature_dict["desc"] += '</p>'
                         ftr_link, ftr_desc = create_feature(feature_dict, name_str)
@@ -326,6 +389,13 @@ def extract_classes_db(db_in):
                     settings.classes_power_list.append(pwr_name)
                     pwr_link = create_power(power_dict, name_str)
                     description_str += pwr_link
+                    # Add power link to feature/class feature descriptions
+                    power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr_name).lower()
+                    feature_pwr_link = f'<link class="powerdesc" recordname="reference.powers.{power_lower}@{settings.library}">{pwr_name}</link>'
+                    if was_in_feature and len(feature_list) > 0:
+                        feature_list[-1]["desc"] += '\n' + feature_pwr_link
+                    elif in_class_feature:
+                        class_feature_dict["desc"] += '\n' + feature_pwr_link
                     in_power = False
 
         # if we are still in a feature then close out the final one
@@ -336,18 +406,51 @@ def extract_classes_db(db_in):
             featuredesc_str += ftr_desc
             feature_list.append(copy.copy(feature_dict))
             in_feature = False
+        if in_class_feature:
+            class_feature_dict["desc"] += '</p>'
+            class_feature_list.append(copy.copy(class_feature_dict))
+            in_class_feature = False
 
         description_str = clean_formattedtext(description_str)
+
+        # Post-process class_feature_list to nest sub-features under parent features
+        # A parent feature is one whose description contains "choose...following"
+        # Sub-features are pulled from feature_list in order
+        j = 0  # tracks position in feature_list across all iterations
+        for ftr in class_feature_list:
+            # Check if this feature is a parent with sub-feature choices
+            if re.search(r'[Cc]hoose\b.*\bfollowing\b', ftr["desc"]):
+                # Try to extract listed child names after a colon
+                names_match = re.search(r'following[^:.]*:\s*(.*?)\.', ftr["desc"])
+                if names_match:
+                    # Parse comma-separated names from the description
+                    names_text = names_match.group(1)
+                    child_names = [re.sub(r'^and\s+', '', n.strip()) for n in names_text.split(',')]
+                    child_names = [n for n in child_names if n]
+                    # Collect following features whose names match the listed children
+                    ftr["subfeatures"] = []
+                    while j < len(feature_list):
+                        if feature_list[j]["name"] in child_names:
+                            ftr["subfeatures"].append(feature_list[j])
+                            j += 1
+                        else:
+                            break
+                else:
+                    # No names listed, all remaining features are children
+                    ftr["subfeatures"] = feature_list[j:]
+                    j = len(feature_list)
 
         export_dict = {}
         export_dict["description"] = description_str
         export_dict["features"] = features_str
+        export_dict["feature_list"] = feature_list
         export_dict["featuredesc"] = featuredesc_str
         export_dict["name"] = name_str
         export_dict["powers"] = powers_str
         export_dict["published"] = published_str
         export_dict["shortdescription"] = shortdescription_str
         export_dict["traits"] = traits_str
+        export_dict["class_feature_list"] = class_feature_list
 
         # Append a copy of generated item dictionary
         classes_out.append(copy.deepcopy(export_dict))
