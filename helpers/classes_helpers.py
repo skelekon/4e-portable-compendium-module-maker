@@ -85,6 +85,25 @@ def create_features(features_in, class_name=''):
                 features_out += f'\t\t\t\t\t\t\t</id-{sub_idx:0>5}>\n'
             features_out += '\t\t\t\t\t\t</subfeatures>\n'
 
+        if "subfeatureoptions" in ftr and len(ftr["subfeatureoptions"]) > 0:
+            features_out += '\t\t\t\t\t\t<subfeaturechoices>\n'
+            for sub_idx, sub_ftr in enumerate(ftr["subfeatureoptions"], start=1):
+                sub_desc = re.sub(r'^<p>\s*:\s*', '<p>', sub_ftr["desc"])
+                sub_desc = clean_formattedtext(sub_desc)
+
+                name_lower = re.sub('[^a-zA-Z0-9_]', '', class_name).lower()
+                feature_lower = re.sub('[^a-zA-Z0-9_]', '', sub_ftr["name"]).lower()
+                features_out += f'\t\t\t\t\t\t\t<id-{sub_idx:0>5}>\n'
+                features_out += '\t\t\t\t\t\t\t\t<shortcut type="windowreference">\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
+                features_out += '\t\t\t\t\t\t\t\t</shortcut>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
+                features_out += f'\t\t\t\t\t\t\t</id-{sub_idx:0>5}>\n'
+            features_out += '\t\t\t\t\t\t</subfeaturechoices>\n'            
+
         features_out += f'\t\t\t\t\t</id-{idx:0>5}>\n'
 
     return features_out
@@ -349,6 +368,7 @@ def extract_classes_db(db_in):
                         feature_dict = {}
                         feature_dict["name"] = tag.text
                         feature_dict["desc"] = '<p>'
+                        feature_dict["parent"] = class_feature_dict["name"]
                 # found a power so just create a link to it (the Powers parser will create the actual Power card)
                 elif isinstance(tag, Tag) and tag.select_one('.atwillpower, .encounterpower, .dailypower'):
                     h1 = tag.find('h1', class_=re.compile(r'(atwillpower|encounterpower|dailypower)'))
@@ -414,31 +434,20 @@ def extract_classes_db(db_in):
         description_str = clean_formattedtext(description_str)
 
         # Post-process class_feature_list to nest sub-features under parent features
-        # A parent feature is one whose description contains "choose...following"
+        # If the parent feature has a description which contains "choose...following", those subfeatures are filed into subfeatureoptions
+        # Otherwise, it is filed into just normal subfeatures
         # Sub-features are pulled from feature_list in order
-        j = 0  # tracks position in feature_list across all iterations
         for ftr in class_feature_list:
-            # Check if this feature is a parent with sub-feature choices
-            if re.search(r'[Cc]hoose\b.*\bfollowing\b', ftr["desc"]):
-                # Try to extract listed child names after a colon
-                names_match = re.search(r'following[^:.]*:\s*(.*?)\.', ftr["desc"])
-                if names_match:
-                    # Parse comma-separated names from the description
-                    names_text = names_match.group(1)
-                    child_names = [re.sub(r'^and\s+', '', n.strip()) for n in names_text.split(',')]
-                    child_names = [n for n in child_names if n]
-                    # Collect following features whose names match the listed children
-                    ftr["subfeatures"] = []
-                    while j < len(feature_list):
-                        if feature_list[j]["name"] in child_names:
-                            ftr["subfeatures"].append(feature_list[j])
-                            j += 1
-                        else:
-                            break
-                else:
-                    # No names listed, all remaining features are children
-                    ftr["subfeatures"] = feature_list[j:]
-                    j = len(feature_list)
+            j = 0  # tracks position in feature_list across all iterations
+            ftr["subfeatureoptions"] = []
+            ftr["subfeatures"] = []
+            while j < len(feature_list):
+                if feature_list[j]["parent"] == ftr["name"] and feature_list[j]["name"] != ftr["name"]:
+                    if re.search(r'[Cc]hoose\b.*\bfollowing\b', ftr["desc"]):
+                        ftr["subfeatureoptions"].append(feature_list[j])
+                    else:
+                        ftr["subfeatures"].append(feature_list[j])
+                j += 1
 
         export_dict = {}
         export_dict["description"] = description_str
