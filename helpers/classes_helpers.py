@@ -13,102 +13,6 @@ def classes_list_sorter(entry_in):
     return (name)
 
 
-TRAIT_NAMES = ['Role', 'Power Source', 'Key Abilities', 'Armor Proficiencies', 'Weapon Proficiencies',
-               'Implement', 'Bonus to Defense', 'Hit Points at 1st Level', 'Hit Points per Level Gained',
-               'Healing Surges per Day', 'Trained Skills', 'Extra Trained Skill']
-
-
-def create_traits(traits_in, classskilllist=None):
-    traits_out = ''
-
-    if len(traits_in) == 0:
-        return traits_out
-
-    for trait in traits_in:
-        trait_lower = re.sub('[^a-zA-Z0-9_]', '', trait["name"]).lower()
-
-        traits_out += f'\t\t\t\t\t<{trait_lower}>\n'
-        traits_out += f'\t\t\t\t\t\t<name type="string">{trait["name"]}</name>\n'
-        if trait["name"] == "Hit Points per Level Gained":
-            traits_out += f'\t\t\t\t\t\t<text type="number">{trait["text"]}</text>\n'
-        else:
-            traits_out += f'\t\t\t\t\t\t<text type="string">{trait["text"]}</text>\n'
-        traits_out += f'\t\t\t\t\t</{trait_lower}>\n'
-
-        if trait["name"] == "Trained Skills" and classskilllist:
-            traits_out += '\t\t\t\t\t<classskilllist>\n'
-            for idx, skill in enumerate(classskilllist, start=1):
-                traits_out += f'\t\t\t\t\t\t<id-{idx:0>5}>\n'
-                traits_out += f'\t\t\t\t\t\t\t<name type="string">{skill["name"]}</name>\n'
-                traits_out += f'\t\t\t\t\t\t\t<statname type="string">{skill["statname"]}</statname>\n'
-                traits_out += f'\t\t\t\t\t\t</id-{idx:0>5}>\n'
-            traits_out += '\t\t\t\t\t</classskilllist>\n'
-
-    return traits_out
-
-
-def create_features(features_in, class_name=''):
-    features_out = ''
-
-    if len(features_in) == 0:
-        return features_out
-
-    for idx, ftr in enumerate(features_in, start=1):
-        feature_desc = re.sub(r'^<p>\s*:\s*', '<p>', ftr["desc"])
-        feature_desc = clean_formattedtext(feature_desc)
-
-        features_out += f'\t\t\t\t\t<id-{idx:0>5}>\n'
-        features_out += f'\t\t\t\t\t\t<shortcut type="windowreference">\n'
-        features_out += f'\t\t\t\t\t\t\t<class />\n'
-        features_out += f'\t\t\t\t\t\t\t<recordname />\n'
-        features_out += f'\t\t\t\t\t\t</shortcut>\n'
-        features_out += f'\t\t\t\t\t\t<level type="number">1</level>\n'
-        features_out += f'\t\t\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
-        features_out += f'\t\t\t\t\t\t<description type="formattedtext">{feature_desc}</description>\n'
-
-        if "subfeatures" in ftr and len(ftr["subfeatures"]) > 0:
-            features_out += '\t\t\t\t\t\t<subfeatures>\n'
-            for sub_idx, sub_ftr in enumerate(ftr["subfeatures"], start=1):
-                sub_desc = re.sub(r'^<p>\s*:\s*', '<p>', sub_ftr["desc"])
-                sub_desc = clean_formattedtext(sub_desc)
-
-                name_lower = re.sub('[^a-zA-Z0-9_]', '', class_name).lower()
-                feature_lower = re.sub('[^a-zA-Z0-9_]', '', sub_ftr["name"]).lower()
-                features_out += f'\t\t\t\t\t\t\t<id-{sub_idx:0>5}>\n'
-                features_out += '\t\t\t\t\t\t\t\t<shortcut type="windowreference">\n'
-                features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
-                features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
-                features_out += '\t\t\t\t\t\t\t\t</shortcut>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
-                features_out += f'\t\t\t\t\t\t\t</id-{sub_idx:0>5}>\n'
-            features_out += '\t\t\t\t\t\t</subfeatures>\n'
-
-        if "subfeatureoptions" in ftr and len(ftr["subfeatureoptions"]) > 0:
-            features_out += '\t\t\t\t\t\t<subfeaturechoices>\n'
-            for sub_idx, sub_ftr in enumerate(ftr["subfeatureoptions"], start=1):
-                sub_desc = re.sub(r'^<p>\s*:\s*', '<p>', sub_ftr["desc"])
-                sub_desc = clean_formattedtext(sub_desc)
-
-                name_lower = re.sub('[^a-zA-Z0-9_]', '', class_name).lower()
-                feature_lower = re.sub('[^a-zA-Z0-9_]', '', sub_ftr["name"]).lower()
-                features_out += f'\t\t\t\t\t\t\t<id-{sub_idx:0>5}>\n'
-                features_out += '\t\t\t\t\t\t\t\t<shortcut type="windowreference">\n'
-                features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
-                features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
-                features_out += '\t\t\t\t\t\t\t\t</shortcut>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
-                features_out += f'\t\t\t\t\t\t\t</id-{sub_idx:0>5}>\n'
-            features_out += '\t\t\t\t\t\t</subfeaturechoices>\n'            
-
-        features_out += f'\t\t\t\t\t</id-{idx:0>5}>\n'
-
-    return features_out
-
-
 def create_classes_library():
     xml_out = ''
 
@@ -218,6 +122,126 @@ def create_feature(feature_dict, name_in):
     featuredesc_out += f'\t\t\t</{name_lower}{feature_lower}>\n'
     
     return link_out, featuredesc_out
+
+TRAIT_NAMES = ['Role', 'Power Source', 'Key Abilities', 'Armor Proficiencies', 'Weapon Proficiencies',
+               'Implement', 'Bonus to Defense', 'Hit Points at 1st Level', 'Hit Points per Level Gained',
+               'Healing Surges per Day', 'Trained Skills', 'Extra Trained Skill']
+
+
+def create_traits(traits_in, classskilllist=None):
+    traits_out = ''
+
+    if len(traits_in) == 0:
+        return traits_out
+
+    for trait in traits_in:
+        trait_lower = re.sub('[^a-zA-Z0-9_]', '', trait["name"]).lower()
+
+        traits_out += f'\t\t\t\t\t<{trait_lower}>\n'
+        traits_out += f'\t\t\t\t\t\t<name type="string">{trait["name"]}</name>\n'
+        if trait["name"] == "Hit Points per Level Gained":
+            traits_out += f'\t\t\t\t\t\t<text type="number">{trait["text"]}</text>\n'
+        else:
+            traits_out += f'\t\t\t\t\t\t<text type="string">{trait["text"]}</text>\n'
+        traits_out += f'\t\t\t\t\t</{trait_lower}>\n'
+
+        if trait["name"] == "Trained Skills" and classskilllist:
+            traits_out += '\t\t\t\t\t<classskilllist>\n'
+            for idx, skill in enumerate(classskilllist, start=1):
+                traits_out += f'\t\t\t\t\t\t<id-{idx:0>5}>\n'
+                traits_out += f'\t\t\t\t\t\t\t<name type="string">{skill["name"]}</name>\n'
+                traits_out += f'\t\t\t\t\t\t\t<statname type="string">{skill["statname"]}</statname>\n'
+                traits_out += f'\t\t\t\t\t\t</id-{idx:0>5}>\n'
+            traits_out += '\t\t\t\t\t</classskilllist>\n'
+
+    return traits_out
+
+
+def create_power_tags(ftr, indent):
+    xml = ''
+    for tag_name, key in [('powersgiven', 'powers_given'), ('poweroptions', 'power_options')]:
+        if key in ftr and len(ftr[key]) > 0:
+            xml += f'{indent}<{tag_name}>\n'
+            for pwr_idx, pwr in enumerate(ftr[key], start=1):
+                pwr_desc = re.sub(r'^<p>\s*:\s*', '<p>', pwr["desc"])
+                pwr_desc = clean_formattedtext(pwr_desc)
+
+                power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr["name"]).lower()
+                xml += f'{indent}\t<id-{pwr_idx:0>5}>\n'
+                xml += f'{indent}\t\t<link type="windowreference">\n'
+                xml += f'{indent}\t\t\t<class>powerdesc</class>\n'
+                xml += f'{indent}\t\t\t<recordname>reference.powers.{power_lower}@{settings.library}</recordname>\n'
+                xml += f'{indent}\t\t</link>\n'
+                xml += f'{indent}\t\t<name type="string">{pwr["name"]}</name>\n'
+                xml += f'{indent}\t\t<description type="formattedtext">{pwr_desc}</name>\n'
+                xml += f'{indent}\t</id-{pwr_idx:0>5}>\n'
+            xml += f'{indent}</{tag_name}>\n'
+    return xml
+
+
+def create_features(features_in, class_name=''):
+    features_out = ''
+
+    if len(features_in) == 0:
+        return features_out
+
+    for idx, ftr in enumerate(features_in, start=1):
+        feature_desc = re.sub(r'^<p>\s*:\s*', '<p>', ftr["desc"])
+        feature_desc = clean_formattedtext(feature_desc)
+
+        features_out += f'\t\t\t\t\t<id-{idx:0>5}>\n'
+        features_out += f'\t\t\t\t\t\t<shortcut type="windowreference">\n'
+        features_out += f'\t\t\t\t\t\t\t<class />\n'
+        features_out += f'\t\t\t\t\t\t\t<recordname />\n'
+        features_out += f'\t\t\t\t\t\t</shortcut>\n'
+        features_out += f'\t\t\t\t\t\t<level type="number">1</level>\n'
+        features_out += f'\t\t\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
+        features_out += f'\t\t\t\t\t\t<description type="formattedtext">{feature_desc}</description>\n'
+
+        if "subfeatures" in ftr and len(ftr["subfeatures"]) > 0:
+            features_out += '\t\t\t\t\t\t<subfeatures>\n'
+            for sub_idx, sub_ftr in enumerate(ftr["subfeatures"], start=1):
+                sub_desc = re.sub(r'^<p>\s*:\s*', '<p>', sub_ftr["desc"])
+                sub_desc = clean_formattedtext(sub_desc)
+
+                name_lower = re.sub('[^a-zA-Z0-9_]', '', class_name).lower()
+                feature_lower = re.sub('[^a-zA-Z0-9_]', '', sub_ftr["name"]).lower()
+                features_out += f'\t\t\t\t\t\t\t<id-{sub_idx:0>5}>\n'
+                features_out += '\t\t\t\t\t\t\t\t<link type="windowreference">\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
+                features_out += '\t\t\t\t\t\t\t\t</link>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
+                features_out += create_power_tags(sub_ftr, '\t\t\t\t\t\t\t\t')
+                features_out += f'\t\t\t\t\t\t\t</id-{sub_idx:0>5}>\n'
+            features_out += '\t\t\t\t\t\t</subfeatures>\n'
+
+        if "subfeatureoptions" in ftr and len(ftr["subfeatureoptions"]) > 0:
+            features_out += '\t\t\t\t\t\t<subfeaturechoices>\n'
+            for sub_idx, sub_ftr in enumerate(ftr["subfeatureoptions"], start=1):
+                sub_desc = re.sub(r'^<p>\s*:\s*', '<p>', sub_ftr["desc"])
+                sub_desc = clean_formattedtext(sub_desc)
+
+                name_lower = re.sub('[^a-zA-Z0-9_]', '', class_name).lower()
+                feature_lower = re.sub('[^a-zA-Z0-9_]', '', sub_ftr["name"]).lower()
+                features_out += f'\t\t\t\t\t\t\t<id-{sub_idx:0>5}>\n'
+                features_out += '\t\t\t\t\t\t\t\t<link type="windowreference">\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
+                features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
+                features_out += '\t\t\t\t\t\t\t\t</link>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
+                features_out += create_power_tags(sub_ftr, '\t\t\t\t\t\t\t\t')
+                features_out += f'\t\t\t\t\t\t\t</id-{sub_idx:0>5}>\n'
+            features_out += '\t\t\t\t\t\t</subfeaturechoices>\n'
+
+        features_out += create_power_tags(ftr, '\t\t\t\t\t\t')
+        features_out += f'\t\t\t\t\t</id-{idx:0>5}>\n'
+
+    return features_out
 
 
 def create_power(power_dict, name_in):
@@ -353,6 +377,8 @@ def extract_classes_db(db_in):
                         class_feature_dict = {}
                         class_feature_dict["name"] =  title_format(tag.text)
                         class_feature_dict["desc"] = "<p>"
+                        class_feature_dict["powers_given"] = []
+                        class_feature_dict["power_options"] = []
                         in_class_feature = True
                     # Sorcerer also has some paragraphs that look like features
                     elif name_str == 'Sorcerer' and tag.text in ['Cosmic Magic', 'Dragon Magic', 'Storm Magic', 'Wild Magic']:
@@ -369,6 +395,8 @@ def extract_classes_db(db_in):
                         feature_dict["name"] = tag.text
                         feature_dict["desc"] = '<p>'
                         feature_dict["parent"] = class_feature_dict["name"]
+                        feature_dict["powers_given"] = []
+                        feature_dict["power_options"] = []
                 # found a power so just create a link to it (the Powers parser will create the actual Power card)
                 elif isinstance(tag, Tag) and tag.select_one('.atwillpower, .encounterpower, .dailypower'):
                     h1 = tag.find('h1', class_=re.compile(r'(atwillpower|encounterpower|dailypower)'))
@@ -412,10 +440,19 @@ def extract_classes_db(db_in):
                     # Add power link to feature/class feature descriptions
                     power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr_name).lower()
                     feature_pwr_link = f'<link class="powerdesc" recordname="reference.powers.{power_lower}@{settings.library}">{pwr_name}</link>'
+                    power_entry = {"name": pwr_name}
                     if was_in_feature and len(feature_list) > 0:
                         feature_list[-1]["desc"] += '\n' + feature_pwr_link
+                        if re.search(r'[Yy]ou gain\b.*?\bpowers?\b.*?\bof your choice\b', feature_list[-1]["desc"]):
+                            feature_list[-1]["power_options"].append(power_entry)
+                        else:
+                            feature_list[-1]["powers_given"].append(power_entry)
                     elif in_class_feature:
                         class_feature_dict["desc"] += '\n' + feature_pwr_link
+                        if re.search(r'[Yy]ou gain\b.*?\bpowers?\b.*?\bof your choice\b', class_feature_dict["desc"]):
+                            class_feature_dict["power_options"].append(power_entry)
+                        else:
+                            class_feature_dict["powers_given"].append(power_entry)
                     in_power = False
 
         # if we are still in a feature then close out the final one
