@@ -163,19 +163,20 @@ def create_power_tags(ftr, indent):
         if key in ftr and len(ftr[key]) > 0:
             xml += f'{indent}<{tag_name}>\n'
             for pwr_idx, pwr in enumerate(ftr[key], start=1):
-                pwr_desc = re.sub(r'^<p>\s*:\s*', '<p>', pwr["desc"])
-                pwr_desc = clean_formattedtext(pwr_desc)
+                if "desc" in pwr:
+                    pwr_desc = re.sub(r'^<p>\s*:\s*', '<p>', pwr["desc"])
+                    pwr_desc = clean_formattedtext(pwr_desc)
 
-                power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr["name"]).lower()
-                xml += f'{indent}\t<id-{pwr_idx:0>5}>\n'
-                xml += f'{indent}\t\t<link type="windowreference">\n'
-                xml += f'{indent}\t\t\t<class>powerdesc</class>\n'
-                xml += f'{indent}\t\t\t<recordname>reference.powers.{power_lower}@{settings.library}</recordname>\n'
-                xml += f'{indent}\t\t</link>\n'
-                xml += f'{indent}\t\t<name type="string">{pwr["name"]}</name>\n'
-                xml += f'{indent}\t\t<description type="formattedtext">{pwr_desc}</name>\n'
-                xml += f'{indent}\t</id-{pwr_idx:0>5}>\n'
-            xml += f'{indent}</{tag_name}>\n'
+                    power_lower = re.sub('[^a-zA-Z0-9_]', '', pwr["name"]).lower()
+                    xml += f'{indent}\t<id-{pwr_idx:0>5}>\n'
+                    xml += f'{indent}\t\t<link type="windowreference">\n'
+                    xml += f'{indent}\t\t\t<class>powerdesc</class>\n'
+                    xml += f'{indent}\t\t\t<recordname>reference.powers.{power_lower}@{settings.library}</recordname>\n'
+                    xml += f'{indent}\t\t</link>\n'
+                    xml += f'{indent}\t\t<name type="string">{pwr["name"]}</name>\n'
+                    xml += f'{indent}\t\t<description type="formattedtext">{pwr_desc}</name>\n'
+                    xml += f'{indent}\t</id-{pwr_idx:0>5}>\n'
+                xml += f'{indent}</{tag_name}>\n'
     return xml
 
 
@@ -194,7 +195,7 @@ def create_features(features_in, class_name=''):
         features_out += f'\t\t\t\t\t\t\t<class />\n'
         features_out += f'\t\t\t\t\t\t\t<recordname />\n'
         features_out += f'\t\t\t\t\t\t</shortcut>\n'
-        features_out += f'\t\t\t\t\t\t<level type="number">1</level>\n'
+        features_out += f'\t\t\t\t\t\t<level type="number">{ftr.get("level", 1)}</level>\n'
         features_out += f'\t\t\t\t\t\t<name type="string">{ftr["name"]}</name>\n'
         features_out += f'\t\t\t\t\t\t<description type="formattedtext">{feature_desc}</description>\n'
 
@@ -211,7 +212,7 @@ def create_features(features_in, class_name=''):
                 features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
                 features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
                 features_out += '\t\t\t\t\t\t\t\t</link>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<level type="number">{sub_ftr.get("level", 1)}</level>\n'
                 features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
                 features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
                 features_out += create_power_tags(sub_ftr, '\t\t\t\t\t\t\t\t')
@@ -231,7 +232,7 @@ def create_features(features_in, class_name=''):
                 features_out += f'\t\t\t\t\t\t\t\t\t<class>powerdesc</class>\n'
                 features_out += f'\t\t\t\t\t\t\t\t\t<recordname>reference.features.{name_lower}{feature_lower}@{settings.library}</recordname>\n'
                 features_out += '\t\t\t\t\t\t\t\t</link>\n'
-                features_out += f'\t\t\t\t\t\t\t\t<level type="number">1</level>\n'
+                features_out += f'\t\t\t\t\t\t\t\t<level type="number">{sub_ftr.get("level", 1)}</level>\n'
                 features_out += f'\t\t\t\t\t\t\t\t<name type="string">{sub_ftr["name"]}</name>\n'
                 features_out += f'\t\t\t\t\t\t\t\t<description type="formattedtext">{sub_desc}</description>\n'
                 features_out += create_power_tags(sub_ftr, '\t\t\t\t\t\t\t\t')
@@ -349,6 +350,7 @@ def extract_classes_db(db_in):
         # these are the unique features for each Class (excluding powers)
         feature_list = [] #Used for the description section of the class
         class_feature_list = []  #Used for the separate feature tags
+        current_level = 1
         in_feature = False
         in_power = False
         in_class_feature = False
@@ -358,6 +360,21 @@ def extract_classes_db(db_in):
                 if isinstance(tag, Tag) and tag.has_attr('class') and tag.attrs.get('class')[0] in ['flavor', 'powerstat']:
                         continue
                 if tag.name == 'h3':
+                    # Check for level marker (Essentials classes use "<h3>Level N:</h3>" headings)
+                    level_match = re.match(r'^Level\s+(\d+)\s*:?\s*$', tag.text)
+                    if level_match:
+                        current_level = int(level_match.group(1))
+                        if in_feature:
+                            feature_dict["desc"] += '</p>'
+                            ftr_link, ftr_desc = create_feature(feature_dict, name_str)
+                            description_str += ftr_link
+                            featuredesc_str += ftr_desc
+                            feature_list.append(copy.copy(feature_dict))
+                            in_feature = False
+                        if in_class_feature:
+                            class_feature_dict["desc"] += '</p>'
+                            class_feature_list.append(copy.copy(class_feature_dict))
+                            in_class_feature = False
                     description_str += '<p><b>' + tag.text + '</b></p>\n'
                 elif tag.name == 'b' or tag.text in ['Suggested Combinations', 'Selecting Druid Powers', name_str.upper() + ' OVERVIEW']:
                     # if we are already in a feature then this is the end
@@ -373,10 +390,11 @@ def extract_classes_db(db_in):
                         description_str += '<p><b>' + title_format(tag.text) + '</b></p>\n'
                         if in_class_feature:
                             class_feature_dict["desc"] += '</p>'
-                            class_feature_list.append(copy.copy(class_feature_dict))                        
+                            class_feature_list.append(copy.copy(class_feature_dict))
                         class_feature_dict = {}
                         class_feature_dict["name"] =  title_format(tag.text)
                         class_feature_dict["desc"] = "<p>"
+                        class_feature_dict["level"] = current_level
                         class_feature_dict["powers_given"] = []
                         class_feature_dict["power_options"] = []
                         in_class_feature = True
@@ -394,6 +412,7 @@ def extract_classes_db(db_in):
                         feature_dict = {}
                         feature_dict["name"] = tag.text
                         feature_dict["desc"] = '<p>'
+                        feature_dict["level"] = current_level
                         feature_dict["parent"] = class_feature_dict["name"]
                         feature_dict["powers_given"] = []
                         feature_dict["power_options"] = []
