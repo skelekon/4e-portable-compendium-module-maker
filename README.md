@@ -41,6 +41,7 @@ Options:
   -E, --epic         export Epic Destinies
   -F, --familiars    export Familiars information
   -D, --deities      export Deity information
+  -S, --skills       export Skills
   -f, --feats        export Feats
   -p, --powers       export PC Powers
   -b, --basic        include Basic Attacks in Power export
@@ -64,7 +65,7 @@ Options:
 ```
 module_maker.exe --filename 4E_Monsters --library "4E Monsters" -n -t
 module_maker.exe --filename 4E_Traps_Terrain_Diseases --library "4E Traps, Terrain and Diseases" -T -e -d
-module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -R -C -B -H -P -E -F -D -f -p -b -s
+module_maker.exe --filename 4E_PC_Options --library "4E PC Options" -R -C -B -H -P -E -F -D -S -f -p -b -s
 module_maker.exe --filename 4E_Items --library "4E Items" -a -r -m -o -i -t -s
 ```
 

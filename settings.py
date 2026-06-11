@@ -15,6 +15,7 @@ paragon = False
 epic = False
 familiars = False
 deities = False
+skills = False
 feats = False
 powers = False
 basic = False

@@ -38,7 +38,7 @@ def clean_formattedtext(text_in):
 
 def check_all_dbs():
     file_list = ['sql\ddiBackground.sql', 'sql\ddiClass.sql', 'sql\ddiCompanion.sql', 'sql\ddiDeity.sql', 'sql\ddiDisease.sql', 'sql\ddiEpicDestiny.sql', 'sql\ddiFeat.sql', 'sql\ddiItem.sql',\
-                 'sql\ddiMonster.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPoison.sql', 'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql', 'sql\ddiTerrain.sql', 'sql\ddiTheme.sql', 'sql\ddiTrap.sql']
+                 'sql\ddiMonster.sql', 'sql\ddiParagonPath.sql', 'sql\ddiPoison.sql', 'sql\ddiPower.sql', 'sql\ddiRace.sql', 'sql\ddiRitual.sql', 'sql\ddiSkill.sql', 'sql\ddiTerrain.sql', 'sql\ddiTheme.sql', 'sql\ddiTrap.sql']
     for f in file_list:
         if not os.path.isfile(f):
             print('Missing File: ' + f)
@@ -70,6 +70,7 @@ def parse_argv(args_in):
     parser.add_option('-E', '--epic', action='store_true', dest='epic', help='export Epic Destinies')
     parser.add_option('-F', '--familiars', action='store_true', dest='familiars', help='export Familiars information')
     parser.add_option('-D', '--deities', action='store_true', dest='deities', help='export Deity information')
+    parser.add_option('-S', '--skills', action='store_true', dest='skills', help='export Skills')
     parser.add_option('-f', '--feats', action='store_true', dest='feats', help='export Feats')
     parser.add_option('-p', '--powers', action='store_true', dest='powers', help='export PC Powers')
     parser.add_option('-b', '--basic', action='store_true', dest='basic', help='include Basic Attacks in Power export')
@@ -125,6 +126,7 @@ def parse_argv(args_in):
     settings.epic = options.epic if options.epic != None else False
     settings.familiars = options.familiars if options.familiars != None else False
     settings.deities = options.deities if options.deities != None else False
+    settings.skills = options.skills if options.skills != None else False
     settings.feats = options.feats if options.feats != None else False
     settings.powers = options.powers if options.powers != None else False
     settings.basic = options.basic if options.basic != None else False

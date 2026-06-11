@@ -70,6 +70,11 @@ from helpers.deities_helpers import create_deities_library
 from helpers.deities_helpers import create_deities_list
 from helpers.deities_helpers import create_deities_cards
 
+from helpers.skill_helpers import extract_skill_db
+from helpers.skill_helpers import create_skill_library
+from helpers.skill_helpers import create_skill_list
+from helpers.skill_helpers import create_skill_cards
+
 from helpers.feat_helpers import extract_feat_db
 from helpers.feat_helpers import create_feat_library
 from helpers.feat_helpers import create_feat_list
@@ -148,6 +153,7 @@ if __name__ == '__main__':
 ##    settings.epic = True
 ##    settings.familiars = True
 ##    settings.deities = True
+##    settings.skills = True
 ##    settings.feats = True
 ##    settings.powers = True
 ##    settings.basic = True
@@ -580,6 +586,32 @@ if __name__ == '__main__':
         deities_cards = create_deities_cards(deities_extract)
 
     #===========================
+    # SKILLS
+    #===========================
+
+    skill_lib = ''
+    skill_list = ''
+    skill_cards = ''
+
+    if settings.skills:
+        # Pull Skills data from Portable Compendium
+        skill_db = []
+        try:
+            skill_db = create_db('sql\ddiSkill.sql', "','")
+        except:
+            print('Error reading Skill data source.')
+
+        if not skill_db:
+            print('NO DATA FOUND. MAKE SURE PORTABLE COMPENDIUM DATA IS IN THE SQL SUBDIRECTORY!')
+            input('Press enter to close.')
+            sys.exit(0)
+
+        skill_extract = extract_skill_db(skill_db)
+        skill_lib = create_skill_library()
+        skill_list = create_skill_list(skill_extract)
+        skill_cards = create_skill_cards(skill_extract)
+
+    #===========================
     # FEATS
     #===========================
 
@@ -852,6 +884,7 @@ if __name__ == '__main__':
     export_xml += epic_lib
     export_xml += familiar_lib
     export_xml += deities_lib
+    export_xml += skill_lib
     export_xml += feat_lib
     export_xml += power_lib
     export_xml += alchemy_lib
@@ -903,6 +936,7 @@ if __name__ == '__main__':
     export_xml += practice_list
     export_xml += races_list
     export_xml += ritual_list
+    export_xml += skill_list
     export_xml += terrain_list
     export_xml += trap_list_concat
     export_xml += weapons_list
@@ -938,6 +972,8 @@ if __name__ == '__main__':
         export_xml += ('\t\t</features>\n')
 
     export_xml += heroic_cards
+
+    export_xml += skill_cards
 
     # ITEMS
     if settings.mundane or settings.magic or settings.alchemy:
@@ -1003,5 +1039,15 @@ if __name__ == '__main__':
     export_xml = re.sub('[ﬁ]', 'fi', export_xml)    # ligature fi
     export_xml = re.sub('[…]', '...', export_xml)   # horizontal ellipsis
     export_xml = re.sub('[™]', '', export_xml)      # Trademark
+    export_xml = re.sub('([0-9])¼', r'\1 1/4', export_xml)   # fractions
+    export_xml = re.sub('([0-9])½', r'\1 1/2', export_xml)
+    export_xml = re.sub('([0-9])¾', r'\1 3/4', export_xml)
+    export_xml = re.sub('([0-9])⅓', r'\1 1/3', export_xml)
+    export_xml = re.sub('([0-9])⅔', r'\1 2/3', export_xml)
+    export_xml = re.sub('[¼]', '1/4', export_xml)
+    export_xml = re.sub('[½]', '1/2', export_xml)
+    export_xml = re.sub('[¾]', '3/4', export_xml)
+    export_xml = re.sub('[⅓]', '1/3', export_xml)
+    export_xml = re.sub('[⅔]', '2/3', export_xml)
 
     create_module(export_xml)
